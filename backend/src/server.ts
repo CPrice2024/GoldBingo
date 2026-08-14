@@ -10,7 +10,7 @@ import {
   recoverAutomaticGames,
 } from "./modules/games/game.autoCaller";
 
-const PORT = process.env.PORT || 5000;
+const PORT = Number(process.env.PORT) || 5000;
 
 const server = http.createServer(app);
 
@@ -25,12 +25,11 @@ async function startServer() {
     // Recover/resume Bingo automation
     await recoverAutomaticGames();
 
-    server.listen(PORT, () => {
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(
-        `🚀 Server running on http://localhost:${PORT}`
+        `🚀 Server running on port ${PORT}`
       );
     });
-
   } catch (error) {
     console.error(
       "❌ Failed to connect to MongoDB"
