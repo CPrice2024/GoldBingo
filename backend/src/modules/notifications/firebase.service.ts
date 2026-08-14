@@ -11,10 +11,12 @@ import {
   Message,
 } from "firebase-admin/messaging";
 
-const serviceAccountPath = path.join(
-  process.cwd(),
-  "firebase-service-account.json"
-);
+const serviceAccountPath = process.env.RENDER
+  ? "/etc/secrets/firebase-service-account.json"
+  : path.join(
+      process.cwd(),
+      "firebase-service-account.json"
+    );
 
 const firebaseApp =
   getApps().length > 0
