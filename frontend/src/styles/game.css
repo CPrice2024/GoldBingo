@@ -1,0 +1,1646 @@
+/* =========================================================
+   NEW BINGO GAME ROOM - COMPACT MOBILE LAYOUT
+   ========================================================= */
+
+.bingo-mobile-page {
+    width: 100%;
+    min-height: 100vh;
+    padding-bottom: 90px;
+    background: #f1f5f900;
+    color: #fefefe;
+}
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.bingo-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 58px;
+    padding: 0 14px;
+    background: #1976d200;
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.bingo-topbar-button {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+  color: white;
+
+  cursor: pointer;
+}
+
+.bingo-topbar-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bingo-topbar-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  min-width: 0;
+}
+
+.bingo-topbar-title strong {
+  max-width: 190px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.bingo-topbar-title span {
+  margin-top: 2px;
+
+  font-size: 9px;
+  font-weight: 700;
+
+  opacity: 0.8;
+}
+
+/* =========================================================
+   GAME INFO
+   ========================================================= */
+
+.bingo-game-info {
+    margin: 10px 10px 7px;
+    padding: 12px;
+    border: 1px solid #0062be;
+    border-radius: 8px;
+    background: #ffffff00;
+    box-shadow: 0 2px 8px rgb(31 0 179 / 31%);
+}
+
+.bingo-game-info-main {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 10px;
+}
+
+.bingo-live-icon {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  background: #e8f1ff;
+  color: #1976d2;
+}
+
+.bingo-game-info-main > div:last-child {
+  min-width: 0;
+}
+
+.bingo-game-info-main strong {
+     display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #d4d4d4;
+    font-family: monospace;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.bingo-game-info-main span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   GAME STATS
+   ========================================================= */
+
+.bingo-info-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 6px;
+
+  margin-top: 10px;
+}
+
+.bingo-info-stats > div {
+  display: grid;
+
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+
+  column-gap: 5px;
+
+  padding: 7px 8px;
+
+  border-radius: 10px;
+
+  background: #f8fafc00;
+}
+
+.bingo-info-stats svg {
+  grid-row: 1 / 3;
+
+  align-self: center;
+
+  color: #1976d2;
+}
+
+.bingo-info-stats span {
+  color: #d8d8d8;
+  font-size: 10px;
+}
+
+.bingo-info-stats strong {
+  color: #f8ec00;
+  font-size: 12px;
+}
+
+/* =========================================================
+   DRAWN NUMBER
+   ========================================================= */
+
+.bingo-drawn-section {
+ display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    margin: 7px 10px;
+    padding: 7px 12px;
+    border: 1px solid #015fcc;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0);
+    min-height: 55px;
+}
+
+.bingo-drawn-label {
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.bingo-drawn-number {
+  width: 50px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #014d99;
+  color: white;
+
+  font-size: 18px;
+  font-weight: 900;
+
+  box-shadow:
+    0 3px 8px rgba(25, 118, 210, 0.25);
+}
+
+.bingo-drawn-count {
+  justify-self: end;
+
+  color: #6b7280;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   BINGO BOARD
+   ========================================================= */
+
+.bingo-board-card {
+     margin: 7px 0px;
+    padding: 8px 5px 10px;
+    border: 1px solid #0053b1;
+    border-radius: 8px;
+    background: #00031200;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.bingo-board-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 2px 7px 8px;
+}
+
+.bingo-board-title strong {
+      color: #b2b2b2;
+    font-size: 12px;
+    font-family: monospace;
+    letter-spacing: 3px;
+}
+
+.bingo-board-title span {
+  color: #6b7280;
+
+  font-size: 10px;
+}
+
+/* Each B I N G O row */
+
+.bingo-board {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+}
+
+.bingo-board-row {
+  display: grid;
+
+  grid-template-columns:
+    30px repeat(15, minmax(0, 1fr));
+
+  gap: 3px;
+}
+
+/* B I N G O letters */
+
+.bingo-letter {
+    min-height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: #004f9e;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+/* Individual numbers */
+
+.bingo-board-number {
+    min-width: 0;
+    min-height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d1d5db2e;
+    border-radius: 5px;
+    background: #f3f4f600;
+    color: #b3b3b3;
+    font-size: 11px;
+    font-weight: 600;
+    transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+/* Called number */
+
+.bingo-board-number.called {
+      background: #00304d;
+    border-color: #6db6ff;
+    color: white;
+    font-weight: 900;
+}
+
+/* Latest number */
+
+.bingo-board-number.latest {
+  transform: scale(1.00);
+  color: #fdfdfd;
+  background-color: #004ec3;
+
+  z-index: 2;
+
+  box-shadow:
+    0 0 0 2px #002b6828,
+    0 0 0 4px #1976d23a;
+}
+
+/* =========================================================
+   CALLED HISTORY
+   ========================================================= */
+
+.bingo-called-history {
+      margin: 7px 10px;
+    padding: 10px;
+    border: 1px solid #006ce7;
+    border-radius: 5px;
+    background: #00000000;
+}
+
+.bingo-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+
+  color: #6b7280;
+
+  font-size: 10px;
+}
+
+.bingo-history-header strong {
+  color: #374151;
+}
+
+.bingo-history-list {
+  display: flex;
+  flex-wrap: wrap;
+
+  gap: 5px;
+}
+
+.bingo-history-list span {
+  min-width: 31px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0 6px;
+
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #374151;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bingo-history-list .history-latest {
+  background: #1976d2;
+  color: white;
+}
+
+/* =========================================================
+   FIXED JOIN / CARD BUTTON
+   ========================================================= */
+
+.bingo-fixed-card-button {
+    position: fixed;
+    z-index: 1000;
+    left: 50%;
+    bottom: 14px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px 6px 6px;
+    border: none;
+    border-radius: 999px;
+    background: #003a58;
+    color: white;
+    font-size: 13px;
+    font-family: monospace;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+}
+
+.bingo-fixed-plus {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: white;
+  color: #1976d2;
+}
+
+.bingo-fixed-card-button:hover {
+  transform:
+    translateX(-50%)
+    translateY(-2px);
+}
+
+/* =========================================================
+   MODAL
+   ========================================================= */
+
+.bingo-modal-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 2000;
+
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+
+  padding: 0;
+
+  background: rgba(0, 0, 0, 0.55);
+
+  backdrop-filter: blur(4px);
+}
+
+.bingo-modal {
+  width: min(520px, 100%);
+
+  max-height: 92vh;
+
+  overflow-y: auto;
+
+  padding: 18px;
+
+  border-radius:
+    20px 20px 0 0;
+
+  background: #00024399;
+
+  box-shadow:
+    0 -10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.bingo-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  margin-bottom: 15px;
+}
+
+.bingo-modal-header strong {
+  display: block;
+
+  color: #e7e8e9;
+  font-family: monospace;
+
+  font-size: 16px;
+}
+
+.bingo-modal-header span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+}
+
+.bingo-modal-close {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+
+  background: #f1f5f9;
+  color: #374151;
+
+  cursor: pointer;
+}
+
+/* =========================================================
+   PLAYER CARD
+   ========================================================= */
+
+.bingo-player-card {
+  display: flex;
+  justify-content: center;
+
+  padding: 5px 0 15px;
+}
+
+.bingo-player-card .bingo-card-wrapper {
+  max-width: 430px;
+  width: 100%;
+}
+
+.bingo-card-actions {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 8px;
+}
+
+.bingo-check-button,
+.bingo-claim-button {
+  min-height: 44px;
+
+  border: none;
+  border-radius: 10px;
+
+  color: white;
+
+  font-size: 12px;
+  font-family: monospace;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.bingo-check-button {
+  background: #282d35;
+}
+
+.bingo-claim-button {
+  background: #001d39;
+}
+
+.bingo-check-button:disabled,
+.bingo-claim-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   JOIN PANEL
+   ========================================================= */
+
+.bingo-join-panel {
+  padding: 12px 4px 5px;
+
+  text-align: center;
+}
+
+.bingo-join-plus {
+  width: 62px;
+  height: 62px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 12px;
+
+  border-radius: 50%;
+
+  background: #e8f1ff;
+  color: #1976d2;
+}
+
+.bingo-join-panel h3 {
+  margin: 0 0 5px;
+
+  color: #bbbbbb;
+
+  font-size: 17px;
+}
+
+.bingo-join-panel > p {
+  margin: 0 0 15px;
+
+  color: #6b7280;
+
+  font-size: 12px;
+}
+
+.bingo-join-details {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 6px;
+
+  margin-bottom: 12px;
+}
+
+.bingo-join-details > div {
+  padding: 9px 5px;
+    border-radius: 9px;
+    border-bottom-style: solid;
+    border-color: #525cff;
+    background: #000d25;
+}
+
+.bingo-join-details span {
+  display: block;
+
+  color: #e6e6e7;
+
+  font-size: 10px;
+}
+
+.bingo-join-details strong {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #f1f1f3;
+  font-family: monospace;
+
+  font-size: 12px;
+}
+
+.bingo-join-button {
+     width: 100%;
+    min-height: 44px;
+    border-radius: 10px;
+    border-style: solid;
+    border-color: #bf91ec;
+    background: #001326;
+    color: white;
+    border-width: 1px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.bingo-join-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bingo-watch-only {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 15px;
+
+  border-radius: 10px;
+
+  background: #f1f5f9;
+
+  color: #475569;
+
+  font-size: 12px;
+}
+
+.bingo-watch-only span {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+/* =========================================================
+   MESSAGES
+   ========================================================= */
+
+.bingo-inline-error {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  margin: 7px 10px;
+
+  padding: 9px 11px;
+
+  border-radius: 9px;
+
+  background: #fee2e2;
+  color: #b91c1c;
+
+  font-size: 11px;
+}
+
+.bingo-inline-message {
+  margin: 7px 10px;
+
+  padding: 9px 11px;
+
+  border-radius: 9px;
+
+  background: #dcfce7;
+  color: #166534;
+
+  font-size: 11px;
+}
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.bingo-loading {
+  min-height: 60vh;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+.bingo-loading .spin {
+  animation: bingo-spin 0.8s linear infinite;
+}
+
+@keyframes bingo-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =========================================================
+   DESKTOP
+   ========================================================= */
+
+@media (min-width: 769px) {
+
+  .bingo-mobile-page {
+    max-width: 900px;
+
+    margin: 0 auto;
+
+    padding-bottom: 100px;
+  }
+
+  .bingo-board-card {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .bingo-board-row {
+    grid-template-columns:
+      45px repeat(15, minmax(0, 1fr));
+
+    gap: 5px;
+  }
+
+  .bingo-board-number {
+    min-height: 40px;
+    font-size: 13px;
+  }
+
+  .bingo-letter {
+    min-height: 40px;
+  }
+
+  .bingo-game-info {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .bingo-drawn-section {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  .bingo-called-history {
+    margin-left: 0;
+    margin-right: 0;
+  }
+}
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .bingo-topbar {
+    padding: 0 8px;
+  }
+
+  .bingo-topbar-title strong {
+    max-width: 150px;
+    font-size: 14px;
+  }
+
+  .bingo-game-info {
+    margin-left: 5px;
+    margin-right: 5px;
+
+    padding: 9px;
+  }
+
+  .bingo-board-card {
+    margin-left: 3px;
+    margin-right: 3px;
+
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  .bingo-board-row {
+    grid-template-columns:
+      25px repeat(15, minmax(0, 1fr));
+
+    gap: 2px;
+  }
+
+  .bingo-letter {
+    min-height: 27px;
+
+    border-radius: 5px;
+
+    font-size: 10px;
+  }
+
+  .bingo-board-number {
+    min-height: 27px;
+
+    border-radius: 5px;
+
+    font-size: 9px;
+  }
+
+  .bingo-board-title strong {
+    font-size: 14px;
+  }
+
+  .bingo-board-title span {
+    font-size: 9px;
+  }
+
+  .bingo-info-stats span {
+    font-size: 8px;
+  }
+
+  .bingo-info-stats strong {
+    font-size: 10px;
+  }
+}
+
+/* =========================================================
+   FIX: BINGO CARD INSIDE MODAL
+   ========================================================= */
+
+.bingo-modal .bingo-player-card,
+.bingo-modal .modal-card-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.bingo-modal .bingo-card-wrapper {
+  width: 100%;
+  max-width: 430px;
+}
+
+/* B I N G O header */
+.bingo-modal .bingo-card-header {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 5px !important;
+  width: 100%;
+  margin-bottom: 5px;
+}
+
+/* B I N G O letters */
+.bingo-modal .bingo-column {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  height: 38px;
+  min-height: 38px;
+
+  border-radius: 6px;
+
+  background: #00145a;
+  color: #fcfcfe;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* 5 x 5 number grid */
+.bingo-modal .bingo-grid {
+  display: grid !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  gap: 5px !important;
+  width: 100%;
+}
+
+/* Individual card cells */
+.bingo-modal .bingo-cell {
+  aspect-ratio: 1 / 1;
+
+  min-width: 0;
+  min-height: 55px;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #292e3a;
+  border-radius: 8px;
+
+  background: #0e1118;
+  color: #e8ecf3;
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Called card number */
+.bingo-modal .bingo-cell.called {
+      background: linear-gradient(135deg, #000431f5, #002e93);
+    border-color: #a978fd;
+    color: white;
+}
+
+/* FREE center */
+.bingo-modal .bingo-cell.free {
+  background: linear-gradient(
+    135deg,
+    #7c3aed,
+    #2563eb
+  );
+
+  border-color: #7c3aed;
+  color: white;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+  .bingo-modal .bingo-card-wrapper {
+    max-width: 360px;
+  }
+
+  .bingo-modal .bingo-card-header {
+    gap: 4px !important;
+  }
+
+  .bingo-modal .bingo-grid {
+    gap: 4px !important;
+  }
+
+  .bingo-modal .bingo-column {
+    height: 34px;
+    min-height: 34px;
+
+    font-size: 14px;
+  }
+
+  .bingo-modal .bingo-cell {
+    min-height: 54px;
+
+    border-radius: 7px;
+
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 380px) {
+
+  .bingo-modal .bingo-card-wrapper {
+    max-width: 330px;
+  }
+
+  .bingo-modal .bingo-cell {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .bingo-modal .bingo-column {
+    height: 31px;
+    min-height: 31px;
+    font-size: 13px;
+  }
+}
+
+.bingo-card-notification {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #fff3cd;
+  color: #856404;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  border: 1px solid #ffe69c;
+}
+
+.bingo-card-notification-win {
+  background: #d1e7dd;
+  color: #0f5132;
+  border-color: #a3cfbb;
+}
+
+/* =========================================
+   NO ACTIVE GAME
+========================================= */
+
+.no-game-page {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  box-sizing: border-box;
+}
+
+.no-game-card {
+  width: min(720px, 100%);
+  padding: 55px 45px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+
+  border-radius: 28px;
+
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(124, 58, 237, 0.18),
+      transparent 45%
+    ),
+    linear-gradient(
+      145deg,
+      #15121f,
+      #090a10
+    );
+
+  border: 1px solid rgba(139, 92, 246, 0.3);
+
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+
+/* ICON */
+
+.no-game-icon {
+  width: 100px;
+  height: 100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 25px;
+
+  border-radius: 50%;
+
+  color: #a855f7;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(168, 85, 247, 0.2),
+      rgba(168, 85, 247, 0.04)
+    );
+
+  border: 1px solid rgba(168, 85, 247, 0.25);
+
+  box-shadow:
+    0 0 50px rgba(168, 85, 247, 0.15);
+}
+
+
+/* TITLE */
+
+.no-game-card h1 {
+  margin: 0;
+
+  font-size: clamp(32px, 5vw, 46px);
+  line-height: 1.1;
+
+  font-weight: 800;
+  letter-spacing: -1px;
+
+  color: #ffffff;
+}
+
+.no-game-card h1 span {
+  color: #f5c542;
+}
+
+
+/* SUBTITLE */
+
+.no-game-subtitle {
+  max-width: 520px;
+
+  margin: 15px 0 0;
+
+  color: #9298aa;
+
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+
+/* DIVIDER */
+
+.no-game-divider {
+  width: 260px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  margin: 28px 0;
+}
+
+.no-game-divider span {
+  height: 1px;
+  flex: 1;
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(245, 197, 66, 0.6)
+  );
+}
+
+.no-game-divider span:nth-child(3) {
+  background: linear-gradient(
+    90deg,
+    rgba(245, 197, 66, 0.6),
+    transparent
+  );
+}
+
+.no-game-divider svg {
+  color: #f5c542;
+}
+
+
+/* INFORMATION */
+
+.no-game-info {
+  width: min(520px, 100%);
+
+  display: flex;
+  align-items: flex-start;
+
+  gap: 15px;
+
+  padding: 18px 20px;
+
+  text-align: left;
+
+  border-radius: 16px;
+
+  background: rgba(139, 92, 246, 0.07);
+
+  border: 1px solid rgba(139, 92, 246, 0.18);
+
+  box-sizing: border-box;
+}
+
+.no-game-info-icon {
+  width: 38px;
+  height: 38px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  color: #a855f7;
+
+  background: rgba(168, 85, 247, 0.12);
+}
+
+.no-game-info strong {
+  display: block;
+
+  margin-bottom: 5px;
+
+  color: #ffffff;
+
+  font-size: 15px;
+}
+
+.no-game-info p {
+  margin: 0;
+
+  color: #8f95a7;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+
+/* RETRY BUTTON */
+
+.no-game-retry-button {
+  margin-top: 28px;
+
+  min-width: 180px;
+  height: 50px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  border: 0;
+  border-radius: 13px;
+
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6d28d9
+  );
+
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 10px 30px rgba(109, 40, 217, 0.25);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.no-game-retry-button:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 15px 35px rgba(109, 40, 217, 0.4);
+}
+
+.no-game-retry-button:active {
+  transform: translateY(0);
+}
+
+.no-game-retry-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* FOOTER */
+
+.no-game-footer {
+  width: 100%;
+
+  margin-top: 35px;
+  padding-top: 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  color: #747b8e;
+
+  font-size: 13px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.no-game-footer svg {
+  color: #f5c542;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+  .no-game-page {
+    min-height: calc(100vh - 70px);
+    padding: 20px 14px;
+  }
+
+  .no-game-card {
+    padding: 40px 20px;
+    border-radius: 22px;
+  }
+
+  .no-game-icon {
+    width: 82px;
+    height: 82px;
+  }
+
+  .no-game-icon svg {
+    width: 34px;
+    height: 34px;
+  }
+
+  .no-game-card h1 {
+    font-size: 32px;
+  }
+
+  .no-game-subtitle {
+    font-size: 14px;
+  }
+
+  .no-game-divider {
+    width: 200px;
+    margin: 24px 0;
+  }
+
+  .no-game-info {
+    padding: 15px;
+  }
+
+  .no-game-retry-button {
+    width: 100%;
+  }
+
+  .no-game-footer {
+    font-size: 12px;
+  }
+}
+/* =====================================================
+   PLAY PAGE SKELETON
+   ===================================================== */
+
+.play-page-skeleton {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+/* Header */
+
+.skeleton-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.skeleton-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #20222c;
+}
+
+.skeleton-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.skeleton-line {
+  border-radius: 8px;
+  background: #20222c;
+}
+
+.skeleton-title {
+  width: 220px;
+  height: 20px;
+}
+
+.skeleton-subtitle {
+  width: 150px;
+  height: 13px;
+}
+
+
+/* Game Card */
+
+.skeleton-game-card {
+  width: 100%;
+  padding: 28px;
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(20, 22, 32, 0.98),
+      rgba(12, 14, 22, 0.98)
+    );
+
+  border: 1px solid rgba(255, 255, 255, 0.06);
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+
+/* Game top */
+
+.skeleton-game-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.skeleton-game-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  background: #20222c;
+}
+
+.skeleton-game-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.skeleton-game-title {
+  width: 210px;
+  height: 18px;
+}
+
+.skeleton-game-subtitle {
+  width: 130px;
+  height: 12px;
+}
+
+.skeleton-status {
+  width: 90px;
+  height: 30px;
+  border-radius: 20px;
+  background: #20222c;
+}
+
+
+/* Stats */
+
+.skeleton-stats {
+  display: grid;
+  grid-template-columns:
+    repeat(3, 1fr);
+
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.skeleton-stat {
+  min-height: 85px;
+  padding: 18px;
+  border-radius: 15px;
+  background: #181a23;
+}
+
+.skeleton-stat-small {
+  width: 55px;
+  height: 10px;
+  border-radius: 6px;
+  background: #292c38;
+  margin-bottom: 13px;
+}
+
+.skeleton-stat-large {
+  width: 75px;
+  height: 17px;
+  border-radius: 6px;
+  background: #292c38;
+}
+
+
+/* Main content */
+
+.skeleton-content {
+  width: 100%;
+  height: 90px;
+  border-radius: 16px;
+  background: #181a23;
+  margin-bottom: 12px;
+}
+
+.skeleton-content-small {
+  width: 65%;
+  height: 14px;
+  border-radius: 7px;
+  background: #20222c;
+  margin-bottom: 26px;
+}
+
+
+/* Button */
+
+.skeleton-button {
+  width: 180px;
+  height: 48px;
+  border-radius: 12px;
+  background: #20222c;
+}
+
+
+/* Loading message */
+
+.skeleton-loading-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+
+  margin-top: 22px;
+
+  color: #8f93a3;
+  font-size: 14px;
+}
+
+
+/* =====================================================
+   SHIMMER
+   ===================================================== */
+
+.skeleton-pulse {
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+
+  transform: translateX(-100%);
+
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.06),
+    transparent
+  );
+
+  animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+
+/* Existing spinner */
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 768px) {
+  .play-page-skeleton {
+    padding: 20px;
+  }
+
+  .skeleton-game-card {
+    padding: 20px;
+  }
+
+  .skeleton-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .skeleton-status {
+    display: none;
+  }
+
+  .skeleton-content-small {
+    width: 90%;
+  }
+}
