@@ -24,7 +24,23 @@ import profileRoutes from "./modules/profile/profile.routes";
 const app = express();
 
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://goldbingo-frontend.onrender.com",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked origin: ${origin}`));
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(helmet());
