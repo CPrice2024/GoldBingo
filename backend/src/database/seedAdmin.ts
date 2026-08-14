@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
-import { createUserWallet } from "../modules/wallet/wallet.service";
 dotenv.config();
 
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
+import { createUserWallet } from "../modules/wallet/wallet.service";
 import { User } from "../modules/users/user.model";
 
 const seedAdmin = async () => {
@@ -16,22 +16,26 @@ const seedAdmin = async () => {
 
     console.log("MongoDB Connected");
 
+    const phone = "090000001";
+    const password = "Admin@1234";
+
+    // Check specifically for this admin phone
     const existingAdmin = await User.findOne({
-      role: "admin",
+      phone,
     });
 
     if (existingAdmin) {
-      console.log("An admin already exists.");
+      console.log("An admin with this phone already exists.");
+      console.log("ID:", existingAdmin._id.toString());
+      console.log("Phone:", existingAdmin.phone);
       return;
     }
-
-    const password = "Admin@123456";
 
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const admin = await User.create({
       fullName: "BingoHub Administrator",
-      phone: "0900000000",
+      phone,
       password: hashedPassword,
       role: "admin",
       status: "active",
