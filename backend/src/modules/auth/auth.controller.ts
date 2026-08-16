@@ -5,7 +5,7 @@ import {
   registerPlayer,
   login,
 } from "./auth.service";
-
+import { getAuth } from "firebase-admin/auth";
 import {
   validateRegisterInput,
   validateLoginInput,
@@ -182,6 +182,96 @@ export const changePassword = async (
         error instanceof Error
           ? error.message
           : "Failed to change password",
+    });
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const {
+      idToken,
+      newPassword,
+    } = req.body;
+
+    if (
+      typeof idToken !== "string" ||
+      !idToken
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Firebase verification token is required",
+      });
+    }
+
+    if (
+      typeof newPassword !== "string" ||
+      newPassword.length < 6
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "New password must be at least 6 characters",
+      });
+    }
+
+    const decodedToken =
+      await getAuth().verifyIdToken(
+        idToken
+      );
+
+    const firebasePhone =
+      decodedToken.phone_number;
+
+    if (!firebasePhone) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Verified phone number was not found",
+      });
+    }
+
+    const user = await User.findOne({
+      phone: firebasePhone,
+      role: "player",
+    }).select("+password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message:
+          "No player account is associated with this phone number",
+      });
+    }
+
+    const hashedPassword =
+      await bcrypt.hash(
+        newPassword,
+        12
+      );
+
+    user.password = hashedPassword;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message:
+        "Password reset successfully",
+    });
+  } catch (error) {
+    console.error(
+      "[AUTH] Reset password error:",
+      error
+    );
+
+    return res.status(401).json({
+      success: false,
+      message:
+        "Phone verification failed or expired",
     });
   }
 };

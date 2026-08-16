@@ -40,3 +40,18 @@ export const changePassword = async (
 
   return response.data;
 };
+
+export const resetPasswordWithFirebase = async (
+  idToken,
+  newPassword
+) => {
+  const response = await api.post(
+    "/auth/reset-password",
+    {
+      idToken,
+      newPassword,
+    }
+  );
+
+  return response.data;
+};

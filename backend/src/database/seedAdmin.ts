@@ -15,9 +15,10 @@ const seedAdmin = async () => {
     await mongoose.connect(process.env.MONGO_URI);
 
     console.log("MongoDB Connected");
+    console.log("Database:", mongoose.connection.db?.databaseName);
 
-    const phone = "090000001";
-    const password = "Admin@1234";
+    const phone = "090000002";
+    const password = "Admin@01234";
 
     // Check specifically for this admin phone
     const existingAdmin = await User.findOne({

@@ -16,6 +16,7 @@ const seedWallets = async () => {
     await mongoose.connect(process.env.MONGO_URI);
 
     console.log("MongoDB Connected");
+    console.log("Database:", mongoose.connection.db?.databaseName);
 
     const users = await User.find({});
 

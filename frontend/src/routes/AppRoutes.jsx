@@ -7,6 +7,7 @@ import {
 
 import PlayerLogin from "../pages/player/Login";
 import PlayerSignup from "../pages/player/Signup";
+import ForgotPassword from "../pages/player/ForgotPassword";
 import ChangePassword from "../pages/player/ChangePassword";
 import PlayerDashboard from "../pages/player/Dashboard";
 import PlayerWallet from "../pages/player/Wallet";
@@ -58,6 +59,10 @@ function AppRoutes() {
           path="/player/signup"
           element={<PlayerSignup />}
         />
+        <Route
+  path="/player/forgot-password"
+  element={<ForgotPassword />}
+/>
 
         {/* =========================
             MANAGEMENT AUTH
