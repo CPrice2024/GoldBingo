@@ -372,7 +372,7 @@ a {
     );
 
   backdrop-filter: blur(48px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
 
   border-right: 1px solid rgba(255, 255, 255, 0.08);
 
