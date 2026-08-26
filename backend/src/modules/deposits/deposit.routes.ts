@@ -5,8 +5,10 @@ import { authenticate } from "../auth/auth.middleware";
 import {
   createDepositRequest,
   getMyDeposits,
+  getMyPaymentSettings,
   getPendingAgentDeposits,
   approveDepositRequest,
+
 } from "./deposit.controller";
 
 const router = Router();
@@ -21,6 +23,11 @@ router.post(
 router.get(
   "/my",
   getMyDeposits
+);
+
+router.get(
+  "/payment-settings",
+  getMyPaymentSettings
 );
 
 router.get(

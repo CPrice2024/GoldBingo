@@ -10,6 +10,7 @@ import {
   startAutomaticCaller,
   stopAutomaticCaller,
   scheduleNextGame,
+  scheduleAdminGameStart,
 } from "./game.autoCaller";
 
 import {
@@ -23,6 +24,9 @@ import {
 import {
   isPatternMatched,
   BingoPattern,
+  WinningPattern,
+  isValidWinningPattern,
+  getWinningPatternLabel,
 } from "./game.patterns";
 
 import { GameStatus } from "./game.types";
@@ -43,19 +47,82 @@ import { Transaction } from "../transactions/transaction.model";
 
 interface CreateGameInput {
   name: string;
+
   entryFee: number;
+
   maxPlayers: number;
+
+  winningPattern?:
+    WinningPattern;
+
+  scheduledStartAt?:
+    string | Date | null;
+
+  prizeAmount?:
+    number | null;
 }
 
+
+interface UpdateGameInput {
+  name?: string;
+
+  entryFee?: number;
+
+  maxPlayers?: number;
+
+  winningPattern?:
+    WinningPattern;
+
+  scheduledStartAt?:
+    string | Date | null;
+
+  prizeAmount?:
+    number | null;
+}
+
+
+const getParticipationCardIds = (
+  gamePlayer: any
+) => {
+  const ids: any[] = [];
+
+  if (
+    Array.isArray(
+      gamePlayer.cardIds
+    )
+  ) {
+    ids.push(
+      ...gamePlayer.cardIds
+    );
+  }
+
+  // Legacy support
+  if (gamePlayer.cardId) {
+    ids.push(
+      gamePlayer.cardId
+    );
+  }
+
+  return ids
+    .map(
+      (item) =>
+        item?._id ??
+        item
+    )
+    .filter(Boolean);
+};
 export const createNewGame = async (
   data: CreateGameInput
 ) => {
   if (!data.name?.trim()) {
-    throw new Error("Game name is required");
+    throw new Error(
+      "Game name is required"
+    );
   }
 
   if (
-    typeof data.entryFee !== "number" ||
+    typeof data.entryFee !==
+      "number" ||
     data.entryFee < 0
   ) {
     throw new Error(
@@ -64,7 +131,8 @@ export const createNewGame = async (
   }
 
   if (
-    typeof data.maxPlayers !== "number" ||
+    typeof data.maxPlayers !==
+      "number" ||
     data.maxPlayers <= 0
   ) {
     throw new Error(
@@ -72,12 +140,383 @@ export const createNewGame = async (
     );
   }
 
-  return createGame({
-    name: data.name.trim(),
-    entryFee: data.entryFee,
-    maxPlayers: data.maxPlayers,
+  const winningPattern =
+    data.winningPattern ??
+    "3_lines";
+
+  if (
+    !isValidWinningPattern(
+      winningPattern
+    )
+  ) {
+    throw new Error(
+      "Invalid winning pattern"
+    );
+  }
+  let scheduledStartAt:
+  Date | null = null;
+
+
+if (
+  data.scheduledStartAt
+) {
+
+  const parsedDate =
+    new Date(
+      data.scheduledStartAt
+    );
+
+
+  if (
+    Number.isNaN(
+      parsedDate.getTime()
+    )
+  ) {
+    throw new Error(
+      "Invalid scheduled start time"
+    );
+  }
+
+
+  if (
+    parsedDate.getTime() <=
+    Date.now()
+  ) {
+    throw new Error(
+      "Scheduled start time must be in the future"
+    );
+  }
+
+
+  scheduledStartAt =
+    parsedDate;
+}
+
+
+let prizeAmount:
+  number | null = null;
+
+
+if (
+  data.prizeAmount !==
+    undefined &&
+  data.prizeAmount !== null
+) {
+
+  prizeAmount =
+    Number(
+      data.prizeAmount
+    );
+
+
+  if (
+    !Number.isFinite(
+      prizeAmount
+    ) ||
+    prizeAmount < 0
+  ) {
+    throw new Error(
+      "Prize amount must be a valid non-negative number"
+    );
+  }
+
+}
+
+ const game =
+  await createGame({
+    name:
+      data.name.trim(),
+
+    entryFee:
+      data.entryFee,
+
+    maxPlayers:
+      data.maxPlayers,
+
+    winningPattern,
+
+    scheduledStartAt,
+
+    prizeAmount,
   });
+
+
+if (
+  game.scheduledStartAt
+) {
+  await scheduleAdminGameStart(
+    game._id.toString()
+  );
+}
+
+
+return game;
 };
+/* =========================================================
+   UPDATE EXISTING GAME
+========================================================= */
+
+export const updateExistingGame =
+  async (
+    gameId: string,
+    data: UpdateGameInput
+  ) => {
+
+    const game =
+      await findGameById(
+        gameId
+      );
+
+
+    /* =========================================
+       GAME EXISTS
+    ========================================= */
+
+    if (!game) {
+      throw new Error(
+        "Game not found"
+      );
+    }
+
+    /* =========================================
+   PRIZE AMOUNT
+========================================= */
+
+if (
+  data.prizeAmount !==
+  undefined
+) {
+
+  if (
+    data.prizeAmount ===
+    null
+  ) {
+
+    game.prizeAmount =
+      null;
+
+  } else {
+
+    const prizeAmount =
+      Number(
+        data.prizeAmount
+      );
+
+
+    if (
+      !Number.isFinite(
+        prizeAmount
+      ) ||
+      prizeAmount < 0
+    ) {
+      throw new Error(
+        "Prize amount must be a valid non-negative number"
+      );
+    }
+
+
+    game.prizeAmount =
+      prizeAmount;
+
+  }
+
+}
+
+
+/* =========================================
+   SCHEDULED START
+========================================= */
+
+if (
+  data.scheduledStartAt !==
+  undefined
+) {
+
+  if (
+    !data.scheduledStartAt
+  ) {
+
+    game.scheduledStartAt =
+      null;
+
+  } else {
+
+    const parsedDate =
+      new Date(
+        data.scheduledStartAt
+      );
+
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+      throw new Error(
+        "Invalid scheduled start time"
+      );
+    }
+
+
+    if (
+      parsedDate.getTime() <=
+      Date.now()
+    ) {
+      throw new Error(
+        "Scheduled start time must be in the future"
+      );
+    }
+
+
+    game.scheduledStartAt =
+      parsedDate;
+
+  }
+
+}
+if (
+  game.currentPlayers > 0 &&
+  data.entryFee !== undefined &&
+  data.entryFee !== game.entryFee
+) {
+  throw new Error(
+    "Entry fee cannot be changed after players have joined"
+  );
+}
+
+
+    /* =========================================
+       NAME
+    ========================================= */
+
+    if (
+      data.name !==
+      undefined
+    ) {
+
+      const name =
+        data.name.trim();
+
+      if (!name) {
+        throw new Error(
+          "Game name is required"
+        );
+      }
+
+      game.name =
+        name;
+    }
+
+
+    /* =========================================
+       ENTRY FEE
+    ========================================= */
+
+    if (
+      data.entryFee !==
+      undefined
+    ) {
+
+      if (
+        !Number.isFinite(
+          data.entryFee
+        ) ||
+        data.entryFee < 0
+      ) {
+        throw new Error(
+          "Entry fee must be a valid non-negative number"
+        );
+      }
+
+      game.entryFee =
+        data.entryFee;
+    }
+
+
+    /* =========================================
+       MAX PLAYERS
+    ========================================= */
+
+    if (
+      data.maxPlayers !==
+      undefined
+    ) {
+
+      if (
+        !Number.isFinite(
+          data.maxPlayers
+        ) ||
+        data.maxPlayers <= 0
+      ) {
+        throw new Error(
+          "Maximum players must be greater than zero"
+        );
+      }
+
+
+      if (
+        data.maxPlayers <
+        game.currentPlayers
+      ) {
+        throw new Error(
+          `Maximum players cannot be lower than current players (${game.currentPlayers})`
+        );
+      }
+
+
+      game.maxPlayers =
+        Math.floor(
+          data.maxPlayers
+        );
+    }
+
+
+    /* =========================================
+       WINNING PATTERN
+    ========================================= */
+
+    if (
+      data.winningPattern !==
+      undefined
+    ) {
+
+      if (
+        !isValidWinningPattern(
+          data.winningPattern
+        )
+      ) {
+        throw new Error(
+          "Invalid winning pattern"
+        );
+      }
+
+
+      game.winningPattern =
+        data.winningPattern;
+    }
+
+
+    /* =========================================
+       SAVE
+    ========================================= */
+
+    await game.save();
+
+
+/*
+ * Re-create the scheduled-start timer
+ * whenever Admin edits the game.
+ *
+ * scheduleAdminGameStart() also clears
+ * the previous timer first.
+ */
+await scheduleAdminGameStart(
+  game._id.toString()
+);
+
+
+return game;
+  };
 
 export const getGames = async (
   status?: GameStatus
@@ -108,6 +547,18 @@ export const startGame = async (
       "Game not found"
     );
   }
+
+  /* =========================================
+   ONLY WAITING GAME CAN BE EDITED
+========================================= */
+
+if (
+  game.status !== "waiting"
+) {
+  throw new Error(
+    "Only waiting games can be edited"
+  );
+}
 
   if (game.status !== "waiting") {
     throw new Error(
@@ -265,26 +716,69 @@ export const getGameState = async (
   const players =
     await getGamePlayers(gameId);
 
-  return {
-    game: {
-      id: game._id,
-      name: game.name,
-      entryFee: game.entryFee,
-      maxPlayers: game.maxPlayers,
-      currentPlayers:
-        game.currentPlayers,
-      prizePool: game.prizePool,
-      status: game.status,
-      calledNumbers:
-        game.calledNumbers,
-      startedAt:
-        game.startedAt,
-      completedAt:
-        game.completedAt,
-    },
+ return {
+  game: {
+    id:
+      game._id,
 
-    players,
-  };
+    name:
+      game.name,
+
+    winningPattern:
+      game.winningPattern ??
+      "3_lines",
+
+    winningPatternLabel:
+      getWinningPatternLabel(
+        game.winningPattern ??
+          "3_lines"
+      ),
+
+    entryFee:
+      game.entryFee,
+
+    maxPlayers:
+      game.maxPlayers,
+
+    currentPlayers:
+      game.currentPlayers,
+
+    prizePool:
+      game.prizePool,
+
+    prizeAmount:
+      game.prizeAmount,
+
+    scheduledStartAt:
+      game.scheduledStartAt,
+
+status:
+  game.status,
+
+    calledNumbers:
+      game.calledNumbers,
+
+    joiningWindowSeconds:
+      game.joiningWindowSeconds,
+
+    callIntervalSeconds:
+      game.callIntervalSeconds,
+
+    joiningEndsAt:
+      game.joiningEndsAt,
+
+    nextCallAt:
+      game.nextCallAt,
+
+    startedAt:
+      game.startedAt,
+
+    completedAt:
+      game.completedAt,
+  },
+
+  players,
+};
 };
 
 export const checkBingo = async (
@@ -303,31 +797,36 @@ export const checkBingo = async (
   }
 
   // 2. Game must be active
-  if (game.status !== "active") {
+  if (
+    game.status !== "active"
+  ) {
     throw new Error(
       "Game is not active"
     );
   }
 
   // 3. Validate pattern
-  const validPatterns: BingoPattern[] = [
-    "row",
-    "column",
-    "diagonal",
-    "four_corners",
-    "x",
-    "blackout",
-  ];
+  const validPatterns:
+    BingoPattern[] = [
+      "row",
+      "column",
+      "diagonal",
+      "four_corners",
+      "x",
+      "blackout",
+    ];
 
   if (
-    !validPatterns.includes(pattern)
+    !validPatterns.includes(
+      pattern
+    )
   ) {
     throw new Error(
       "Invalid Bingo pattern"
     );
   }
 
-  // 4. Find player's game participation
+  // 4. Find participation
   const gamePlayer =
     await findGamePlayer(
       gameId,
@@ -341,55 +840,97 @@ export const checkBingo = async (
   }
 
   if (
-    gamePlayer.status !== "active"
+    gamePlayer.status !==
+    "active"
   ) {
     throw new Error(
       "Player is not active in this game"
     );
   }
 
- // 5. Get assigned card
-const card = await Card.findById(
-  gamePlayer.cardId
-);
+  // 5. Get all player card IDs
+  const assignedCardIds =
+    getParticipationCardIds(
+      gamePlayer
+    );
 
-if (!card) {
-  throw new Error(
-    "No Bingo card assigned to this player"
-  );
-}
-
-  // 6. Card must be assigned
-  if (card.status !== "assigned") {
+  if (
+    assignedCardIds.length ===
+    0
+  ) {
     throw new Error(
-      "Bingo card is not active"
+      "No Bingo cards assigned to this player"
     );
   }
 
-  // 7. Check pattern
+  // 6. Load all active cards
+  const cards =
+    await Card.find({
+      _id: {
+        $in:
+          assignedCardIds,
+      },
+
+      status:
+        "assigned",
+    });
+
+  if (
+    cards.length === 0
+  ) {
+    throw new Error(
+      "No active Bingo cards assigned to this player"
+    );
+  }
+
+  // 7. Check every card
+  const winningCard =
+    cards.find(
+      (card) =>
+        isPatternMatched(
+          card.numbers,
+          game.calledNumbers,
+          pattern
+        )
+    );
+
   const hasBingo =
-    isPatternMatched(
-      card.numbers,
-      game.calledNumbers,
-      pattern
+    Boolean(
+      winningCard
     );
 
   return {
     hasBingo,
+
     pattern,
 
-    card: {
-      id: card._id,
-      cardNumber:
-        card.cardNumber,
-      numbers:
-        card.numbers,
-    },
+    cardsChecked:
+      cards.length,
+
+    card:
+      winningCard
+        ? {
+            id:
+              winningCard._id,
+
+            cardNumber:
+              winningCard.cardNumber,
+
+            numbers:
+              winningCard.numbers,
+          }
+        : null,
 
     calledNumbers:
       game.calledNumbers,
   };
 };
+
+
+/* =========================================
+   CLAIM BINGO
+========================================= */
+
 export const claimBingo = async (
   gameId: string,
   playerId: string,
@@ -415,24 +956,27 @@ export const claimBingo = async (
     }
 
     // 2. Validate pattern
-    const validPatterns: BingoPattern[] = [
-      "row",
-      "column",
-      "diagonal",
-      "four_corners",
-      "x",
-      "blackout",
-    ];
+    const validPatterns:
+      BingoPattern[] = [
+        "row",
+        "column",
+        "diagonal",
+        "four_corners",
+        "x",
+        "blackout",
+      ];
 
     if (
-      !validPatterns.includes(pattern)
+      !validPatterns.includes(
+        pattern
+      )
     ) {
       throw new Error(
         "Invalid Bingo pattern"
       );
     }
 
-    // 3. Find player inside transaction
+    // 3. Find participation
     const gamePlayer =
       await findGamePlayer(
         gameId,
@@ -446,63 +990,89 @@ export const claimBingo = async (
       );
     }
 
-    // 4. Player must be active
     if (
-      gamePlayer.status !== "active"
+      gamePlayer.status !==
+      "active"
     ) {
       throw new Error(
         "Player is not active in this game"
       );
     }
 
-    // 5. Get player's card
-const card = await Card.findById(
-  gamePlayer.cardId
-).session(session);
-
-if (!card) {
-  throw new Error(
-    "No Bingo card assigned to this player"
-  );
-}
+    // 4. Get all player's cards
+    const assignedCardIds =
+      getParticipationCardIds(
+        gamePlayer
+      );
 
     if (
-      card.status !== "assigned"
+      assignedCardIds.length ===
+      0
     ) {
       throw new Error(
-        "Bingo card is not active"
+        "No Bingo cards assigned to this player"
       );
     }
 
-    // 6. Verify Bingo
-    const hasBingo =
-      isPatternMatched(
-        card.numbers,
-        game.calledNumbers,
-        pattern
-      );
+    const cards =
+      await Card.find({
+        _id: {
+          $in:
+            assignedCardIds,
+        },
 
-    if (!hasBingo) {
+        status:
+          "assigned",
+      }).session(session);
+
+    if (
+      cards.length === 0
+    ) {
       throw new Error(
-        "Bingo pattern has not been completed"
+        "No active Bingo cards assigned to this player"
       );
     }
 
-    // 7. Get prize
-    const prizeAmount =
-      game.prizePool;
+    // 5. Find winning card
+    const card =
+      cards.find(
+        (candidate) =>
+          isPatternMatched(
+            candidate.numbers,
+            game.calledNumbers,
+            pattern
+          )
+      );
 
-    if (prizeAmount <= 0) {
+    if (!card) {
+      throw new Error(
+        "Bingo pattern has not been completed on any of your cards"
+      );
+    }
+
+    // 6. Prize
+    const prizeAmount =
+  Number(
+    game.prizeAmount ??
+    game.prizePool
+  );
+
+    if (
+      prizeAmount <= 0
+    ) {
       throw new Error(
         "Game has no prize available"
       );
     }
 
-    // 8. Get winner wallet
+    // 7. Winner wallet
     const wallet =
       await Wallet.findOne({
-        userId: playerId,
-        status: "active",
+        userId:
+          playerId,
+
+        status:
+          "active",
       }).session(session);
 
     if (!wallet) {
@@ -511,69 +1081,78 @@ if (!card) {
       );
     }
 
-    // 9. Credit winner
-    const balanceBefore =
-      wallet.balance;
+    // 8. Credit winner
+    const winningBalanceBefore =
+      wallet.winningBalance ??
+      0;
 
-    const balanceAfter =
-      balanceBefore +
+    const winningBalanceAfter =
+      winningBalanceBefore +
       prizeAmount;
 
-    wallet.balance =
-      balanceAfter;
+    wallet.winningBalance =
+      winningBalanceAfter;
 
     await wallet.save({
       session,
     });
 
-    // 10. Mark winner
-    gamePlayer.status = "won";
+    // 9. Mark winner
+    gamePlayer.status =
+  "won";
 
-    gamePlayer.prizeAmount =
-      prizeAmount;
+gamePlayer.prizeAmount =
+  prizeAmount;
 
-    await gamePlayer.save({
-      session,
-    });
 
-    // 11. Mark winner card as used
-    const winnerCardUpdate =
-      await Card.updateOne(
-        {
-          _id: card._id,
-          status: "assigned",
-        },
-        {
-          $set: {
-            status: "used",
-          },
-        },
-        {
-          session,
-        }
-      );
+/*
+ * Save the exact card
+ * that produced Bingo.
+ */
+gamePlayer.winningCardId =
+  card._id;
 
-    if (
-      winnerCardUpdate.modifiedCount !== 1
-    ) {
-      throw new Error(
-        "Failed to mark winning card as used"
-      );
-    }
 
-    // 12. Mark other active players as lost
+/*
+ * Keep the winning rule
+ * used for this result.
+ */
+gamePlayer.winningPattern =
+  String(
+    game.winningPattern ||
+      pattern
+  );
+
+
+gamePlayer.wonAt =
+  new Date();
+
+
+await gamePlayer.save({
+  session,
+});
+
+    // 10. Mark other players lost
     await GamePlayer.updateMany(
       {
-        gameId: game._id,
+        gameId:
+          game._id,
+
         _id: {
-          $ne: gamePlayer._id,
+          $ne:
+            gamePlayer._id,
         },
-        status: "active",
+
+        status:
+          "active",
       },
       {
         $set: {
-          status: "lost",
-          prizeAmount: 0,
+          status:
+            "lost",
+
+          prizeAmount:
+            0,
         },
       },
       {
@@ -581,55 +1160,90 @@ if (!card) {
       }
     );
 
-  
-const otherPlayers =
-  await GamePlayer.find(
-    {
-      gameId: game._id,
-      _id: {
-        $ne: gamePlayer._id,
-      },
-      cardId: {
-        $ne: null,
-      },
-    },
-    {
-      cardId: 1,
+    // 11. Get every card used
+    // in this game
+    const participants =
+      await GamePlayer.find(
+        {
+          gameId:
+            game._id,
+        },
+        {
+          cardIds: 1,
+          cardId: 1,
+        }
+      ).session(session);
+
+    const allGameCardIds =
+      participants.flatMap(
+        (
+          participant: any
+        ) => {
+          const ids:
+            any[] = [];
+
+          if (
+            Array.isArray(
+              participant.cardIds
+            )
+          ) {
+            ids.push(
+              ...participant.cardIds
+            );
+          }
+
+          // Legacy support
+          if (
+            participant.cardId
+          ) {
+            ids.push(
+              participant.cardId
+            );
+          }
+
+          return ids
+            .map(
+              (item) =>
+                item?._id ??
+                item
+            )
+            .filter(
+              Boolean
+            );
+        }
+      );
+
+    // 12. Mark ALL cards
+    // in completed game used
+    if (
+      allGameCardIds.length >
+      0
+    ) {
+      await Card.updateMany(
+        {
+          _id: {
+            $in:
+              allGameCardIds,
+          },
+
+          status:
+            "assigned",
+        },
+        {
+          $set: {
+            status:
+              "used",
+          },
+        },
+        {
+          session,
+        }
+      );
     }
-  ).session(session);
 
-const otherCardIds =
-  otherPlayers
-    .map((player) => player.cardId)
-    .filter(
-      (
-        cardId
-      ): cardId is mongoose.Types.ObjectId =>
-        Boolean(cardId)
-    );
-
-// 14. Mark other assigned cards as used
-if (otherCardIds.length > 0) {
-  await Card.updateMany(
-    {
-      _id: {
-        $in: otherCardIds,
-      },
-      status: "assigned",
-    },
-    {
-      $set: {
-        status: "used",
-      },
-    },
-    {
-      session,
-    }
-  );
-}
-
-    // 14. Complete game
-    game.status = "completed";
+    // 13. Complete game
+    game.status =
+      "completed";
 
     game.completedAt =
       new Date();
@@ -638,7 +1252,7 @@ if (otherCardIds.length > 0) {
       session,
     });
 
-    // 15. Create winner transaction
+    // 14. Winner transaction
     await Transaction.create(
       [
         {
@@ -647,18 +1261,23 @@ if (otherCardIds.length > 0) {
               playerId
             ),
 
-          type: "game_win",
+          type:
+            "game_win",
 
           amount:
             prizeAmount,
 
-          balanceBefore,
+          balanceBefore:
+            winningBalanceBefore,
 
-          balanceAfter,
+          balanceAfter:
+            winningBalanceAfter,
 
-          currency: "ETB",
+          currency:
+            "ETB",
 
-          status: "completed",
+          status:
+            "completed",
 
           requestId:
             gamePlayer._id,
@@ -672,63 +1291,299 @@ if (otherCardIds.length > 0) {
       }
     );
 
-    // 16. Commit everything
-await session.commitTransaction();
+    // 15. Commit
+    await session.commitTransaction();
 
-// Stop the automatic caller for the completed game
-stopAutomaticCaller(gameId);
+    // Game is already committed.
+    // These happen afterward.
+    stopAutomaticCaller(
+      gameId
+    );
 
-// Schedule the next Bingo game
-await scheduleNextGame(game);
+    await scheduleNextGame(
+      game
+    );
 
-return {
+    return {
       game: {
-        id: game._id,
-        name: game.name,
-        status: game.status,
+        id:
+          game._id,
+
+        name:
+          game.name,
+
+        status:
+          game.status,
+
         prizePool:
           game.prizePool,
+
         completedAt:
           game.completedAt,
       },
 
       winner: {
         playerId,
+
         gamePlayerId:
           gamePlayer._id,
+
+        cardId:
+          card._id,
+
         cardNumber:
           card.cardNumber,
+
         pattern,
+
         prizeAmount,
       },
 
       wallet: {
-        balanceBefore,
-        balanceAfter,
+        winningBalanceBefore,
+        winningBalanceAfter,
       },
     };
+
   } catch (error) {
-    await session.abortTransaction();
+    if (
+      session.inTransaction()
+    ) {
+      await session.abortTransaction();
+    }
+
     throw error;
+
   } finally {
     await session.endSession();
   }
 };
 
 export const getCurrentGame = async () => {
-  const game = await Game.findOne({
-    status: {
-      $in: ["waiting", "active"],
-    },
-  }).sort({
-    createdAt: -1,
-  });
 
-  if (!game) {
-    throw new Error(
-      "No Bingo game available"
-    );
-  }
+  const game =
+    await Game.findOne({
+      status: {
+        $in: [
+          "waiting",
+          "active",
+        ],
+      },
+    }).sort({
+      createdAt: -1,
+    });
 
+
+  /*
+   * No current game is a normal state,
+   * especially when Automatic Mode is OFF.
+   */
   return game;
 };
+
+/* =========================================================
+   GET GAME WINNERS
+========================================================= */
+
+export const getGameWinners =
+  async (
+    gameId: string,
+    requesterId: string
+  ) => {
+
+    /*
+     * 1. Game must exist
+     */
+    const game =
+      await Game.findById(
+        gameId
+      ).select(
+        [
+          "name",
+          "status",
+          "calledNumbers",
+          "winningPattern",
+          "prizePool",
+        ].join(" ")
+      );
+
+
+    if (!game) {
+      throw new Error(
+        "Game not found"
+      );
+    }
+
+
+    /*
+     * 2. Only somebody who actually
+     * participated in the game may
+     * inspect the winner.
+     *
+     * This is important because the
+     * response contains phone number.
+     */
+    const requester =
+      await GamePlayer.findOne({
+        gameId:
+          game._id,
+
+        playerId:
+          requesterId,
+      }).select("_id");
+
+
+    if (!requester) {
+      throw new Error(
+        "Only players who participated in this game can view winner details"
+      );
+    }
+
+
+    /*
+     * 3. Find winner(s)
+     *
+     * Array is used so the frontend
+     * remains ready if multiple-winner
+     * support is added later.
+     */
+    const winnerRows =
+      await GamePlayer.find({
+        gameId:
+          game._id,
+
+        status:
+          "won",
+      })
+        .populate({
+          path:
+            "playerId",
+
+          select:
+            "fullName phone",
+        })
+        .populate({
+          path:
+            "winningCardId",
+
+          select:
+            "cardNumber numbers",
+        })
+        .populate({
+          /*
+           * Legacy fallback
+           */
+          path:
+            "cardId",
+
+          select:
+            "cardNumber numbers",
+        })
+        .sort({
+          wonAt: 1,
+          createdAt: 1,
+        });
+
+
+    /*
+     * 4. Shape safe response
+     */
+    const winners =
+      winnerRows.map(
+        (
+          row: any
+        ) => {
+
+          const player =
+            row.playerId;
+
+          /*
+           * Prefer the exact persisted
+           * winning card.
+           *
+           * cardId is only fallback for
+           * older game records.
+           */
+          const card =
+            row.winningCardId ||
+            row.cardId;
+
+
+          return {
+            gamePlayerId:
+              row._id,
+
+            player: {
+              id:
+                player?._id ||
+                null,
+
+              fullName:
+                player?.fullName ||
+                "Player",
+
+              phone:
+                player?.phone ||
+                "",
+            },
+
+            card: card
+              ? {
+                  id:
+                    card._id,
+
+                  cardNumber:
+                    card.cardNumber,
+
+                  numbers:
+                    card.numbers,
+                }
+              : null,
+
+            pattern:
+              row.winningPattern ||
+              game.winningPattern ||
+              null,
+
+            prizeAmount:
+              Number(
+                row.prizeAmount ||
+                  0
+              ),
+
+            wonAt:
+              row.wonAt ||
+              row.updatedAt,
+          };
+        }
+      );
+
+
+    return {
+      game: {
+        id:
+          game._id,
+
+        name:
+          game.name,
+
+        status:
+          game.status,
+
+        prizePool:
+          game.prizePool,
+
+        winningPattern:
+          game.winningPattern,
+
+        calledNumbers:
+          game.calledNumbers ||
+          [],
+      },
+
+      winnerCount:
+        winners.length,
+
+      winners,
+    };
+  };

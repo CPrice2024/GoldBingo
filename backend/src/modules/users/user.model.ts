@@ -1,5 +1,9 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { IUser, UserRole, UserStatus } from "./user.types";
+import {
+  IUser,
+  UserRole,
+  UserStatus,
+} from "./user.types";
 
 export interface IUserDocument
   extends Omit<IUser, "referredBy">,
@@ -12,13 +16,6 @@ export interface IUserDocument
 
 const userSchema = new Schema<IUserDocument>(
   {
-    fullName: {
-      type: String,
-      required: true,
-      trim: true,
-      minlength: 2,
-      maxlength: 100,
-    },
 
     phone: {
       type: String,
@@ -26,14 +23,6 @@ const userSchema = new Schema<IUserDocument>(
       unique: true,
       trim: true,
       index: true,
-    },
-
-    email: {
-      type: String,
-      trim: true,
-      lowercase: true,
-      sparse: true,
-      unique: true,
     },
 
     password: {
@@ -84,6 +73,48 @@ const userSchema = new Schema<IUserDocument>(
   ref: "User",
   default: null,
   index: true,
+},
+
+paymentSettings: {
+  telebirr: {
+    enabled: {
+      type: Boolean,
+      default: true,
+    },
+
+    account: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+  },
+
+  cbe: {
+    enabled: {
+      type: Boolean,
+      default: true,
+    },
+
+    account: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+  },
+
+  minDeposit: {
+    type: Number,
+    required: false,
+    min: 0,
+    default: 10,
+  },
+
+  maxDeposit: {
+    type: Number,
+    required: false,
+    min: 0,
+    default: 10000,
+  },
 },
 
     isVerified: {

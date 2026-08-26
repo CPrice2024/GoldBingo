@@ -140,11 +140,6 @@ export default function AgentProfile() {
             <h1>
               Profile
             </h1>
-
-            <p>
-              View your GoldBingo agent
-              account information.
-            </p>
           </div>
 
         </div>

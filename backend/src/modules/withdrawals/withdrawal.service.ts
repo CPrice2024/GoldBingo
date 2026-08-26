@@ -35,6 +35,15 @@ export const submitWithdrawal = async (
     );
   }
 
+  if (
+  data.paymentMethod !== "telebirr" &&
+  data.paymentMethod !== "cbe"
+) {
+  throw new Error(
+    "Only Telebirr and CBE withdrawals are supported"
+  );
+}
+
   const player = await User.findOne({
     _id: playerId,
     role: "player",
@@ -69,40 +78,41 @@ export const submitWithdrawal = async (
   try {
     session.startTransaction();
 
-    const wallet =
-      await Wallet.findOneAndUpdate(
-        {
-          userId: player._id,
-          status: "active",
+   const wallet =
+  await Wallet.findOneAndUpdate(
+    {
+      userId: player._id,
+      status: "active",
 
-          $expr: {
-            $gte: [
-              {
-                $subtract: [
-                  "$balance",
-                  "$reservedBalance",
-                ],
-              },
-              data.amount,
+      $expr: {
+        $gte: [
+          {
+            $subtract: [
+              "$winningBalance",
+              "$reservedWinningBalance",
             ],
           },
-        },
-        {
-          $inc: {
-            reservedBalance: data.amount,
-          },
-        },
-        {
-          new: true,
-          session,
-        }
-      );
+          data.amount,
+        ],
+      },
+    },
+    {
+      $inc: {
+        reservedWinningBalance:
+          data.amount,
+      },
+    },
+    {
+      new: true,
+      session,
+    }
+  );
 
     if (!wallet) {
-      throw new Error(
-        "Insufficient available balance"
-      );
-    }
+  throw new Error(
+    "Insufficient withdrawable winnings"
+  );
+}
 
     const withdrawal =
       await createWithdrawal(
@@ -142,12 +152,19 @@ try {
 
 return {
   withdrawal,
-  balance: wallet.balance,
-  reservedBalance:
-    wallet.reservedBalance,
-  availableBalance:
-    wallet.balance -
-    wallet.reservedBalance,
+
+  winningBalance:
+    wallet.winningBalance,
+
+  reservedWinningBalance:
+    wallet.reservedWinningBalance,
+
+  withdrawableWinningBalance:
+    Math.max(
+      0,
+      wallet.winningBalance -
+        wallet.reservedWinningBalance
+    ),
 };
   } catch (error) {
     await session.abortTransaction();
@@ -228,26 +245,27 @@ export const approveWithdrawal = async (
     }
 
     if (
-      wallet.reservedBalance <
-      withdrawal.amount
-    ) {
-      throw new Error(
-        "Reserved wallet balance is insufficient"
-      );
-    }
+  wallet.reservedWinningBalance <
+  withdrawal.amount
+) {
+  throw new Error(
+    "Reserved winning balance is insufficient"
+  );
+}
 
-    const balanceBefore =
-      wallet.balance;
+  const winningBalanceBefore =
+  wallet.winningBalance;
 
-    const balanceAfter =
-      balanceBefore -
-      withdrawal.amount;
+const winningBalanceAfter =
+  winningBalanceBefore -
+  withdrawal.amount;
 
-    wallet.balance = balanceAfter;
+wallet.winningBalance =
+  winningBalanceAfter;
 
-    wallet.reservedBalance =
-      wallet.reservedBalance -
-      withdrawal.amount;
+wallet.reservedWinningBalance =
+  wallet.reservedWinningBalance -
+  withdrawal.amount;
 
     await wallet.save({ session });
 
@@ -266,39 +284,42 @@ export const approveWithdrawal = async (
     });
 
     await Transaction.create(
-      [
-        {
-          userId: withdrawal.playerId,
+  [
+    {
+      userId:
+        withdrawal.playerId,
 
-          type: "withdrawal",
+      type: "withdrawal",
 
-          amount: withdrawal.amount,
+      amount:
+        withdrawal.amount,
 
-          balanceBefore,
+      balanceBefore:
+        winningBalanceBefore,
 
-          balanceAfter,
+      balanceAfter:
+        winningBalanceAfter,
 
-          currency: "ETB",
+      currency: "ETB",
 
-          status: "completed",
+      status: "completed",
 
-          requestId:
-            withdrawal._id,
+      requestId:
+        withdrawal._id,
 
-          processedBy:
-            new mongoose.Types.ObjectId(
-              agentId
-            ),
+      processedBy:
+        new mongoose.Types.ObjectId(
+          agentId
+        ),
 
-          description:
-            "Withdrawal approved by agent",
-        },
-      ],
-      {
-        session,
-      }
-    );
-
+      description:
+        "Withdrawal approved from winning balance",
+    },
+  ],
+  {
+    session,
+  }
+);
    await session.commitTransaction();
 
 // Notify the player after the withdrawal is committed.
@@ -323,13 +344,23 @@ try {
 
 return {
   withdrawal,
-  balanceBefore,
-  balanceAfter,
-  reservedBalance:
-    wallet.reservedBalance,
-  availableBalance:
-    wallet.balance -
-    wallet.reservedBalance,
+
+  winningBalanceBefore,
+
+  winningBalanceAfter,
+
+  winningBalance:
+    wallet.winningBalance,
+
+  reservedWinningBalance:
+    wallet.reservedWinningBalance,
+
+  withdrawableWinningBalance:
+    Math.max(
+      0,
+      wallet.winningBalance -
+        wallet.reservedWinningBalance
+    ),
 };
   } catch (error) {
     await session.abortTransaction();
@@ -339,12 +370,6 @@ return {
   }
 };
 
-/*
- * Agent rejects withdrawal.
- *
- * No money is deducted.
- * Reserved money is released.
- */
 export const rejectWithdrawal = async (
   withdrawalId: string,
   agentId: string,
@@ -355,6 +380,10 @@ export const rejectWithdrawal = async (
 
   try {
     session.startTransaction();
+
+    /* =====================================
+       1. FIND PENDING WITHDRAWAL
+    ====================================== */
 
     const withdrawal =
       await Withdrawal.findOne({
@@ -369,34 +398,53 @@ export const rejectWithdrawal = async (
       );
     }
 
+
+    /* =====================================
+       2. RELEASE RESERVED WINNING BALANCE
+    ====================================== */
+
     const wallet =
-      await Wallet.findOne({
-        userId: withdrawal.playerId,
-        status: "active",
-      }).session(session);
+      await Wallet.findOneAndUpdate(
+        {
+          userId:
+            withdrawal.playerId,
+
+          status:
+            "active",
+
+          reservedWinningBalance: {
+            $gte:
+              withdrawal.amount,
+          },
+        },
+
+        {
+          $inc: {
+            reservedWinningBalance:
+              -withdrawal.amount,
+          },
+        },
+
+        {
+          new: true,
+          session,
+        }
+      );
+
 
     if (!wallet) {
       throw new Error(
-        "Player wallet not found or inactive"
+        "Unable to release reserved winning balance"
       );
     }
 
-    if (
-      wallet.reservedBalance <
-      withdrawal.amount
-    ) {
-      throw new Error(
-        "Reserved wallet balance is insufficient"
-      );
-    }
 
-    wallet.reservedBalance =
-      wallet.reservedBalance -
-      withdrawal.amount;
+    /* =====================================
+       3. MARK WITHDRAWAL REJECTED
+    ====================================== */
 
-    await wallet.save({ session });
-
-    withdrawal.status = "rejected";
+    withdrawal.status =
+      "rejected";
 
     withdrawal.rejectionReason =
       rejectionReason?.trim() ||
@@ -414,44 +462,79 @@ export const rejectWithdrawal = async (
       session,
     });
 
+
+    /* =====================================
+       4. COMMIT
+    ====================================== */
+
     await session.commitTransaction();
 
-// Notify the player after the withdrawal is committed.
-try {
-  await sendNotificationToUser(
-    withdrawal.playerId.toString(),
-    "Withdrawal Rejected",
-    `Your withdrawal of ${withdrawal.amount} ETB was rejected.`,
-    {
-      type: "withdrawal_rejected",
-      withdrawalId: withdrawal._id.toString(),
-      amount: withdrawal.amount.toString(),
-      reason:
-        withdrawal.rejectionReason ||
-        "Withdrawal rejected by agent",
-    }
-  );
-} catch (notificationError) {
-  console.error(
-    "Failed to send withdrawal rejection notification:",
-    notificationError
-  );
-}
 
-return {
-  withdrawal,
-  balance: wallet.balance,
-  reservedBalance:
-    wallet.reservedBalance,
-  availableBalance:
-    wallet.balance -
-    wallet.reservedBalance,
-};
+    /* =====================================
+       5. NOTIFY PLAYER
+    ====================================== */
+
+    try {
+      await sendNotificationToUser(
+        withdrawal.playerId.toString(),
+
+        "Withdrawal Rejected",
+
+        `Your withdrawal of ${withdrawal.amount} ETB was rejected. The amount has been returned to your withdrawable winnings.`,
+
+        {
+          type:
+            "withdrawal_rejected",
+
+          withdrawalId:
+            withdrawal._id.toString(),
+
+          amount:
+            withdrawal.amount.toString(),
+
+          paymentMethod:
+            withdrawal.paymentMethod,
+        }
+      );
+
+    } catch (
+      notificationError
+    ) {
+
+      console.error(
+        "Failed to send withdrawal rejection notification:",
+        notificationError
+      );
+
+    }
+
+
+    return {
+      withdrawal,
+
+      winningBalance:
+        wallet.winningBalance,
+
+      reservedWinningBalance:
+        wallet.reservedWinningBalance,
+
+      withdrawableWinningBalance:
+        Math.max(
+          0,
+          wallet.winningBalance -
+            wallet.reservedWinningBalance
+        ),
+    };
 
   } catch (error) {
+
     await session.abortTransaction();
+
     throw error;
+
   } finally {
+
     await session.endSession();
+
   }
 };

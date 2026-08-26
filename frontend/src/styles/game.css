@@ -82,8 +82,8 @@
    ========================================================= */
 
 .bingo-game-info {
-    margin: 10px 10px 7px;
-    padding: 12px;
+    margin: 0px 0px 7px;
+    padding: 6px;
     border: 1px solid #0062be;
     border-radius: 8px;
     background: #ffffff00;
@@ -98,19 +98,15 @@
 }
 
 .bingo-live-icon {
-  width: 34px;
-  height: 34px;
-
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 9px;
-
-  background: #e8f1ff;
-  color: #1976d2;
+     width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: #e8f1ff;
+    color: #3a3f45;
 }
 
 .bingo-game-info-main > div:last-child {
@@ -159,7 +155,7 @@
 
   column-gap: 5px;
 
-  padding: 7px 8px;
+  padding: 0px 8px;
 
   border-radius: 10px;
 
@@ -181,7 +177,8 @@
 
 .bingo-info-stats strong {
   color: #f8ec00;
-  font-size: 12px;
+      font-size: 13px;
+    font-family: monospace;
 }
 
 /* =========================================================
@@ -193,8 +190,8 @@
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
     margin: 7px 10px;
-    padding: 7px 12px;
-    border: 1px solid #015fcc;
+    padding: 1px 12px;
+    border: 1px solid #0160cc00;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0);
     min-height: 55px;
@@ -299,7 +296,7 @@
     border-radius: 4px;
     background: #f3f4f6;
     color: #004f9e;
-    font-size: 12px;
+    font-size: 16px;
     font-weight: 900;
 }
 
@@ -313,11 +310,1326 @@
     justify-content: center;
     border: 1px solid #d1d5db2e;
     border-radius: 5px;
-    background: #f3f4f600;
-    color: #b3b3b3;
-    font-size: 11px;
-    font-weight: 600;
+     background: linear-gradient(359deg, #000000, #1d1d1d) !important;
+    color: #e6e5e5;
+    font-size: 12px;
+    font-weight: 400;
     transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+/* ==========================================
+   CURRENT DRAWN BINGO BALL
+========================================== */
+
+.bingo-current-ball {
+  position: relative;
+
+  width: 90px;
+  height: 90px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+
+/* Real PNG ball */
+
+.bingo-current-ball-image {
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  user-select: none;
+  pointer-events: none;
+
+  filter:
+    drop-shadow(
+      0 6px 12px
+      rgba(0, 0, 0, 0.45)
+    );
+}
+
+
+/* Letter + number */
+
+.bingo-current-ball-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+}
+
+
+/* B / I / N / G / O */
+
+.bingo-current-ball-content span {
+  margin-bottom: 2px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+
+/* Called number */
+
+.bingo-current-ball-content strong {
+  color: #2b2b2b;
+
+  font-size: 18px;
+  font-weight: 700;
+
+  line-height: 1;
+}
+
+/* ==========================================
+   PLAY GOLD / CURRENT DRAWN BALL
+========================================== */
+
+.bingo-current-ball {
+  position: relative;
+
+  width: 105px;
+  height: 105px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+}
+
+.bingo-current-ball-image {
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  pointer-events: none;
+  user-select: none;
+
+  filter:
+    drop-shadow(
+      0 6px 15px
+      rgba(0, 0, 0, 0.45)
+    );
+}
+
+.bingo-current-ball-promo {
+  width: 108px;
+  height: 108px;
+}
+
+.bingo-current-ball-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+
+  transform: translateY(1px);
+}
+
+.bingo-current-ball-content span {
+  margin-bottom: 2px;
+
+  color: #6b7280;
+
+  font-size: 11px;
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+.bingo-current-ball-content strong {
+  color: #111827;
+
+  font-size: 29px;
+  font-weight: 900;
+
+  line-height: 1;
+}
+/* =========================================
+   CURRENT WINNING PATTERN
+========================================= */
+
+.bingo-game-main-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bingo-current-pattern {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 5px;
+}
+
+.bingo-current-pattern-label {
+  font-size: 11px;
+  font-weight: 600;
+
+  color: #8f98aa;
+}
+
+.bingo-current-pattern strong {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 24px;
+
+  padding: 3px 9px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.3);
+
+  border-radius: 6px;
+
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  color: #d4a72c;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  line-height: 1.3;
+}
+
+
+/* DAY MODE */
+
+html[data-theme="day"]
+.bingo-current-pattern-label {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-current-pattern strong {
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  border-color:
+    rgba(212, 167, 44, 0.35);
+
+  color: #9a7214;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 640px) {
+  .bingo-current-pattern {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 3px;
+  }
+
+  .bingo-current-pattern strong {
+    max-width: 100%;
+
+    white-space: normal;
+  }
+}
+
+/* ==========================================
+   5 BINGO BALLS BELOW BOARD
+========================================== */
+
+.bingo-ball-showcase {
+  width: 100%;
+
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 14px;
+  margin-bottom: 16px;
+
+  padding: 14px;
+
+  border: 1px solid #1d2736;
+  border-radius: 12px;
+
+  background: #090d14;
+}
+
+.bingo-ball-showcase-item {
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+}
+
+.bingo-ball-showcase-image-wrap {
+  position: relative;
+
+  width: 78px;
+  height: 78px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bingo-ball-showcase-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  display: block;
+
+  filter:
+    drop-shadow(
+      0 4px 8px
+      rgba(0, 0, 0, 0.4)
+    );
+}
+
+.bingo-ball-showcase-letter {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #1b1f27;
+
+  font-size: 22px;
+  font-weight: 900;
+
+  pointer-events: none;
+}
+
+.bingo-ball-showcase-range {
+  color: #9ca3af;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+/* ==========================================
+   TABLET
+========================================== */
+
+@media (max-width: 900px) {
+
+  .bingo-ball-showcase {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .bingo-ball-showcase-image-wrap {
+    width: 64px;
+    height: 64px;
+  }
+
+  .bingo-ball-showcase-letter {
+    font-size: 18px;
+  }
+
+}
+/* =========================================================
+   WINNING PATTERN BUTTON
+   ========================================================= */
+
+.bingo-current-pattern {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+
+  margin-top: 6px;
+}
+
+.bingo-current-pattern-label {
+  margin: 0 !important;
+
+  color: #8f98aa;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.bingo-current-pattern-button {
+  max-width: 100%;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 7px;
+
+  min-height: 28px;
+
+  padding: 4px 8px 4px 10px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.38);
+
+  border-radius: 8px;
+
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  color: #ffdd00;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+
+  line-height: 1.35;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
+}
+
+.bingo-current-pattern-button > span {
+  margin: 0 !important;
+}
+
+.bingo-current-pattern-button
+> span:first-child {
+  min-width: 0;
+
+  color: inherit;
+
+  font-size: inherit;
+  font-weight: inherit;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.bingo-current-pattern-button:hover {
+  background:
+    rgba(212, 167, 44, 0.17);
+
+  border-color:
+    rgba(212, 167, 44, 0.7);
+
+  box-shadow:
+    0 0 12px
+    rgba(212, 167, 44, 0.1);
+}
+
+.bingo-current-pattern-button:active {
+  transform: scale(0.98);
+}
+
+.bingo-current-pattern-button:focus-visible {
+  outline: none;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(212, 167, 44, 0.18);
+}
+
+
+/* =========================================================
+   QUESTION / HELP ICON
+   ========================================================= */
+
+.bingo-pattern-help-icon {
+  width: 19px;
+  height: 19px;
+
+  flex: 0 0 19px;
+
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 !important;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #e4bb4b,
+      #b88916
+    );
+
+  color: #111827 !important;
+
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  line-height: 1;
+
+  box-shadow:
+    0 2px 7px
+    rgba(212, 167, 44, 0.25);
+}
+
+
+/* =========================================================
+   WINNING PATTERN POPUP OVERLAY
+   ========================================================= */
+
+.winning-pattern-modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  z-index: 5000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  background:
+    rgba(0, 0, 0, 0.76);
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  animation:
+    winningPatternFadeIn
+    0.18s ease;
+}
+
+@keyframes winningPatternFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   POPUP CARD
+   ========================================================= */
+
+.winning-pattern-modal {
+  width: min(390px, 100%);
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 18px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.35);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #151922,
+      #0c0f15
+    );
+
+  box-shadow:
+    0 24px 70px
+      rgba(0, 0, 0, 0.58),
+    0 0 30px
+      rgba(212, 167, 44, 0.08);
+
+  animation:
+    winningPatternPopup
+    0.22s ease;
+}
+
+@keyframes winningPatternPopup {
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(12px)
+      scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+}
+
+
+/* =========================================================
+   POPUP HEADER
+   ========================================================= */
+
+.winning-pattern-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  margin-bottom: 14px;
+}
+
+.winning-pattern-modal-header
+> div {
+  min-width: 0;
+}
+
+.winning-pattern-modal-header span {
+  display: block;
+
+  margin: 0 0 4px;
+
+  color: #8b94a5;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.winning-pattern-modal-header strong {
+  display: block;
+
+  color: #d4a72c;
+
+  font-size: 15px;
+  font-weight: 800;
+
+  line-height: 1.5;
+
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   CLOSE BUTTON
+   ========================================================= */
+
+.winning-pattern-modal-close {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid #303744;
+  border-radius: 50%;
+
+  background: #191e28;
+  color: #ffffff;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+.winning-pattern-modal-close:hover {
+  background: #252b37;
+
+  transform: rotate(5deg);
+}
+
+
+/* =========================================================
+   HELP TEXT
+   ========================================================= */
+
+.winning-pattern-help {
+  margin-bottom: 13px;
+
+  padding: 9px 10px;
+
+  border-radius: 8px;
+
+  background:
+    rgba(255, 255, 255, 0.035);
+
+  color: #9299a8;
+
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   BINGO PATTERN CARD
+   ========================================================= */
+
+.winning-pattern-card {
+  width: 100%;
+
+  padding: 12px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #29303d;
+
+  border-radius: 14px;
+
+  background:
+    #090c12;
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255, 255, 255, 0.03);
+}
+
+
+/* B I N G O HEADER */
+
+.winning-pattern-card-header {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
+  gap: 5px;
+
+  margin-bottom: 5px;
+}
+
+.winning-pattern-card-header span {
+  min-height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #2c3442;
+
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #181e29,
+      #111620
+    );
+
+  color: #d4a72c;
+
+  font-size: 16px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   5 x 5 GRID
+   ========================================================= */
+
+.winning-pattern-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
+  gap: 5px;
+}
+
+.winning-pattern-cell {
+  position: relative;
+
+  aspect-ratio: 1 / 1;
+
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #343b48;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #191e27,
+      #11151d
+    );
+
+  color: #737d8e;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  transition:
+    transform 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+
+/* =========================================================
+   REQUIRED WINNING CELLS
+   ========================================================= */
+
+.winning-pattern-cell.active {
+  border-color: #e1b943;
+
+  background: linear-gradient(135deg, #ff9d06, #ff4700);
+
+  color: #111827;
+  border-radius: 50%;
+
+  box-shadow:
+    0 0 12px
+      rgba(212, 167, 44, 0.32),
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.35);
+
+  transform: scale(0.94);
+}
+
+.winning-pattern-cell.active::after {
+  content: "";
+
+  position: absolute;
+
+  inset: 3px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.25);
+
+  border-radius: 6px;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FREE CELL
+   ========================================================= */
+
+.winning-pattern-cell.free {
+  font-size: 7px;
+  letter-spacing: 0.3px;
+}
+
+.winning-pattern-cell.free:not(.active) {
+    border-color: rgba(212, 167, 44, 0.35);
+    color: #0037e0;
+    border-radius: 50%;
+    font-size: 15px;
+}
+
+.winning-pattern-cell.free.active {
+  color: #111827;
+}
+
+
+/* =========================================================
+   LEGEND
+   ========================================================= */
+
+.winning-pattern-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-wrap: wrap;
+
+  gap: 18px;
+
+  margin-top: 13px;
+}
+
+.winning-pattern-legend span {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 6px;
+
+  color: #8b94a5;
+
+  font-size: 10px;
+}
+
+.winning-pattern-legend i {
+  width: 13px;
+  height: 13px;
+
+  display: inline-block;
+
+  border-radius: 4px;
+}
+
+.pattern-example-active {
+  border: 1px solid #e1b943;
+
+  background: #d4a72c;
+}
+
+.pattern-example-normal {
+  border: 1px solid #343b48;
+
+  background: #171b24;
+}
+
+
+/* =========================================================
+   PATTERN NOT CONFIGURED
+   ========================================================= */
+
+.winning-pattern-not-defined {
+  min-height: 170px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 9px;
+
+  padding: 24px;
+
+  box-sizing: border-box;
+
+  text-align: center;
+
+  border: 1px dashed #39414e;
+
+  border-radius: 13px;
+
+  background:
+    rgba(255, 255, 255, 0.02);
+}
+
+.winning-pattern-not-defined strong {
+  color: #d4a72c;
+
+  font-size: 15px;
+
+  line-height: 1.45;
+}
+
+.winning-pattern-not-defined span {
+  max-width: 270px;
+
+  color: #8b94a5;
+
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   DAY MODE
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-current-pattern-label {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-current-pattern-button {
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  border-color:
+    rgba(154, 114, 20, 0.35);
+
+  color: #ffe100;
+}
+
+html[data-theme="day"]
+.winning-pattern-modal {
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #f8fafc
+    );
+
+  border-color:
+    rgba(212, 167, 44, 0.4);
+
+  box-shadow:
+    0 25px 65px
+      rgba(15, 23, 42, 0.18);
+}
+
+html[data-theme="day"]
+.winning-pattern-modal-header span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.winning-pattern-modal-header strong {
+  color: #956d11;
+}
+
+html[data-theme="day"]
+.winning-pattern-modal-close {
+  background: #f1f5f9;
+
+  border-color: #dce3ec;
+
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.winning-pattern-help {
+  background: #f8fafc;
+
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.winning-pattern-card {
+  background: #f8fafc;
+
+  border-color: #dce3ec;
+}
+
+html[data-theme="day"]
+.winning-pattern-card-header span {
+  background: #ffffff;
+
+  border-color: #dce3ec;
+
+  color: #956d11;
+}
+
+html[data-theme="day"]
+.winning-pattern-cell {
+  background: #ffffff;
+
+  border-color: #cbd5e1;
+
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.winning-pattern-cell.active {
+  background: linear-gradient(135deg, #ff9d06, #ff4700);
+
+  border-color: #bc8e1f;
+  font-size: 14px;
+  font-family: monospace;
+
+  color: #111827;
+}
+
+html[data-theme="day"]
+.pattern-example-normal {
+  background: #ffffff;
+
+  border-color: #cbd5e1;
+}
+
+html[data-theme="day"]
+.winning-pattern-not-defined {
+  background: #f8fafc;
+
+  border-color: #cbd5e1;
+}
+
+html[data-theme="day"]
+.winning-pattern-not-defined span {
+  color: #64748b;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  .bingo-current-pattern {
+    align-items: flex-start;
+    flex-direction: column;
+
+    gap: 4px;
+  }
+
+  .bingo-current-pattern-button {
+    width: fit-content;
+
+    max-width: 100%;
+  }
+
+  .winning-pattern-modal-overlay {
+    align-items: flex-end;
+
+    padding:
+      14px 10px 10px;
+  }
+
+  .winning-pattern-modal {
+    width: 100%;
+
+    max-height: 88vh;
+
+    padding: 16px;
+
+    border-radius:
+      18px 18px 10px 10px;
+  }
+
+  .winning-pattern-card {
+    padding: 9px;
+  }
+
+  .winning-pattern-card-header {
+    gap: 4px;
+  }
+
+  .winning-pattern-card-header span {
+    min-height: 30px;
+
+    font-size: 14px;
+  }
+
+  .winning-pattern-grid {
+    gap: 4px;
+  }
+
+  .winning-pattern-cell {
+    border-radius: 7px;
+  }
+
+  .winning-pattern-modal-header strong {
+    font-size: 14px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONE
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+  .winning-pattern-modal {
+    padding: 13px;
+  }
+
+  .winning-pattern-card {
+    padding: 7px;
+  }
+
+  .winning-pattern-grid,
+  .winning-pattern-card-header {
+    gap: 3px;
+  }
+
+  .winning-pattern-cell {
+    border-radius: 6px;
+  }
+
+  .bingo-current-pattern-button {
+    font-size: 11px;
+  }
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (max-width: 600px) {
+
+  .bingo-current-ball {
+    width: 86px;
+    height: 86px;
+  }
+
+  .bingo-current-ball-promo {
+    width: 90px;
+    height: 90px;
+  }
+
+  .bingo-current-ball-content strong {
+    font-size: 24px;
+  }
+
+  .bingo-ball-showcase {
+    grid-template-columns:
+      repeat(5, minmax(0, 1fr));
+
+    gap: 4px;
+
+    padding: 8px 4px;
+  }
+
+  .bingo-ball-showcase-image-wrap {
+    width: 52px;
+    height: 52px;
+  }
+
+  .bingo-ball-showcase-letter {
+    font-size: 15px;
+  }
+
+  .bingo-ball-showcase-range {
+    font-size: 8px;
+  }
+
+}
+/* ==========================================
+   CALLED HISTORY BALLS
+========================================== */
+
+.bingo-history-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.bingo-history-ball {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+}
+
+.bingo-history-ball-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+}
+
+.bingo-history-ball-content {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+  pointer-events: none;
+}
+
+.bingo-history-ball-content span {
+  font-size: 8px;
+  font-weight: 900;
+  color: #6b7280;
+  margin-bottom: 1px;
+}
+
+.bingo-history-ball-content strong {
+      font-size: 12px;
+    font-weight: 900;
+    color: #202633;
+}
+
+
+
+@media (max-width: 600px) {
+  .bingo-history-ball {
+    width: 40px;
+    height: 40px;
+  }
+
+  .bingo-history-ball-content span {
+    font-size: 7px;
+  }
+
+  .bingo-history-ball-content strong {
+    font-size: 13px;
+  }
+}
+
+
+/* Before first number */
+
+.bingo-current-ball-empty {
+  width: 58px;
+  height: 58px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #0866b8;
+  color: #ffffff;
+
+  font-size: 24px;
+  font-weight: 900;
+
+  box-shadow:
+    0 6px 15px
+    rgba(0, 0, 0, 0.35);
+}
+
+
+/* Small screens */
+
+@media (max-width: 600px) {
+
+  .bingo-current-ball {
+    width: 78px;
+    height: 78px;
+  }
+
+  .bingo-current-ball-content strong {
+    font-size: 18px;
+  }
+
+  .bingo-current-ball-content span {
+    font-size: 9px;
+  }
+
 }
 
 /* Called number */
@@ -331,17 +1643,187 @@
 
 /* Latest number */
 
-.bingo-board-number.latest {
-  transform: scale(1.00);
-  color: #fdfdfd;
-  background-color: #004ec3;
+/* ==========================================
+   LATEST CALLED BALL
+========================================== */
 
-  z-index: 2;
+.bingo-history-ball.history-latest {
+  position: relative;
+  z-index: 5;
 
-  box-shadow:
-    0 0 0 2px #002b6828,
-    0 0 0 4px #1976d23a;
+  transform: scale(1.22);
+
+  animation:
+    latestBallPulse 1.6s
+    ease-in-out infinite;
 }
+
+
+/* White outer ring */
+
+.bingo-history-ball.history-latest::before {
+  content: "";
+
+  position: absolute;
+
+  inset: -5px;
+
+    border: 2px solid rgb(106 105 105 / 48%);
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgb(245 186 0 / 70%), 0 0 18px rgba(255, 255, 255, 0.35);
+
+  pointer-events: none;
+
+  animation:
+    latestRing 1.6s
+    ease-out infinite;
+}
+
+
+
+
+/* Make latest number stronger */
+
+.bingo-history-ball.history-latest
+.bingo-history-ball-content strong {
+      font-size: 13px;
+    font-weight: 800;
+    color: #22304d;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+}
+
+
+/* Latest B/I/N/G/O letter */
+
+.bingo-history-ball.history-latest
+.bingo-history-ball-content span {
+  font-size: 8px;
+  font-weight: 950;
+}
+
+.bingo-game-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 3px;
+
+  color: #8b94a5;
+  font-size: 12px;
+}
+
+.bingo-status-countdown {
+  min-width: 42px;
+
+  padding: 3px 8px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.35);
+
+  border-radius: 6px;
+
+  background:
+    rgba(212, 167, 44, 0.09);
+
+  color: #d4a72c;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  text-align: center;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+.profile-sound-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 18px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.08);
+
+  border-radius: 12px;
+
+  background:
+    rgba(255, 255, 255, 0.03);
+}
+
+.profile-sound-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-sound-info > div:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-sound-info strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-sound-info span {
+  color: #8b94a5;
+  font-size: 12px;
+}
+
+.profile-sound-toggle {
+  position: relative;
+
+  width: 48px;
+  height: 26px;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 999px;
+
+  background: #343b48;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+.profile-sound-toggle.enabled {
+      background: linear-gradient(135deg, #ff9d06, #ff4700);
+}
+
+.profile-sound-toggle-knob {
+  position: absolute;
+
+  top: 3px;
+  left: 3px;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background: #ffffff;
+
+  transition:
+    transform 0.2s ease;
+}
+
+.profile-sound-toggle.enabled
+.profile-sound-toggle-knob {
+  transform:
+    translateX(22px);
+}
+
 
 /* =========================================================
    CALLED HISTORY
@@ -362,7 +1844,7 @@
 
   margin-bottom: 7px;
 
-  color: #6b7280;
+  color: #b3b6bc;
 
   font-size: 10px;
 }
@@ -378,29 +1860,7 @@
   gap: 5px;
 }
 
-.bingo-history-list span {
-  min-width: 31px;
-  height: 30px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 6px;
-
-  border-radius: 50%;
-
-  background: #f1f5f9;
-  color: #374151;
-
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.bingo-history-list .history-latest {
-  background: #1976d2;
-  color: white;
-}
 
 /* =========================================================
    FIXED JOIN / CARD BUTTON
@@ -415,10 +1875,10 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 16px 6px 6px;
+    padding: 0px 16px 0px 0px;
     border: none;
     border-radius: 999px;
-    background: #003a58;
+        background: linear-gradient(135deg, #ff9d06, #ff4700);
     color: white;
     font-size: 13px;
     font-family: monospace;
@@ -470,7 +1930,10 @@
 }
 
 .bingo-modal {
-  width: min(520px, 100%);
+  width: min(
+    1000px,
+    calc(100vw - 32px)
+  );
 
   max-height: 92vh;
 
@@ -481,10 +1944,11 @@
   border-radius:
     20px 20px 0 0;
 
-  background: #00024399;
+  background: #00000066;
 
   box-shadow:
-    0 -10px 40px rgba(0, 0, 0, 0.2);
+    0 -10px 40px
+    rgba(0, 0, 0, 0.2);
 }
 
 .bingo-modal-header {
@@ -670,7 +2134,7 @@
     border-radius: 10px;
     border-style: solid;
     border-color: #bf91ec;
-    background: #001326;
+    background: linear-gradient(135deg, #ff9d06, #ff4700);
     color: white;
     border-width: 1px;
     font-size: 13px;
@@ -729,16 +2193,12 @@
 }
 
 .bingo-inline-message {
-  margin: 7px 10px;
-
-  padding: 9px 11px;
-
-  border-radius: 9px;
-
-  background: #dcfce7;
-  color: #166534;
-
-  font-size: 11px;
+      margin: 7px 10px;
+    padding: 9px 11px;
+    border-radius: 9px;
+    background: #e8e8e8;
+    color: #00bc47;
+    font-size: 11px;
 }
 
 /* =========================================================
@@ -886,7 +2346,8 @@
   }
 
   .bingo-info-stats strong {
-    font-size: 10px;
+        font-size: 13px;
+    font-family: monospace;
   }
 }
 
@@ -926,18 +2387,104 @@
 
   border-radius: 6px;
 
-  background: #00145a;
+  background: #dd7600;
   color: #fcfcfe;
 
   font-size: 15px;
   font-weight: 600;
 }
 
+/* =========================================================
+   MANUAL BINGO CARD MARKING
+========================================================= */
+
+.bingo-cell {
+  appearance: none;
+  -webkit-appearance: none;
+
+  font: inherit;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+
+.bingo-cell:disabled {
+  opacity: 1;
+}
+
+
+/* Called by server, waiting for player click */
+
+.bingo-cell.bingo-cell-clickable:not(.called) {
+  cursor: pointer;
+
+  border-color:
+    rgba(212, 167, 44, 0.5);
+
+  box-shadow:
+    inset 0 0 0 1px
+    rgba(212, 167, 44, 0.12);
+}
+
+
+.bingo-cell.bingo-cell-clickable:not(.called):hover {
+  transform:
+    translateY(-1px);
+
+  border-color:
+    #d4a72c;
+
+  box-shadow:
+    0 4px 12px
+    rgba(212, 167, 44, 0.18);
+}
+
+
+/* Player selected */
+
+.bingo-cell.bingo-cell-clickable.called {
+  cursor: pointer;
+}
+
+
+/* Small pulse means:
+   "this number was called,
+    click it"
+*/
+
+.bingo-cell-waiting-mark {
+  animation:
+    bingoWaitingMarkPulse
+    1.5s ease-in-out
+    infinite;
+}
+
+
+@keyframes bingoWaitingMarkPulse {
+
+  0%,
+  100% {
+    box-shadow:
+      inset 0 0 0 1px
+      rgba(212, 167, 44, 0.12);
+  }
+
+  50% {
+    box-shadow:
+      0 0 10px
+      rgba(212, 167, 44, 0.35);
+  }
+
+}
 /* 5 x 5 number grid */
 .bingo-modal .bingo-grid {
   display: grid !important;
   grid-template-columns: repeat(5, 1fr) !important;
-  gap: 5px !important;
+  gap: 12px !important;
   width: 100%;
 }
 
@@ -953,7 +2500,7 @@
   justify-content: center;
 
   border: 1px solid #292e3a;
-  border-radius: 8px;
+  border-radius: 50%;
 
   background: #0e1118;
   color: #e8ecf3;
@@ -961,12 +2508,57 @@
   font-size: 16px;
   font-weight: 700;
 }
+/* =========================================================
+   CLICKABLE PLAYER CARD
+========================================================= */
 
+.bingo-cell.manual-mode:not(.free) {
+  cursor: pointer;
+}
+
+.bingo-cell.manual-mode:not(.free):active {
+  transform: scale(0.94);
+}
+
+
+/* Called but player has not clicked yet */
+
+.bingo-cell.bingo-cell-waiting-mark {
+  cursor: pointer;
+
+  outline:
+    2px solid
+    rgba(212, 167, 44, 0.45);
+
+  outline-offset: -2px;
+}
+
+
+/* Player selected */
+
+.bingo-cell.manual-mode.called {
+  cursor: pointer;
+}
+
+
+/* Auto mode */
+
+.bingo-cell.auto-mode {
+  cursor: default;
+}
+
+
+/* FREE */
+
+.bingo-cell.free {
+  cursor: default;
+}
 /* Called card number */
 .bingo-modal .bingo-cell.called {
-      background: linear-gradient(135deg, #000431f5, #002e93);
-    border-color: #a978fd;
+        background: linear-gradient(135deg, #dd5d00, #ff9f31);
+    border-color: #ffffff;
     color: white;
+    border-radius: 50%;
 }
 
 /* FREE center */
@@ -1031,15 +2623,16 @@
 }
 
 .bingo-card-notification {
-  margin-bottom: 12px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background: #fff3cd;
-  color: #856404;
-  font-size: 14px;
-  font-weight: 600;
-  text-align: center;
-  border: 1px solid #ffe69c;
+    margin-bottom: 12px;
+    padding: 4px 14px;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #e70000;
+    font-size: 12px;
+    font-family: cursive;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid #ffe69c;
 }
 
 .bingo-card-notification-win {
@@ -1643,4 +3236,2677 @@
   .skeleton-content-small {
     width: 90%;
   }
+}
+
+/* ==================================
+   MULTI CARD SELECTION
+================================== */
+
+.bingo-card-count-section {
+  display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 16px 0;
+    padding: 14px;
+    border: 1px solid #292e3a;
+    border-radius: 26px;
+    background: #464b5800;
+}
+
+.bingo-card-count-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.bingo-card-count-header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bingo-card-count-header strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.bingo-card-count-header span {
+  color: #858d9d;
+  font-size: 11px;
+}
+
+.bingo-card-total {
+  color: #d4a72c !important;
+  white-space: nowrap;
+}
+
+.bingo-card-count-select {
+  width: 100%;
+  height: 44px;
+
+  padding: 0 12px;
+
+  border: 1px solid #303746;
+  border-radius: 9px;
+
+  outline: none;
+
+  background: #151922;
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.bingo-card-count-select:focus {
+  border-color: #d4a72c;
+}
+
+.bingo-card-price-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  color: #8d96a7;
+  font-size: 12px;
+}
+
+.bingo-card-price-summary strong {
+  color: #ffffff;
+}
+
+
+/* ==================================
+   MULTI CARD LIST
+================================== */
+
+/* ==================================
+   MULTI CARD GRID
+   2 CARDS PER ROW
+================================== */
+
+.bingo-player-card-list {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 16px;
+
+  width: 100%;
+
+  max-height: 68vh;
+
+  overflow-y: auto;
+
+  overflow-x: hidden;
+
+  padding: 2px 6px 8px 2px;
+
+  align-items: start;
+}
+
+
+/* Individual card */
+
+.bingo-player-card-item {
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 10px;
+
+  border: 1px solid
+    #292e3a;
+
+  border-radius: 12px;
+
+  background: #0d1017;
+}
+
+
+/* When player has only ONE card */
+
+.bingo-player-card-item:only-child {
+  grid-column: 1 / -1;
+
+  width: 100%;
+
+  max-width: 470px;
+
+  justify-self: center;
+}
+.bingo-player-card-item
+.bingo-player-card {
+  width: 100%;
+
+  padding: 0;
+
+  display: flex;
+
+  justify-content: center;
+}
+
+
+.bingo-player-card-item
+.bingo-card-wrapper {
+  width: 100%;
+
+  max-width: 430px;
+
+  min-width: 0;
+}
+
+/* ==================================
+   TABLET / DESKTOP
+================================== */
+
+@media (min-width: 701px) {
+
+  .bingo-player-card-list {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+
+
+/* ==================================
+   MOBILE
+================================== */
+
+@media (max-width: 700px) {
+
+  .bingo-modal {
+    width: 100%;
+  }
+
+
+  .bingo-player-card-list {
+    grid-template-columns:
+      1fr;
+
+    gap: 14px;
+  }
+
+
+  .bingo-player-card-item {
+    grid-column: auto;
+  }
+
+}
+.bingo-player-card-item {
+  width: 100%;
+
+  padding: 12px;
+
+  border: 1px solid #292e3a;
+  border-radius: 12px;
+
+  background: #0d1017;
+}
+
+.bingo-player-card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 0px;
+}
+
+.bingo-player-card-title strong {
+  color: #d4a72c;
+  font-size: 13px;
+}
+
+.bingo-player-card-title span {
+  color: #929bad;
+  font-size: 11px;
+}
+
+.bingo-player-card-list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.bingo-player-card-list::-webkit-scrollbar-thumb {
+  background: #343b49;
+  border-radius: 20px;
+}
+/* ==========================================
+   BINGO COLUMN COLORS
+
+   B = BLUE
+   I = PINK
+   N = GREEN
+   G = GOLD
+   O = RED
+========================================== */
+
+
+/* =========================
+   HEADER
+========================= */
+
+.bingo-card-header .bingo-column.bingo-b {
+  background: linear-gradient(359deg, #00226e, #275ff9) !important;
+  border-color: #3b82f6;
+  color: #ffffff;
+}
+
+.bingo-card-header .bingo-column.bingo-i {
+  background: linear-gradient(359deg, #910048, #fa449f) !important;
+  border-color: #f472b6;
+  color: #ffffff;
+}
+
+.bingo-card-header .bingo-column.bingo-n {
+  background: linear-gradient(359deg, #006e28, #26de6a) !important;
+  border-color: #22c55e;
+  color: #ffffff;
+}
+
+.bingo-card-header .bingo-column.bingo-g {
+  background: linear-gradient(359deg, #997000, #ffbe0a) !important;
+  border-color: #e5bd4a;
+  color: #f6f6f8;
+}
+
+.bingo-card-header .bingo-column.bingo-o {
+  background: #dc2626;
+  background: linear-gradient(359deg, #6f0000, #ff3e3e) !important;
+  border-color: #ef4444;
+  color: #ffffff;
+}
+
+
+/* ==========================================
+   CALLED B NUMBERS
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-b.called {
+  background: #2563eb;
+  border-color: #3b82f6;
+  color: #ffffff;
+
+  box-shadow:
+    0 0 12px
+    rgba(37, 99, 235, 0.45);
+}
+
+
+/* ==========================================
+   CALLED I NUMBERS
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-i.called {
+  background: #ec4899;
+  border-color: #f472b6;
+  color: #ffffff;
+
+  box-shadow:
+    0 0 12px
+    rgba(236, 72, 153, 0.45);
+}
+
+
+/* ==========================================
+   CALLED N NUMBERS
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-n.called {
+  background: #16a34a;
+  border-color: #22c55e;
+  color: #ffffff;
+
+  box-shadow:
+    0 0 12px
+    rgba(22, 163, 74, 0.45);
+}
+
+
+/* ==========================================
+   CALLED G NUMBERS
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-g.called {
+  background: #d4a72c;
+  border-color: #e5bd4a;
+  color: #fbfbfc;
+
+  box-shadow:
+    0 0 12px
+    rgba(212, 167, 44, 0.45);
+}
+
+
+/* ==========================================
+   CALLED O NUMBERS
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-o.called {
+  background: #dc2626;
+  border-color: #ef4444;
+  color: #ffffff;
+
+  box-shadow:
+    0 0 12px
+    rgba(220, 38, 38, 0.45);
+}
+
+
+/* ==========================================
+   FREE CENTER - N COLUMN
+========================================== */
+
+.bingo-grid
+.bingo-cell.bingo-n.free {
+  background: #16a34a;
+  border-color: #22c55e;
+  color: #ffffff;
+
+  box-shadow:
+    0 0 14px
+    rgba(22, 163, 74, 0.5);
+}
+/* ==========================================
+   MAIN 1-75 BINGO BOARD COLORS
+========================================== */
+
+
+/* =========================
+   B = BLUE
+========================= */
+
+.bingo-letter-b {
+      border-color: #2174fc !important;
+    background: linear-gradient(359deg, #00226e, #275ff9) !important;
+    color: #ffffff !important;
+}
+
+.bingo-board-number.bingo-number-b.called {
+  background: linear-gradient(359deg, #00226e, #275ff9) !important;
+  border-color: #3683ff !important;
+  color: #ffffff !important;
+}
+
+
+/* =========================
+   I = PINK
+========================= */
+
+.bingo-letter-i {
+  background: linear-gradient(359deg, #6f0239, #ec4899) !important;
+  border-color: #f472b6 !important;
+  color: #ffffff !important;
+}
+
+.bingo-board-number.bingo-number-i.called {
+  background: linear-gradient(359deg, #6f0239, #ec4899) !important;
+  border-color: #f472b6 !important;
+  color: #ffffff !important;
+}
+
+
+/* =========================
+   N = GREEN
+========================= */
+
+.bingo-letter-n {
+  background: linear-gradient(180deg, #19e564, #015721) !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+
+.bingo-board-number.bingo-number-n.called {
+  background: linear-gradient(180deg, #19e564, #015721) !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+}
+
+
+/* =========================
+   G = GOLD
+========================= */
+
+.bingo-letter-g {
+  background: linear-gradient(180deg, #edb315, #775700) !important;
+  border-color: #e5bd4a !important;
+  color: #ffffff !important;
+}
+
+.bingo-board-number.bingo-number-g.called {
+      background: linear-gradient(180deg, #ffbb00, #af8c00) !important;
+  border-color: #e5bd4a !important;
+  color: #fbfbfb !important;
+}
+
+
+/* =========================
+   O = RED
+========================= */
+
+.bingo-letter-o {
+  background: linear-gradient(180deg, #fe1a1a, #a10000) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+.bingo-board-number.bingo-number-o.called {
+  background: linear-gradient(180deg, #fe1a1a, #a10000) !important;
+  border-color: #ef4444 !important;
+  color: #ffffff !important;
+}
+
+
+/* ==========================================
+   LATEST / CURRENT CALLED NUMBER
+========================================== */
+
+.bingo-board-number.called.latest {
+  position: relative;
+  z-index: 20;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff3d00,
+      #ff9800
+    ) !important;
+
+  border-color:
+    #ffe600 !important;
+
+  color:
+    #ffffff !important;
+
+  font-weight: 950;
+
+  transform:
+    scale(1.14);
+
+  box-shadow:
+    0 0 0 2px #ffe600,
+    0 0 12px rgba(255, 152, 0, 0.95),
+    0 0 25px rgba(255, 61, 0, 0.75);
+
+  animation:
+    bingoLatestNumberBlink
+    0.75s
+    ease-in-out
+    infinite;
+}
+
+
+/* Expanding notification ring */
+
+.bingo-board-number.called.latest::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -4px;
+
+  border: 2px solid
+    #ff9800;
+
+  border-radius: 7px;
+
+  pointer-events: none;
+
+  animation:
+    bingoLatestNumberRing
+    0.75s
+    ease-out
+    infinite;
+}
+
+
+/* ==========================================
+   BLINK
+========================================== */
+
+@keyframes bingoLatestNumberBlink {
+
+  0%,
+  100% {
+    background:
+      linear-gradient(
+        135deg,
+        #ff3d00,
+        #ff7300
+      ) !important;
+
+    color:
+      #ffffff;
+
+    transform:
+      scale(1.08);
+
+    box-shadow:
+      0 0 0 2px #ff9800,
+      0 0 10px rgba(255, 61, 0, 0.7);
+  }
+
+
+  50% {
+    background:
+      linear-gradient(
+        135deg,
+        #fff200,
+        #ff9800
+      ) !important;
+
+    color:
+      #111827 !important;
+
+    transform:
+      scale(1.18);
+
+    box-shadow:
+      0 0 0 3px #ffffff,
+      0 0 16px rgba(255, 230, 0, 1),
+      0 0 32px rgba(255, 111, 0, 0.9);
+  }
+
+}
+
+
+/* ==========================================
+   OUTER PULSE
+========================================== */
+
+@keyframes bingoLatestNumberRing {
+
+  0% {
+    opacity: 1;
+
+    transform:
+      scale(0.9);
+  }
+
+
+  100% {
+    opacity: 0;
+
+    transform:
+      scale(1.55);
+  }
+
+}
+
+
+/* ==========================================
+   ACCESSIBILITY
+========================================== */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bingo-board-number.called.latest,
+  .bingo-board-number.called.latest::after {
+    animation: none;
+  }
+
+}
+/* =========================================================
+   BINGO GAME - DAY MODE
+   ========================================================= */
+
+html[data-theme="day"] .bingo-mobile-page {
+  background: #f4f7fb;
+  color: #0f172a;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+html[data-theme="day"] .bingo-topbar {
+  background: rgba(255, 255, 255, 0.96);
+  color: #0f172a;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  box-shadow:
+    0 2px 10px
+    rgba(15, 23, 42, 0.06);
+}
+
+html[data-theme="day"] .bingo-topbar-button {
+  color: #334155;
+}
+
+html[data-theme="day"] .bingo-topbar-button:hover {
+  background: #f1f5f9;
+}
+
+
+/* =========================================================
+   GAME INFORMATION
+   ========================================================= */
+
+html[data-theme="day"] .bingo-game-info {
+  background: #ffffff;
+
+  border-color: #dbe3ee;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="day"]
+.bingo-game-info-main strong {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.bingo-game-info-main span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-live-icon {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+
+/* =========================================================
+   GAME STATUS
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-game-status {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-status-countdown {
+  background: #e4e4e4;
+
+  border-color:
+    rgba(212, 167, 44, 0.35);
+
+  color: #d55200;
+}
+
+
+/* =========================================================
+   GAME STATS
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-info-stats > div {
+  background: #f8fafc;
+
+  border: 1px solid #edf1f6;
+}
+
+html[data-theme="day"]
+.bingo-info-stats span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-info-stats strong {
+  color: #cb7600;
+      font-size: 13px;
+    font-family: monospace;
+}
+
+/* =========================================================
+   GAME CARD - GAME ID
+========================================================= */
+
+.game-card-id {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-top: 14px;
+  padding: 10px 12px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+
+.game-card-id span {
+  color: #7f899d;
+
+  font-size: 11px;
+}
+
+
+.game-card-id strong {
+  max-width: 170px;
+
+  overflow: hidden;
+
+  color: #d4a72c;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   GAME CARD - LAST CALLED
+========================================================= */
+
+.game-card-last-called {
+  margin-top: 12px;
+
+  padding: 12px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 10px;
+
+  background:
+    rgba(255, 255, 255, 0.02);
+}
+
+
+.game-card-last-called-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 10px;
+}
+
+
+.game-card-last-called-header span {
+  color: #8b94a5;
+
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+.game-card-last-called-header strong {
+  min-width: 25px;
+
+  padding: 3px 7px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(212, 167, 44, 0.12);
+
+  color: #d4a72c;
+
+  font-size: 10px;
+
+  text-align: center;
+}
+
+
+.game-card-last-called-list {
+  display: flex;
+
+  gap: 7px;
+
+  overflow-x: auto;
+
+  padding:
+    3px 2px 6px;
+}
+
+
+.game-card-last-called-list::-webkit-scrollbar {
+  height: 3px;
+}
+
+
+.game-card-called-ball {
+  position: relative;
+
+  width: 40px;
+  height: 40px;
+
+  min-width: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.game-card-called-ball img {
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+
+.game-card-called-ball-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+}
+
+
+.game-card-called-ball-content span {
+  color: #111827;
+
+  font-size: 6px;
+  font-weight: 900;
+}
+
+
+.game-card-called-ball-content strong {
+  margin-top: 1px;
+
+  color: #111827;
+
+  font-size: 12px;
+  font-weight: 950;
+}
+
+
+/* Latest called ball */
+
+.game-card-called-ball.latest {
+  transform: scale(1.1);
+}
+
+
+.game-card-called-ball.latest::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -3px;
+
+  border:
+    2px solid
+    rgba(212, 167, 44, 0.75);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+
+.game-card-no-called {
+  padding: 8px 0;
+
+  color: #697386;
+
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   DAY MODE
+========================================================= */
+
+html[data-theme="day"]
+.game-card-id,
+html[data-theme="day"]
+.game-card-last-called {
+  background: #f8fafc;
+
+  border-color: #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.game-card-id span,
+html[data-theme="day"]
+.game-card-last-called-header span,
+html[data-theme="day"]
+.game-card-no-called {
+  color: #64748b;
+}
+
+/* =========================================================
+   MY CARD - LAST CALLED NUMBERS
+========================================================= */
+
+.bingo-card-last-called {
+  margin: 8px 0 12px;
+  padding: 9px 10px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+
+.bingo-card-last-called-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 7px;
+}
+
+
+.bingo-card-last-called-header span {
+  color: #8b94a5;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+}
+
+
+.bingo-card-last-called-header strong {
+  min-width: 24px;
+
+  padding: 2px 6px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(212, 167, 44, 0.12);
+
+  color: #d4a72c;
+
+  font-size: 9px;
+
+  text-align: center;
+}
+
+
+.bingo-card-last-called-list {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  overflow-x: auto;
+  
+    padding: 6px 6px 6px;
+}
+
+
+.bingo-card-last-called-list::-webkit-scrollbar {
+  height: 3px;
+}
+
+
+.bingo-card-last-ball {
+  position: relative;
+
+  width: 34px;
+  height: 34px;
+
+  min-width: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.bingo-card-last-ball img {
+  position: absolute;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+
+.bingo-card-last-ball-content {
+  position: relative;
+  z-index: 2;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  line-height: 1;
+}
+
+
+.bingo-card-last-ball-content span {
+  color: #111827;
+
+  font-size: 5px;
+  font-weight: 900;
+}
+
+
+.bingo-card-last-ball-content strong {
+  margin-top: 1px;
+
+  color: #111827;
+
+  font-size: 10px;
+  font-weight: 950;
+}
+
+
+/* Latest number */
+
+.bingo-card-last-ball.latest {
+  transform: scale(1.2);
+}
+
+
+.bingo-card-last-ball.latest::after {
+  content: "";
+
+  position: absolute;
+
+  inset: -2px;
+
+  border:
+    2px solid
+    rgba(212, 167, 44, 0.8);
+
+  border-radius: 50%;
+
+  pointer-events: none;
+}
+
+
+/* DAY MODE */
+
+html[data-theme="day"]
+.bingo-card-last-called {
+  background: #f8fafc;
+
+  border-color: #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.bingo-card-last-called-header span {
+  color: #64748b;
+}
+/* =========================================================
+   DRAWN NUMBER SECTION
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-drawn-section {
+  background: #ffffff00;
+
+  border-color: #dbe3ee00;
+
+  box-shadow:
+    0 3px 14px
+    rgba(15, 23, 42, 0);
+}
+
+html[data-theme="day"]
+.bingo-drawn-label,
+html[data-theme="day"]
+.bingo-drawn-count {
+  color: #64748b;
+}
+
+
+/* =========================================================
+   MAIN BINGO BOARD
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-board-card {
+  background: #ffffff;
+
+  border-color: #dbe3ee;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="day"]
+.bingo-board-title strong {
+  color: #334155;
+}
+
+html[data-theme="day"]
+.bingo-board-title span {
+  color: #64748b;
+}
+
+
+/*
+   UNCALLED NUMBERS
+
+   !important is required because
+   the existing night rule uses
+   background: ... !important
+*/
+
+html[data-theme="day"]
+.bingo-board-number {
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff,
+      #f3f6fa
+    ) !important;
+
+  border-color: #dce3ec;
+
+  color: #334155;
+}
+
+
+/*
+   Keep all CALLED numbers using
+   B / I / N / G / O colors.
+*/
+
+html[data-theme="day"]
+.bingo-board-number.called {
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   BALL DISPLAY
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-ball-showcase {
+  background: #ffffff;
+
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"]
+.bingo-ball-showcase-range {
+  color: #64748b;
+}
+
+
+/* =========================================================
+   CALLED HISTORY
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-called-history {
+  background: #ffffff;
+
+  border-color: #dbe3ee;
+
+  box-shadow:
+    0 3px 14px
+    rgba(15, 23, 42, 0.04);
+}
+
+html[data-theme="day"]
+.bingo-history-header {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-history-header strong {
+  color: #334155;
+}
+
+
+/* =========================================================
+   CARD / JOIN MODAL
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-modal {
+    background: linear-gradient(145deg, rgb(255 255 255 / 58%), rgb(248 250 252 / 94%));
+    border: 1px solid #e2e8f0;
+
+  box-shadow:
+    0 -12px 40px
+    rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="day"]
+.bingo-modal-header strong {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.bingo-modal-header span {
+  color: #798aa1;
+}
+
+html[data-theme="day"]
+.bingo-modal-close {
+  background: #f1f5f9;
+
+  color: #475569;
+}
+
+html[data-theme="day"]
+.bingo-modal-close:hover {
+  background: #e2e8f0;
+}
+
+
+/* =========================================================
+   WINNER CARD LIST
+========================================================= */
+
+.bingo-winners-section {
+  margin: 12px 0 16px;
+  padding: 12px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.2);
+
+  border-radius: 12px;
+
+  background:
+    rgba(212, 167, 44, 0.04);
+}
+
+
+.bingo-winners-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 10px;
+}
+
+
+.bingo-winners-header > div:first-child {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.bingo-winners-header strong {
+  color: #d4a72c;
+
+  font-size: 13px;
+}
+
+
+.bingo-winners-header span {
+  color: #818b9e;
+
+  font-size: 10px;
+}
+
+
+.bingo-winner-count {
+  display: flex;
+  align-items: center;
+
+  gap: 5px;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(212, 167, 44, 0.12);
+
+  color: #d4a72c;
+
+  font-size: 11px;
+  font-weight: 800;
+}
+
+
+/* EXACT 4-COLUMN LIST */
+
+.bingo-winner-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 7px;
+}
+
+
+.bingo-winner-card-button {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  padding: 9px 5px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.25);
+
+  border-radius: 8px;
+
+  background: #121722;
+
+  color: #e6eaf0;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+
+.bingo-winner-card-button span {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.bingo-winner-card-button:hover {
+  transform:
+    translateY(-2px);
+
+  border-color:
+    #d4a72c;
+}
+
+
+.bingo-winner-card-button.mine {
+  background:
+    rgba(212, 167, 44, 0.13);
+
+  border-color:
+    #d4a72c;
+}
+
+
+.bingo-winner-card-button small {
+  color: #d4a72c;
+
+  font-size: 7px;
+}
+
+
+.bingo-winner-loading,
+.bingo-winner-error,
+.bingo-no-winner {
+  padding: 12px;
+
+  color: #8892a3;
+
+  font-size: 11px;
+
+  text-align: center;
+}
+
+
+/* =========================================================
+   WINNER DETAIL MODAL
+========================================================= */
+
+.bingo-winner-detail-overlay {
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 430;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  background:
+    rgba(0, 0, 0, 0.78);
+
+  backdrop-filter:
+    blur(7px);
+}
+
+
+.bingo-winner-detail-modal {
+  width: min(
+    100%,
+    480px
+  );
+
+  max-height: 90vh;
+
+  overflow-y: auto;
+
+  padding: 16px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.3);
+
+  border-radius: 16px;
+
+  background:
+    #0d1017;
+
+  box-shadow:
+    0 24px 70px
+    rgba(0, 0, 0, 0.55);
+}
+
+
+.bingo-winner-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 14px;
+}
+
+
+.bingo-winner-detail-header > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.bingo-winner-detail-header span {
+  color: #d4a72c;
+
+  font-size: 9px;
+  font-weight: 900;
+
+  letter-spacing: 1px;
+}
+
+
+.bingo-winner-phone {
+  color: #ffffff;
+
+  font-size: 20px;
+  font-weight: 900;
+}
+
+
+.bingo-winner-detail-header small {
+  color: #8d96a7;
+
+  font-size: 11px;
+}
+
+
+.bingo-winner-detail-close {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #1a202c;
+
+  color: #ffffff;
+
+  cursor: pointer;
+}
+
+
+.bingo-winner-summary {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 8px;
+
+  margin-bottom: 10px;
+}
+
+
+.bingo-winner-summary > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+
+  padding: 10px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.07);
+
+  border-radius: 9px;
+
+  background:
+    rgba(255, 255, 255, 0.025);
+}
+
+
+.bingo-winner-summary span,
+.bingo-winner-pattern-button span {
+  color: #788397;
+
+  font-size: 9px;
+}
+
+
+.bingo-winner-summary strong {
+  color: #ffffff;
+
+  font-size: 12px;
+}
+
+
+.bingo-winner-pattern-button {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+
+  padding: 11px 12px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.25);
+
+  border-radius: 10px;
+
+  background:
+    rgba(212, 167, 44, 0.06);
+
+  cursor: pointer;
+
+  text-align: left;
+}
+
+
+.bingo-winner-pattern-button > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.bingo-winner-pattern-button strong {
+  color: #d4a72c;
+
+  font-size: 12px;
+}
+
+
+.bingo-winner-pattern-help {
+  width: 25px;
+  height: 25px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #d4a72c;
+
+  color: #111827 !important;
+
+  font-size: 12px !important;
+  font-weight: 900;
+}
+
+
+.bingo-winner-actual-card {
+  margin-top: 8px;
+}
+
+
+.bingo-winner-detail-note {
+  margin-top: 10px;
+
+  color: #778195;
+
+  font-size: 9px;
+
+  text-align: center;
+}
+
+
+/* DAY MODE */
+
+html[data-theme="day"]
+.bingo-winner-detail-modal {
+  background: #ffffff;
+
+  border-color: #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.bingo-winner-card-button {
+  background: #ffffff;
+
+  color: #0f172a;
+
+  border-color: #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.bingo-winner-phone,
+html[data-theme="day"]
+.bingo-winner-summary strong {
+  color: #0f172a;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 520px) {
+
+  .bingo-winner-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .bingo-winner-detail-overlay {
+    padding: 10px;
+  }
+
+}
+/* =========================================================
+   WINNER POPUP - BINGO CARD
+========================================================= */
+
+.bingo-winner-actual-card {
+  width: 100%;
+
+  margin-top: 14px;
+  padding: 14px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.22);
+
+  border-radius: 14px;
+
+  background:
+    #0d1017;
+}
+
+
+/* CARD WRAPPER */
+
+.bingo-winner-actual-card
+.bingo-card-wrapper {
+  width: 100%;
+  max-width: 420px;
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   B I N G O HEADER
+========================================================= */
+
+.bingo-winner-actual-card
+.bingo-card-header {
+  width: 100%;
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr)) !important;
+
+  gap: 5px !important;
+
+  margin-bottom: 8px;
+}
+
+
+.bingo-winner-actual-card
+.bingo-column {
+  min-width: 0;
+  height: 38px;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #b77900,
+      #e89800
+    );
+
+  color: #ffffff;
+
+  font-size: 14px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   5 x 5 CARD GRID
+========================================================= */
+
+.bingo-winner-actual-card
+.bingo-grid {
+  width: 100%;
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr)) !important;
+
+  gap: 8px !important;
+}
+
+
+/* NUMBER CELL */
+
+.bingo-winner-actual-card
+.bingo-cell {
+  width: 100%;
+
+  min-width: 0;
+  min-height: 54px;
+
+  aspect-ratio: 1 / 1;
+
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.55);
+
+  border-radius: 50%;
+
+  background:
+    #11151d;
+
+  color: #f8fafc;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  box-shadow: none;
+
+  cursor: default;
+}
+
+
+/* Remove browser disabled look */
+
+.bingo-winner-actual-card
+.bingo-cell:disabled {
+  opacity: 1;
+}
+
+
+/* =========================================================
+   CALLED NUMBERS
+========================================================= */
+
+.bingo-winner-actual-card
+.bingo-cell.called {
+  border-color:
+    #d4a72c;
+
+  background:
+    linear-gradient(
+      135deg,
+      #b8860b,
+      #d4a72c
+    );
+
+  color: #111827;
+
+  box-shadow:
+    0 0 10px
+    rgba(212, 167, 44, 0.28);
+}
+
+
+/* =========================================================
+   FREE CENTER
+========================================================= */
+
+.bingo-winner-actual-card
+.bingo-cell.free {
+  border-color:
+    #7c3aed;
+
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #2563eb
+    );
+
+  color: #ffffff;
+
+  box-shadow:
+    0 0 12px
+    rgba(124, 58, 237, 0.25);
+}
+
+
+/* =========================================================
+   WINNER POPUP POLISH
+========================================================= */
+
+.bingo-winner-detail-modal {
+  width: min(
+    94vw,
+    520px
+  );
+
+  max-height: 92vh;
+
+  padding: 20px;
+
+  border-radius: 18px;
+
+  overflow-y: auto;
+}
+
+
+.bingo-winner-detail-header {
+  padding-bottom: 13px;
+
+  border-bottom: 1px solid
+    rgba(212, 167, 44, 0.15);
+}
+
+
+.bingo-winner-phone {
+  margin-top: 2px;
+
+  font-size: 20px;
+  letter-spacing: 0.3px;
+}
+
+
+.bingo-winner-summary {
+  margin-top: 14px;
+}
+
+
+.bingo-winner-summary > div {
+  min-height: 62px;
+
+  justify-content: center;
+}
+
+
+.bingo-winner-pattern-button {
+  min-height: 58px;
+
+  margin-top: 10px;
+}
+
+
+/* =========================================================
+   DAY MODE
+========================================================= */
+
+html[data-theme="day"]
+.bingo-winner-actual-card {
+  background:
+    #f8fafc;
+
+  border-color:
+    #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.bingo-winner-actual-card
+.bingo-cell {
+  background:
+    #ffffff;
+
+  border-color:
+    #d4a72c;
+
+  color:
+    #0f172a;
+}
+
+
+html[data-theme="day"]
+.bingo-winner-actual-card
+.bingo-cell.called {
+  background:
+    linear-gradient(
+      135deg,
+      #b8860b,
+      #d4a72c
+    );
+
+  border-color:
+    #d4a72c;
+
+  color:
+    #111827;
+}
+
+
+html[data-theme="day"]
+.bingo-winner-actual-card
+.bingo-cell.free {
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #2563eb
+    );
+
+  border-color:
+    #7c3aed;
+
+  color:
+    #ffffff;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 520px) {
+
+  .bingo-winner-detail-modal {
+    padding: 14px;
+
+    border-radius: 14px;
+  }
+
+
+  .bingo-winner-actual-card {
+    padding: 10px;
+  }
+
+
+  .bingo-winner-actual-card
+  .bingo-grid {
+    gap: 6px !important;
+  }
+
+
+  .bingo-winner-actual-card
+  .bingo-cell {
+    min-height: 45px;
+
+    font-size: 12px;
+  }
+
+
+  .bingo-winner-actual-card
+  .bingo-column {
+    height: 34px;
+
+    font-size: 12px;
+  }
+
+
+  .bingo-winner-phone {
+    font-size: 17px;
+  }
+
+}
+
+/* =========================================================
+   PLAYER BINGO CARD
+   ========================================================= */
+
+/*
+   Only change UNCALLED card cells.
+   Called cells keep their column colors.
+*/
+
+html[data-theme="day"]
+.bingo-modal
+.bingo-cell:not(.called):not(.free) {
+  background: #ffffff;
+
+  border-color: #cbd5e1;
+
+  color: #0f172a;
+}
+
+
+/* =========================================================
+   MULTI CARD SELECTOR
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-card-count-section {
+  background: #f8fafc;
+
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"]
+.bingo-card-count-header strong {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.bingo-card-count-header span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-card-count-select {
+  background: #ffffff;
+
+  border-color: #cbd5e1;
+
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.bingo-card-count-select:hover {
+  border-color: #94a3b8;
+}
+
+html[data-theme="day"]
+.bingo-card-count-select:focus {
+  border-color: #d4a72c;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(212, 167, 44, 0.12);
+}
+
+html[data-theme="day"]
+.bingo-card-price-summary {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-card-price-summary strong {
+  color: #0f172a;
+}
+
+
+/* =========================================================
+   MULTI CARD LIST
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-player-card-item {
+  background: #f8fafc;
+
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"]
+.bingo-player-card-title span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-player-card-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+
+
+/* =========================================================
+   JOIN PANEL
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-join-panel h3 {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.bingo-join-panel > p {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-join-details > div {
+  background: #f8fafc;
+
+  border-color: #d4a72c;
+}
+
+html[data-theme="day"]
+.bingo-join-details span {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.bingo-join-details strong {
+  color: #0f172a;
+}
+
+
+/* =========================================================
+   WATCH ONLY
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-watch-only {
+  background: #f8fafc;
+
+  border:
+    1px solid #e2e8f0;
+
+  color: #334155;
+}
+
+html[data-theme="day"]
+.bingo-watch-only span {
+  color: #64748b;
+}
+
+
+/* =========================================================
+   NO ACTIVE GAME
+   ========================================================= */
+
+html[data-theme="day"]
+.no-game-card {
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(212, 167, 44, 0.10),
+      transparent 45%
+    ),
+    #ffffff;
+
+  border:
+    1px solid #e2e8f0;
+
+  box-shadow:
+    0 20px 50px
+    rgba(15, 23, 42, 0.08);
+}
+
+html[data-theme="day"]
+.no-game-card h1 {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.no-game-subtitle {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.no-game-info {
+  background: #f8fafc;
+
+  border-color: #e2e8f0;
+}
+
+html[data-theme="day"]
+.no-game-info strong {
+  color: #0f172a;
+}
+
+html[data-theme="day"]
+.no-game-info p {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.no-game-footer {
+  color: #64748b;
+
+  border-color: #e2e8f0;
+}
+
+
+/* =========================================================
+   LOADING / SKELETON
+   ========================================================= */
+
+html[data-theme="day"]
+.skeleton-game-card {
+  background: #ffffff;
+
+  border-color: #e2e8f0;
+
+  box-shadow:
+    0 10px 30px
+    rgba(15, 23, 42, 0.05);
+}
+
+html[data-theme="day"]
+.skeleton-icon,
+html[data-theme="day"]
+.skeleton-game-icon,
+html[data-theme="day"]
+.skeleton-line,
+html[data-theme="day"]
+.skeleton-status,
+html[data-theme="day"]
+.skeleton-content,
+html[data-theme="day"]
+.skeleton-button {
+  background: #e8edf4;
+}
+
+html[data-theme="day"]
+.skeleton-stat {
+  background: #f1f5f9;
+}
+
+html[data-theme="day"]
+.skeleton-stat-small,
+html[data-theme="day"]
+.skeleton-stat-large {
+  background: #dce3ec;
+}
+
+html[data-theme="day"]
+.skeleton-loading-message {
+  color: #64748b;
+}
+
+
+/* =========================================================
+   DAY MODE SCROLLBAR
+   ========================================================= */
+
+html[data-theme="day"]
+.bingo-modal::-webkit-scrollbar-thumb,
+html[data-theme="day"]
+.bingo-player-card-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+}
+/* =========================================
+   FINAL - CURRENT WINNING PATTERN
+========================================= */
+
+.bingo-game-info-main
+.bingo-current-pattern strong {
+  display: inline-flex;
+
+  width: fit-content;
+  max-width: 100%;
+
+  padding: 3px 9px;
+
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.3);
+
+  border-radius: 6px;
+
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  color: #d4a72c;
+
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.bingo-game-info-main
+.bingo-current-pattern-label {
+  color: #8f98aa;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+
+/* DAY MODE */
+
+html[data-theme="day"]
+.bingo-game-info-main
+.bingo-current-pattern strong {
+  background:
+    rgba(212, 167, 44, 0.1);
+
+  border-color:
+    rgba(212, 167, 44, 0.35);
+
+  color: #9a7214;
+}
+
+html[data-theme="day"]
+.bingo-game-info-main
+.bingo-current-pattern-label {
+  color: #64748b;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 640px) {
+  .bingo-current-pattern {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+  }
+
+  .bingo-game-info-main
+  .bingo-current-pattern strong {
+    width: auto;
+    max-width: 100%;
+  }
+}
+
+/* =========================================================
+   GAME ROOM - SIDE JOIN / MY CARDS BUTTON
+========================================================= */
+
+.bingo-fixed-card-button {
+  position: fixed !important;
+
+  top: 50% !important;
+  right: 0 !important;
+
+  bottom: auto !important;
+  left: auto !important;
+
+  transform: translateY(-50%);
+
+  width: auto;
+  min-width: 118px;
+
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 8px 16px 8px 10px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.55);
+
+  border-right: none;
+
+  border-radius:
+    14px 0 0 14px;
+
+      background: linear-gradient(135deg, #ff9d06, #ff4700);
+
+  color: #111827;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  z-index: 220;
+
+  box-shadow:
+    -5px 6px 22px
+      rgba(0, 0, 0, 0.3);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    padding 0.2s ease;
+}
+
+
+.bingo-fixed-card-button:hover {
+  transform:
+    translateY(-50%)
+    translateX(-4px);
+
+  box-shadow:
+    -8px 8px 28px
+      rgba(0, 0, 0, 0.4);
+}
+
+
+/* PLUS ICON */
+
+.bingo-fixed-card-button
+.bingo-fixed-plus {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(17, 24, 39, 0.18);
+
+  color: #111827;
+}
+
+
+.bingo-fixed-card-button
+> span:last-child {
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .bingo-fixed-card-button {
+    top: 48% !important;
+
+    min-width: 96px;
+    min-height: 46px;
+
+    padding:
+      6px 18px 6px 7px;
+
+    gap: 6px;
+
+    border-radius:
+      12px 0 0 12px;
+
+    font-size: 11px;
+  }
+
+
+  .bingo-fixed-card-button
+  .bingo-fixed-plus {
+    width: 30px;
+    height: 30px;
+  }
+
+}/* =========================================================
+   GAME ROOM - SIDE JOIN / MY CARDS BUTTON
+========================================================= */
+
+.bingo-fixed-card-button {
+  position: fixed !important;
+
+  top: 50% !important;
+  right: 0 !important;
+
+  bottom: auto !important;
+  left: auto !important;
+
+  transform: translateY(-50%);
+
+  width: auto;
+  min-width: 118px;
+
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  padding: 8px 16px 8px 10px;
+
+  border: 1px solid
+    rgba(212, 167, 44, 0.55);
+
+  border-right: none;
+
+  border-radius:
+    14px 0 0 14px;
+
+      background: linear-gradient(135deg, #ff9d06, #ff4700);
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  z-index: 220;
+
+  box-shadow:
+    -5px 6px 22px
+      rgba(0, 0, 0, 0.3);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    padding 0.2s ease;
+}
+
+
+.bingo-fixed-card-button:hover {
+  transform:
+    translateY(-50%)
+    translateX(-4px);
+
+  box-shadow:
+    -8px 8px 28px
+      rgba(0, 0, 0, 0.4);
+}
+
+
+/* PLUS ICON */
+
+.bingo-fixed-card-button
+.bingo-fixed-plus {
+  width: 34px;
+  height: 34px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(17, 24, 39, 0.18);
+
+  color: #111827;
+}
+
+
+.bingo-fixed-card-button
+> span:last-child {
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .bingo-fixed-card-button {
+    top: 93% !important;
+    min-width: 96px;
+    min-height: 46px;
+    padding: 6px 11px 6px 7px;
+    background: linear-gradient(135deg, #ff9d06, #ff4700);
+    gap: 6px;
+    color: white;
+    border-radius: 25px 25px 25px 25px;
+    margin-right: 12px;
+    font-size: 11px;
+  }
+
+
+  .bingo-fixed-card-button
+  .bingo-fixed-plus {
+    width: 30px;
+    color: #886000;
+    background: white;
+    height: 30px;
+  }
+
 }

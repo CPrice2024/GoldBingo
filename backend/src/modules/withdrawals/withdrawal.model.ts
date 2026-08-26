@@ -50,8 +50,6 @@ const withdrawalSchema = new Schema(
       enum: [
         "telebirr",
         "cbe",
-        "mpesa",
-        "bank",
       ] satisfies WithdrawalPaymentMethod[],
       required: true,
     },

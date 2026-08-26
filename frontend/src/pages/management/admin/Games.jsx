@@ -14,7 +14,14 @@ import {
   getGames,
   createGame,
   startGame,
+  getAutomaticGameSetting,
+  updateAutomaticGameSetting,
 } from "../../../api/game.api";
+
+import {
+  WINNING_PATTERNS,
+  getWinningPatternLabel,
+} from "../../../constants/winningPatterns";
 
 export default function AdminGames() {
   const [games, setGames] = useState([]);
@@ -28,11 +35,94 @@ export default function AdminGames() {
 
   const [error, setError] = useState("");
 
-  const [form, setForm] = useState({
+  const [
+  automaticGameEnabled,
+  setAutomaticGameEnabled,
+] = useState(false);
+
+
+const [
+  automaticGameLoading,
+  setAutomaticGameLoading,
+] = useState(true);
+
+
+const [
+  automaticGameSaving,
+  setAutomaticGameSaving,
+] = useState(false);
+
+ const [form, setForm] =
+  useState({
+
     name: "",
+
     entryFee: "",
+
     maxPlayers: "",
+
+    winningPattern:
+      "3_lines",
+
+    scheduledStartAt:
+      "",
+
+    prizeAmount:
+      "",
+
   });
+
+  const loadAutomaticGameSetting =
+  async () => {
+
+    try {
+
+      setAutomaticGameLoading(
+        true
+      );
+
+
+      const response =
+        await getAutomaticGameSetting();
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to load automatic game setting"
+        );
+      }
+
+
+      setAutomaticGameEnabled(
+        Boolean(
+          response.data?.enabled
+        )
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Failed to load automatic game setting:",
+        err
+      );
+
+
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load automatic game setting"
+      );
+
+    } finally {
+
+      setAutomaticGameLoading(
+        false
+      );
+
+    }
+
+  };
 
   const loadGames = async () => {
     try {
@@ -59,10 +149,90 @@ export default function AdminGames() {
   useEffect(() => {
     loadGames();
   }, [status]);
+  useEffect(() => {
+
+  const interval =
+    setInterval(() => {
+
+      loadGames();
+
+    }, 2000);
+
+
+  return () => {
+    clearInterval(interval);
+  };
+
+}, [status]);
+
+  useEffect(() => {
+  loadAutomaticGameSetting();
+}, []);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await loadGames();
+  };
+
+  const handleAutomaticGameToggle =
+  async () => {
+
+    const nextValue =
+      !automaticGameEnabled;
+
+
+    try {
+
+      setAutomaticGameSaving(
+        true
+      );
+
+      setError("");
+
+
+      const response =
+        await updateAutomaticGameSetting(
+          nextValue
+        );
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to update automatic game mode"
+        );
+      }
+
+
+      setAutomaticGameEnabled(
+        Boolean(
+          response.data?.enabled
+        )
+      );
+
+
+    } catch (err) {
+
+      console.error(
+        "Failed to update automatic game:",
+        err
+      );
+
+
+      setError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Failed to update automatic game mode"
+      );
+
+    } finally {
+
+      setAutomaticGameSaving(
+        false
+      );
+
+    }
+
   };
 
   const handleCreate = async (e) => {
@@ -99,16 +269,44 @@ export default function AdminGames() {
       setCreating(true);
 
       await createGame({
-        name: form.name.trim(),
-        entryFee: Number(form.entryFee),
-        maxPlayers: Number(form.maxPlayers),
-      });
+  name:
+    form.name.trim(),
+
+  entryFee:
+    Number(form.entryFee),
+
+  maxPlayers:
+    Number(form.maxPlayers),
+
+  winningPattern:
+    form.winningPattern,
+
+  prizeAmount:
+    form.prizeAmount === ""
+      ? null
+      : Number(
+          form.prizeAmount
+        ),
+
+  scheduledStartAt:
+    form.scheduledStartAt
+      ? new Date(
+          form.scheduledStartAt
+        ).toISOString()
+      : null,
+});
 
       setForm({
-        name: "",
-        entryFee: "",
-        maxPlayers: "",
-      });
+  name: "",
+  entryFee: "",
+  maxPlayers: "",
+  winningPattern:
+    "3_lines",
+
+  prizeAmount: "",
+
+  scheduledStartAt: "",
+});
 
       setShowCreate(false);
 
@@ -182,8 +380,7 @@ export default function AdminGames() {
           <h1>Games</h1>
 
           <p>
-            Manage Bingo games on the
-            GoldBingo platform.
+            Manage games.
           </p>
         </div>
 
@@ -208,16 +405,31 @@ export default function AdminGames() {
           </button>
 
           <button
-            type="button"
-            onClick={() =>
-              setShowCreate(true)
-            }
-            className="admin-primary-button"
-          >
-            <Plus size={18} />
+  type="button"
 
-            Create Game
-          </button>
+  onClick={() =>
+    setShowCreate(true)
+  }
+
+  className="admin-primary-button"
+
+  disabled={
+    automaticGameEnabled ||
+    automaticGameLoading
+  }
+
+  title={
+    automaticGameEnabled
+      ? "Turn Automatic Game Mode OFF to create games manually."
+      : "Create a new Bingo game"
+  }
+>
+  <Plus size={18} />
+
+  {automaticGameEnabled
+    ? "Automatic Mode"
+    : "Create Game"}
+</button>
 
         </div>
       </div>
@@ -229,6 +441,88 @@ export default function AdminGames() {
           {error}
         </div>
       )}
+
+      {/* =====================================
+    AUTOMATIC GAME MODE
+===================================== */}
+
+<div
+  className={`admin-auto-game-card ${
+    automaticGameEnabled
+      ? "enabled"
+      : "disabled"
+  }`}
+>
+
+  <div className="admin-auto-game-info">
+
+    <div
+      className={`admin-auto-game-indicator ${
+        automaticGameEnabled
+          ? "on"
+          : "off"
+      }`}
+    />
+
+    <div>
+
+      <strong>
+        Automatic Game Mode
+      </strong>
+
+      <span>
+        {automaticGameEnabled
+          ? "Games are automatically created after each completed game."
+          : "Automatic games are disabled. Admin must create games manually."}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  {automaticGameLoading ? (
+
+    <span className="admin-auto-game-loading">
+      Loading...
+    </span>
+
+  ) : (
+
+    <div className="admin-auto-game-control">
+
+      <strong>
+        {automaticGameEnabled
+          ? "ON"
+          : "OFF"}
+      </strong>
+
+
+      <button
+        type="button"
+        className={`admin-auto-game-switch ${
+          automaticGameEnabled
+            ? "active"
+            : ""
+        }`}
+        onClick={
+          handleAutomaticGameToggle
+        }
+        disabled={
+          automaticGameSaving
+        }
+        aria-label="Toggle automatic game mode"
+      >
+
+        <span />
+
+      </button>
+
+    </div>
+
+  )}
+
+</div>
 
 
       {/* Filter */}
@@ -343,44 +637,105 @@ export default function AdminGames() {
                 </div>
 
                 <div>
-                  <Trophy size={16} />
+  <Trophy size={16} />
 
-                  <span>
-                    Prize Pool
-                  </span>
+  <span>
+    Total Amount
+  </span>
 
-                  <strong>
-                    {game.prizePool} ETB
-                  </strong>
-                </div>
+  <strong>
+    {Number(
+      game.prizePool || 0
+    ).toLocaleString()}{" "}
+    Birr
+  </strong>
+</div>
+
+
+<div>
+  <Trophy size={16} />
+
+  <span>
+    Prize
+  </span>
+
+  <strong>
+    {Number(
+      game.prizeAmount ??
+        game.prizePool ??
+        0
+    ).toLocaleString()}{" "}
+    Birr
+  </strong>
+</div>
+
+
+<div>
+  <Clock size={16} />
+
+  <span>
+    Start Time
+  </span>
+
+  <strong>
+    {game.scheduledStartAt
+      ? new Date(
+          game.scheduledStartAt
+        ).toLocaleString()
+
+      : game.status === "waiting"
+      ? "Manual Start"
+
+      : game.startedAt
+      ? new Date(
+          game.startedAt
+        ).toLocaleString()
+
+      : "—"}
+  </strong>
+</div>
 
                 <div>
-                  <Gamepad2 size={16} />
+  <Gamepad2 size={16} />
 
-                  <span>
-                    Entry Fee
-                  </span>
+  <span>
+    Entry Fee
+  </span>
 
-                  <strong>
-                    {game.entryFee} ETB
-                  </strong>
-                </div>
+  <strong>
+    {game.entryFee} ETB
+  </strong>
+</div>
 
-                <div>
-                  <Clock size={16} />
+<div>
+  <Trophy size={16} />
 
-                  <span>
-                    Numbers Called
-                  </span>
+  <span>
+    Winning Pattern
+  </span>
 
-                  <strong>
-                    {game.calledNumbers?.length || 0}
-                    {" / 75"}
-                  </strong>
-                </div>
+  <strong>
+    {getWinningPatternLabel(
+      game.winningPattern ||
+        "3_lines"
+    )}
+  </strong>
+</div>
+
+<div>
+  <Clock size={16} />
+
+  <span>
+    Numbers Called
+  </span>
+
+  <strong>
+    {game.calledNumbers?.length || 0}
+    {" / 75"}
+  </strong>
+</div>
 
               </div>
-
 
               {/* Actions */}
               <div className="admin-game-card-actions">
@@ -538,6 +893,107 @@ export default function AdminGames() {
                 />
 
               </div>
+              <div className="admin-form-group">
+
+              <div className="admin-form-group">
+
+  <label>
+    Prize Amount
+  </label>
+
+  <input
+    type="number"
+    min="0"
+
+    value={
+      form.prizeAmount
+    }
+
+    onChange={(e) =>
+      setForm({
+        ...form,
+        prizeAmount:
+          e.target.value,
+      })
+    }
+
+    placeholder="Automatic"
+  />
+
+  <small>
+    Leave empty to use the
+    collected amount as prize.
+  </small>
+
+</div>
+{!automaticGameEnabled && (
+
+  <div className="admin-form-group">
+
+    <label>
+      Start Time
+    </label>
+
+    <input
+      type="datetime-local"
+
+      value={
+        form.scheduledStartAt
+      }
+
+      onChange={(e) =>
+        setForm({
+          ...form,
+
+          scheduledStartAt:
+            e.target.value,
+        })
+      }
+    />
+
+    <small>
+      Optional. Leave empty
+      for manual Admin start.
+    </small>
+
+  </div>
+
+)}
+
+  <label>
+    Winning Pattern
+  </label>
+
+  <select
+    className="admin-winning-pattern-select"
+    value={
+      form.winningPattern
+    }
+    onChange={(e) =>
+      setForm({
+        ...form,
+        winningPattern:
+          e.target.value,
+      })
+    }
+  >
+    {WINNING_PATTERNS.map(
+      (pattern) => (
+        <option
+          key={pattern.value}
+          value={pattern.value}
+        >
+          {pattern.label}
+        </option>
+      )
+    )}
+  </select>
+
+  <small>
+    የጨዋታ ዓይነት
+  </small>
+
+</div>
 
 
               <div className="admin-modal-actions">

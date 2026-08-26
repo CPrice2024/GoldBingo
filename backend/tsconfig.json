@@ -11,6 +11,6 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../frontend/src/i18n"],
   "exclude": ["node_modules", "dist"]
 }

@@ -56,6 +56,19 @@ export const startGame = async (gameId) => {
   return response.data;
 };
 
+
+export const updateGame = async (
+  gameId,
+  data
+) => {
+  const response = await api.patch(
+    `/games/${gameId}`,
+    data
+  );
+
+  return response.data;
+};
+
 export const callNumber = async (
   gameId,
   number
@@ -69,7 +82,35 @@ export const callNumber = async (
 
   return response.data;
 };
+// ================================
+// AUTOMATIC GAME SETTING
+// ================================
 
+export const getAutomaticGameSetting =
+  async () => {
+
+    const response =
+      await api.get(
+        "/settings/automatic-game"
+      );
+
+    return response.data;
+  };
+
+
+export const updateAutomaticGameSetting =
+  async (enabled) => {
+
+    const response =
+      await api.patch(
+        "/settings/automatic-game",
+        {
+          enabled,
+        }
+      );
+
+    return response.data;
+  };
 
 // =========================
 // PLAYER GAME FUNCTIONS

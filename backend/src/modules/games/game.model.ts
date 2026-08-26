@@ -7,6 +7,10 @@ import {
   IGame,
   GameStatus,
 } from "./game.types";
+import {
+  WINNING_PATTERNS,
+} from "./game.patterns";
+
 
 export interface IGameDocument
   extends IGame,
@@ -35,6 +39,18 @@ const gameSchema = new Schema(
       required: true,
       min: 1,
     },
+    winningPattern: {
+  type: String,
+
+  required: true,
+
+  enum: WINNING_PATTERNS.map(
+    (pattern) =>
+      pattern.value
+  ),
+
+  default: "3_lines",
+},
 
     currentPlayers: {
       type: Number,
@@ -67,6 +83,27 @@ const gameSchema = new Schema(
       type: [Number],
       default: [],
     },
+    joiningWindowSeconds: {
+  type: Number,
+  default: 120,
+  min: 1,
+},
+
+callIntervalSeconds: {
+  type: Number,
+  default: 5,
+  min: 1,
+},
+
+joiningEndsAt: {
+  type: Date,
+  default: null,
+},
+
+nextCallAt: {
+  type: Date,
+  default: null,
+},
 
     startedAt: {
       type: Date,
@@ -77,6 +114,16 @@ const gameSchema = new Schema(
       type: Date,
       default: null,
     },
+    scheduledStartAt: {
+  type: Date,
+  default: null,
+},
+
+prizeAmount: {
+  type: Number,
+  default: null,
+  min: 0,
+},
   },
   {
     timestamps: true,

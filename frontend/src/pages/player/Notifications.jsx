@@ -8,7 +8,7 @@ import {
   Inbox,
   X,
 } from "lucide-react";
-
+import { useLanguage } from "../../context/LanguageContext";
 import { useNotifications } from "../../context/NotificationContext";
 
 function Notifications() {
@@ -21,7 +21,9 @@ function Notifications() {
     markAsRead,
     markAllAsRead,
     removeNotification,
+    
   } = useNotifications();
+  const { t } = useLanguage();
 
   const [actionLoading, setActionLoading] =
     useState(null);
@@ -79,53 +81,54 @@ function Notifications() {
   };
 
   const formatDate = (date) => {
-    if (!date) {
-      return "";
+  if (!date) {
+    return "";
+  }
+
+  const notificationDate = new Date(date);
+  const now = new Date();
+
+  const diff =
+    now.getTime() -
+    notificationDate.getTime();
+
+  const minutes = Math.floor(diff / 60000);
+
+  if (minutes < 1) {
+    return t("notifications.time.justNow");
+  }
+
+  if (minutes < 60) {
+    return `${minutes}${t(
+      "notifications.time.minutesAgo"
+    )}`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+
+  if (hours < 24) {
+    return `${hours}${t(
+      "notifications.time.hoursAgo"
+    )}`;
+  }
+
+  const days = Math.floor(hours / 24);
+
+  if (days < 7) {
+    return `${days}${t(
+      "notifications.time.daysAgo"
+    )}`;
+  }
+
+  return notificationDate.toLocaleDateString(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     }
-
-    const notificationDate =
-      new Date(date);
-
-    const now = new Date();
-
-    const diff =
-      now.getTime() -
-      notificationDate.getTime();
-
-    const minutes =
-      Math.floor(diff / 60000);
-
-    if (minutes < 1) {
-      return "Just now";
-    }
-
-    if (minutes < 60) {
-      return `${minutes}m ago`;
-    }
-
-    const hours =
-      Math.floor(minutes / 60);
-
-    if (hours < 24) {
-      return `${hours}h ago`;
-    }
-
-    const days =
-      Math.floor(hours / 24);
-
-    if (days < 7) {
-      return `${days}d ago`;
-    }
-
-    return notificationDate.toLocaleDateString(
-      undefined,
-      {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      }
-    );
-  };
+  );
+};
 
   return (
     <div className="player-notifications-page">
@@ -136,12 +139,13 @@ function Notifications() {
           </div>
 
           <div>
-            <h1>Notifications</h1>
+            <h1>
+  {t("notifications.title")}
+</h1>
 
-            <p>
-              Stay updated with your
-              GoldBingo activity
-            </p>
+<p>
+  {t("notifications.subtitle")}
+</p>
           </div>
         </div>
 
@@ -151,7 +155,7 @@ function Notifications() {
             className="notification-refresh-btn"
             onClick={loadNotifications}
             disabled={loading}
-            title="Refresh notifications"
+            title={t("notifications.refresh")}
           >
             <RefreshCw
               size={17}
@@ -174,8 +178,8 @@ function Notifications() {
             >
               <CheckCheck size={17} />
               {actionLoading === "all"
-                ? "Marking..."
-                : "Mark all as read"}
+  ? t("notifications.marking")
+  : t("notifications.markAllRead")}
             </button>
           )}
         </div>
@@ -183,9 +187,9 @@ function Notifications() {
 
       <div className="notifications-summary">
         <div className="notification-summary-item">
-          <span className="summary-label">
-            Total
-          </span>
+         <span className="summary-label">
+  {t("notifications.total")}
+</span>
 
           <strong>
             {notifications.length}
@@ -196,8 +200,8 @@ function Notifications() {
 
         <div className="notification-summary-item">
           <span className="summary-label">
-            Unread
-          </span>
+  {t("notifications.unread")}
+</span>
 
           <strong className="unread-number">
             {unreadCount}
@@ -221,7 +225,7 @@ function Notifications() {
           />
 
           <p>
-            Loading notifications...
+            {t("notifications.loading")}
           </p>
         </div>
       ) : notifications.length ===
@@ -232,14 +236,11 @@ function Notifications() {
           </div>
 
           <h2>
-            No notifications yet
+            {t("notifications.emptyTitle")}
           </h2>
 
           <p>
-            When you receive updates about
-            your account, wallet, games, or
-            transactions, they will appear
-            here.
+            {t("notifications.emptyDescription")}
           </p>
         </div>
       ) : (
@@ -274,9 +275,12 @@ function Notifications() {
                       </h3>
 
                       <span className="notification-type-label">
-                        {notification.type ||
-                          "system"}
-                      </span>
+  {t(
+    `notifications.types.${
+      notification.type || "system"
+    }`
+  )}
+</span>
                     </div>
 
                     <span className="notification-time">
@@ -307,10 +311,9 @@ function Notifications() {
                       >
                         <Check size={15} />
 
-                        {actionLoading ===
-                        notification._id
-                          ? "Updating..."
-                          : "Mark as read"}
+                       {actionLoading === notification._id
+  ? t("notifications.updating")
+  : t("notifications.markAsRead")}
                       </button>
                     )}
 
@@ -327,8 +330,8 @@ function Notifications() {
                       }
                       className="notification-delete-btn"
                     >
-                      <Trash2 size={15} />
-                      Delete
+                     <Trash2 size={15} />
+{t("notifications.delete")}
                     </button>
                   </div>
                 </div>

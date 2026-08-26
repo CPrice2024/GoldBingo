@@ -45,36 +45,40 @@ export const createCard = async (
     });
   }
 };
-
 export const generateCard = async (
   req: Request,
   res: Response
 ) => {
+
   try {
-    const {
-      cardNumber,
-    } = req.body;
 
     const card =
-      await generateNewCard(
-        cardNumber
-      );
+      await generateNewCard();
+
 
     return res.status(201).json({
       success: true,
+
       message:
         "Bingo card generated successfully",
+
       data: card,
     });
+
+
   } catch (error) {
+
     return res.status(400).json({
       success: false,
+
       message:
         error instanceof Error
           ? error.message
           : "Failed to generate card",
     });
+
   }
+
 };
 
 export const listCards = async (

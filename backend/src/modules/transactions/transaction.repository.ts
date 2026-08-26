@@ -55,11 +55,11 @@ export const findAllTransactions = async () => {
   return Transaction.find()
     .populate(
       "userId",
-      "fullName phone email role"
+      "phone role"
     )
     .populate(
       "processedBy",
-      "fullName phone role"
+      "phone role"
     )
     .sort({
       createdAt: -1,

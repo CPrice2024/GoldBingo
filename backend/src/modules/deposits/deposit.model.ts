@@ -106,7 +106,13 @@ depositSchema.index({
   playerId: 1,
   createdAt: -1,
 });
-
+depositSchema.index(
+  { reference: 1 },
+  {
+    unique: true,
+    sparse: true,
+  }
+);
 export const Deposit =
   mongoose.model<IDepositDocument>(
     "Deposit",

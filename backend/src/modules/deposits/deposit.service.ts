@@ -4,12 +4,15 @@ import { Deposit } from "./deposit.model";
 import { Wallet } from "../wallet/wallet.model";
 import { Transaction } from "../transactions/transaction.model";
 import { User } from "../users/user.model";
-
+import {
+  AppSettings,
+} from "../settings/appSettings.model";
 import {
   createDeposit,
   findPlayerDeposits,
   findAgentPendingDeposits,
   findDepositById,
+  findDepositByReference,
 } from "./deposit.repository";
 
 import {
@@ -26,7 +29,6 @@ interface CreateDepositInput {
   reference?: string;
   note?: string;
 }
-
 export const submitDeposit = async (
   playerId: string,
   data: CreateDepositInput
@@ -65,39 +67,166 @@ export const submitDeposit = async (
     );
   }
 
-  const deposit = await createDeposit({
-  playerId: new mongoose.Types.ObjectId(playerId),
-  agentId: agent._id,
-  amount: data.amount,
-  paymentMethod: data.paymentMethod,
-  reference: data.reference,
-  note: data.note,
-});
+  // ------------------------------------------
+  // AGENT PAYMENT SETTINGS
+  // ------------------------------------------
 
-// Send a private push notification to this player's assigned agent.
-try {
-  await sendNotificationToUser(
-    agent._id.toString(),
-    "New Deposit Request",
-    `${player.fullName} requested a deposit of ${data.amount} ETB.`,
-    {
-      type: "deposit_request",
-      depositId: deposit._id.toString(),
-      playerId: player._id.toString(),
-      agentId: agent._id.toString(),
-      amount: data.amount.toString(),
+  const paymentSettings =
+    agent.paymentSettings;
+
+  if (!paymentSettings) {
+    throw new Error(
+      "Agent payment settings are not configured"
+    );
+  }
+
+  // ------------------------------------------
+  // PAYMENT METHOD VALIDATION
+  // ------------------------------------------
+
+  if (data.paymentMethod === "telebirr") {
+    if (!paymentSettings.telebirr?.enabled) {
+      throw new Error(
+        "Telebirr deposits are currently unavailable"
+      );
     }
+
+    if (
+      !paymentSettings.telebirr?.account?.trim()
+    ) {
+      throw new Error(
+        "Telebirr payment account is not configured"
+      );
+    }
+  }
+
+  if (data.paymentMethod === "cbe") {
+    if (!paymentSettings.cbe?.enabled) {
+      throw new Error(
+        "CBE deposits are currently unavailable"
+      );
+    }
+
+    if (
+      !paymentSettings.cbe?.account?.trim()
+    ) {
+      throw new Error(
+        "CBE payment account is not configured"
+      );
+    }
+  }
+
+  // ------------------------------------------
+  // DEPOSIT LIMIT VALIDATION
+  // ------------------------------------------
+
+  const minDeposit = Number(
+    paymentSettings.minDeposit ?? 10
   );
-} catch (notificationError) {
-  // Notification failure must NOT cancel the deposit request.
-  console.error(
-    "Failed to send deposit push notification:",
-    notificationError
+
+  const maxDeposit = Number(
+    paymentSettings.maxDeposit ?? 10000
   );
+
+  if (minDeposit <= 0) {
+    throw new Error(
+      "Agent minimum deposit must be greater than zero"
+    );
+  }
+
+  if (maxDeposit <= 0) {
+    throw new Error(
+      "Agent maximum deposit must be greater than zero"
+    );
+  }
+
+  if (minDeposit >= maxDeposit) {
+    throw new Error(
+      "Agent deposit limits are invalid"
+    );
+  }
+
+  if (data.amount < minDeposit) {
+    throw new Error(
+      `Minimum deposit amount is ${minDeposit} ETB`
+    );
+  }
+
+  if (data.amount > maxDeposit) {
+    throw new Error(
+      `Maximum deposit amount is ${maxDeposit} ETB`
+    );
+  }
+
+ // ------------------------------------------
+// DUPLICATE TRANSACTION ID CHECK
+// ------------------------------------------
+
+const reference =
+  data.reference?.trim();
+
+if (reference) {
+  const existingDeposit =
+    await findDepositByReference(reference);
+
+  if (existingDeposit) {
+    throw new Error(
+      "This transaction ID has already been used"
+    );
+  }
 }
 
-return deposit;
+// ------------------------------------------
+// CREATE DEPOSIT
+// ------------------------------------------
 
+const deposit = await createDeposit({
+    playerId:
+      new mongoose.Types.ObjectId(playerId),
+
+    agentId: agent._id,
+
+    amount: data.amount,
+
+    paymentMethod:
+      data.paymentMethod,
+
+    reference,
+
+    note: data.note,
+  });
+
+  // ------------------------------------------
+  // NOTIFY AGENT
+  // ------------------------------------------
+
+  try {
+    await sendNotificationToUser(
+      agent._id.toString(),
+      "New Deposit Request",
+      `${player.fullName} requested a deposit of ${data.amount} ETB.`,
+      {
+        type: "deposit_request",
+        depositId:
+          deposit._id.toString(),
+        playerId:
+          player._id.toString(),
+        agentId:
+          agent._id.toString(),
+        amount:
+          data.amount.toString(),
+      }
+    );
+  } catch (notificationError) {
+    // Notification failure must NOT cancel
+    // the deposit request.
+    console.error(
+      "Failed to send deposit push notification:",
+      notificationError
+    );
+  }
+
+  return deposit;
 };
 
 export const getPlayerDeposits = async (
@@ -106,6 +235,66 @@ export const getPlayerDeposits = async (
   return findPlayerDeposits(playerId);
 };
 
+export const getPlayerPaymentSettings = async (
+  playerId: string
+) => {
+  const player = await User.findOne({
+    _id: playerId,
+    role: "player",
+    status: "active",
+  }).select("referredBy");
+
+  if (!player) {
+    throw new Error("Player not found");
+  }
+
+  if (!player.referredBy) {
+    throw new Error(
+      "Player is not assigned to an agent"
+    );
+  }
+
+  const agent = await User.findOne({
+    _id: player.referredBy,
+    role: "agent",
+    status: "active",
+  }).select("paymentSettings");
+
+  if (!agent) {
+    throw new Error(
+      "Player's assigned agent is not available"
+    );
+  }
+
+  const settings =
+    agent.paymentSettings;
+
+  if (!settings) {
+    throw new Error(
+      "Agent payment settings are not configured"
+    );
+  }
+
+  return {
+    telebirr:
+      settings.telebirr?.enabled &&
+      settings.telebirr.account?.trim()
+        ? settings.telebirr.account
+        : null,
+
+    cbe:
+      settings.cbe?.enabled &&
+      settings.cbe.account?.trim()
+        ? settings.cbe.account
+        : null,
+
+    minDeposit:
+      settings.minDeposit ?? 10,
+
+    maxDeposit:
+      settings.maxDeposit ?? 10000,
+  };
+};
 export const getAgentPendingDeposits = async (
   agentId: string
 ) => {
@@ -138,8 +327,10 @@ export const approveDeposit = async (
   try {
     session.startTransaction();
 
-    // 1. Find ONLY a pending deposit
-    // belonging to this agent.
+    /* =========================================
+       1. FIND PENDING DEPOSIT
+    ========================================= */
+
     const deposit =
       await Deposit.findOne({
         _id: depositId,
@@ -153,11 +344,18 @@ export const approveDeposit = async (
       );
     }
 
-    // 2. Find player's active wallet.
+
+    /* =========================================
+       2. FIND PLAYER WALLET
+    ========================================= */
+
     const wallet =
       await Wallet.findOne({
-        userId: deposit.playerId,
-        status: "active",
+        userId:
+          deposit.playerId,
+
+        status:
+          "active",
       }).session(session);
 
     if (!wallet) {
@@ -166,58 +364,178 @@ export const approveDeposit = async (
       );
     }
 
-    // 3. Calculate new balance.
-    const balanceBefore = wallet.balance;
+
+    /* =========================================
+       3. LOAD GLOBAL DEPOSIT BONUS
+    ========================================= */
+
+    const appSettings =
+      await AppSettings.findOne({
+        key: "global",
+      }).session(session);
+
+
+    const bonusEnabled =
+      appSettings
+        ?.depositBonusEnabled ===
+      true;
+
+
+    const rawBonusPercent =
+      Number(
+        appSettings
+          ?.depositBonusPercent ??
+          0
+      );
+
+
+    const bonusPercent =
+      bonusEnabled &&
+      Number.isFinite(
+        rawBonusPercent
+      )
+        ? Math.min(
+            Math.max(
+              rawBonusPercent,
+              0
+            ),
+            100
+          )
+        : 0;
+
+
+    /* =========================================
+       4. CALCULATE BONUS
+    ========================================= */
+
+    const depositAmount =
+      Number(
+        deposit.amount
+      );
+
+
+    const bonusAmount =
+      Number(
+        (
+          (
+            depositAmount *
+            bonusPercent
+          ) /
+          100
+        ).toFixed(2)
+      );
+
+
+    const creditedAmount =
+      Number(
+        (
+          depositAmount +
+          bonusAmount
+        ).toFixed(2)
+      );
+
+
+    /* =========================================
+       5. CALCULATE WALLET BALANCE
+    ========================================= */
+
+    const balanceBefore =
+      Number(
+        wallet.balance || 0
+      );
+
 
     const balanceAfter =
-      balanceBefore + deposit.amount;
+      Number(
+        (
+          balanceBefore +
+          creditedAmount
+        ).toFixed(2)
+      );
 
-    // 4. Update wallet.
-    wallet.balance = balanceAfter;
+
+    /* =========================================
+       6. UPDATE WALLET
+    ========================================= */
+
+    wallet.balance =
+      balanceAfter;
+
 
     await wallet.save({
       session,
     });
 
-    // 5. Mark deposit as approved.
-    deposit.status = "approved";
+
+    /* =========================================
+       7. APPROVE DEPOSIT
+    ========================================= */
+
+    deposit.status =
+      "approved";
+
 
     deposit.processedBy =
-      new mongoose.Types.ObjectId(agentId);
+      new mongoose.Types.ObjectId(
+        agentId
+      );
 
-    deposit.processedAt = new Date();
+
+    deposit.processedAt =
+      new Date();
+
 
     await deposit.save({
       session,
     });
 
-    // 6. Create transaction ledger entry.
+
+    /* =========================================
+       8. CREATE TRANSACTION
+    ========================================= */
+
     await Transaction.create(
       [
         {
-          userId: deposit.playerId,
+          userId:
+            deposit.playerId,
 
-          type: "deposit",
+          type:
+            "deposit",
 
-          amount: deposit.amount,
+          /*
+           * Transaction amount is the
+           * actual amount credited to
+           * the wallet.
+           */
+          amount:
+            creditedAmount,
 
           balanceBefore,
 
           balanceAfter,
 
-          currency: "ETB",
+          currency:
+            "ETB",
 
-          status: "completed",
+          status:
+            "completed",
 
-          reference: deposit.reference,
+          reference:
+            deposit.reference,
 
-          requestId: deposit._id,
+          requestId:
+            deposit._id,
 
           processedBy:
-            new mongoose.Types.ObjectId(agentId),
+            new mongoose.Types.ObjectId(
+              agentId
+            ),
 
           description:
-            "Deposit approved by agent",
+            bonusAmount > 0
+              ? `Deposit approved by agent. Base deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
+              : "Deposit approved by agent",
         },
       ],
       {
@@ -225,41 +543,100 @@ export const approveDeposit = async (
       }
     );
 
+
+    /* =========================================
+       9. COMMIT
+    ========================================= */
+
     await session.commitTransaction();
 
-// Send notification AFTER the transaction succeeds.
-// FCM failure must not undo the approved deposit.
-try {
-  await sendNotificationToUser(
-    deposit.playerId.toString(),
-    "Deposit Approved",
-    `Your deposit of ${deposit.amount} ETB has been approved.`,
-    {
-      type: "deposit_approved",
-      depositId: deposit._id.toString(),
-      amount: deposit.amount.toString(),
-      agentId: agentId.toString(),
-    }
-  );
-} catch (notificationError) {
-  console.error(
-    "Failed to send deposit approval notification:",
-    notificationError
-  );
-}
 
-return {
-  deposit,
-  balanceBefore,
-  balanceAfter,
-};
+    /* =========================================
+       10. NOTIFY PLAYER
+    ========================================= */
+
+    try {
+
+      const notificationMessage =
+        bonusAmount > 0
+          ? `Your deposit of ${depositAmount} ETB has been approved. You received a ${bonusPercent}% deposit bonus of ${bonusAmount} ETB. Total credited: ${creditedAmount} ETB.`
+          : `Your deposit of ${depositAmount} ETB has been approved.`;
+
+
+      await sendNotificationToUser(
+        deposit.playerId.toString(),
+
+        "Deposit Approved",
+
+        notificationMessage,
+
+        {
+          type:
+            "deposit_approved",
+
+          depositId:
+            deposit._id.toString(),
+
+          amount:
+            depositAmount.toString(),
+
+          bonusAmount:
+            bonusAmount.toString(),
+
+          bonusPercent:
+            bonusPercent.toString(),
+
+          creditedAmount:
+            creditedAmount.toString(),
+
+          agentId:
+            agentId.toString(),
+        }
+      );
+
+    } catch (
+      notificationError
+    ) {
+
+      console.error(
+        "Failed to send deposit approval notification:",
+        notificationError
+      );
+
+    }
+
+
+    /* =========================================
+       11. RETURN RESULT
+    ========================================= */
+
+    return {
+      deposit,
+
+      balanceBefore,
+
+      balanceAfter,
+
+      depositAmount,
+
+      bonusEnabled,
+
+      bonusPercent,
+
+      bonusAmount,
+
+      creditedAmount,
+    };
+
   } catch (error) {
-    // If ANY operation fails,
-    // undo everything.
+
     await session.abortTransaction();
 
     throw error;
+
   } finally {
+
     await session.endSession();
+
   }
 };

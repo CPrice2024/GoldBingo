@@ -1,11 +1,8 @@
 import { UserRole } from "../users/user.types";
 
 export interface RegisterInput {
-  fullName: string;
   phone: string;
   password: string;
-  email?: string;
-  referralCode?: string;
 }
 
 export interface LoginInput {

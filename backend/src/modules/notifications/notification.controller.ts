@@ -132,7 +132,6 @@ export const registerFcmToken = async (
       message: "FCM token registered successfully",
       data: {
         userId: user._id,
-        fullName: user.fullName,
         role: user.role,
         fcmToken: user.fcmToken,
       },

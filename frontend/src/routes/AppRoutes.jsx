@@ -19,6 +19,7 @@ import Profile from "../pages/player/Profile";
 import Games from "../pages/player/Games";
 import GameRoom from "../pages/player/GameRoom";
 import Play from "../pages/player/Play";
+import TermsConditions from "../pages/player/TermsConditions";
 
 import PlayerLayout from "../layouts/PlayerLayout";
 
@@ -29,6 +30,7 @@ import AdminPlayers from "../pages/management/admin/Players";
 import AdminGames from "../pages/management/admin/Games";
 import AdminTransactions from "../pages/management/admin/Transactions";
 import AdminSettings from "../pages/management/admin/Settings";
+import GameDetails from "../pages/management/admin/GameDetails";
 import AgentDashboard from "../pages/management/agent/Dashboard";
 import AgentPlayers from "../pages/management/agent/Players";
 import AgentDeposits from "../pages/management/agent/Deposits";
@@ -96,6 +98,9 @@ function AppRoutes() {
             path="play"
             element={<Play />}
           />
+          <Route 
+            path="terms"
+            element={<TermsConditions />}/>
 
           <Route
             path="games"
@@ -251,6 +256,12 @@ function AppRoutes() {
 <Route
   path="settings"
   element={<AdminSettings />}
+/>
+<Route
+  path="/admin/games/:gameId"
+  element={
+    <GameDetails />
+  }
 />
 </Route>
 

@@ -15,225 +15,344 @@ import {
 } from "./gamePlayer.repository";
 
 import {
-  findAndAssignAvailableCard,
+  findAndAssignAvailableCards,
 } from "../cards/card.repository";
 
-export const joinGame = async (
-  playerId: string,
-  gameId: string
-) => {
-  const session = await mongoose.startSession();
+export const joinGame =
+  async (
+    playerId: string,
+    gameId: string,
+    cardCount: number = 1
+  ) => {
+    const allowedCardCounts = [
+      1,
+      2,
+      3,
+      5,
+      10,
+    ];
 
-  try {
-    session.startTransaction();
-
-    // 1. Verify player
-    const player = await User.findOne({
-      _id: playerId,
-      role: "player",
-      status: "active",
-    }).session(session);
-
-    if (!player) {
-      throw new Error(
-        "Player not found or inactive"
-      );
-    }
-
-    // 2. Verify game
-    const game = await Game.findOne({
-      _id: gameId,
-      status: "waiting",
-    }).session(session);
-
-    if (!game) {
-      throw new Error(
-        "Game is already running or is not accepting players. Please wait for the next game."
-      );
-    }
-
-    // 3. Check player limit
     if (
-      game.currentPlayers >=
-      game.maxPlayers
+      !allowedCardCounts.includes(
+        cardCount
+      )
     ) {
       throw new Error(
-        "Game is full"
+        "Card count must be 1, 2, 3, 5, or 10"
       );
     }
 
-    // 4. Prevent duplicate participation
-    const existingPlayer =
-      await findGamePlayer(
-        gameId,
-        playerId
-      );
 
-    if (existingPlayer) {
-      throw new Error(
-        "Player has already joined this game"
-      );
-    }
+    const session =
+      await mongoose.startSession();
 
-    // 5. Get player's wallet
-    const wallet =
-      await Wallet.findOne({
-        userId: playerId,
-        status: "active",
-      }).session(session);
+    try {
+      session.startTransaction();
 
-    if (!wallet) {
-      throw new Error(
-        "Player wallet not found or inactive"
-      );
-    }
 
-    // 6. Calculate available balance
-    const availableBalance =
-      wallet.balance -
-      wallet.reservedBalance;
+      /* =========================
+         1. PLAYER
+      ========================= */
 
-    // 7. Check sufficient funds
-    if (
-      availableBalance <
-      game.entryFee
-    ) {
-      throw new Error(
-        "Insufficient available balance"
-      );
-    }
+      const player =
+        await User.findOne({
+          _id: playerId,
+          role: "player",
+          status: "active",
+        }).session(session);
 
-    // 8. Assign available Bingo card
-    const card =
-      await findAndAssignAvailableCard(
-        session
-      );
+      if (!player) {
+        throw new Error(
+          "Player not found or inactive"
+        );
+      }
 
-    if (!card) {
-      throw new Error(
-        "No Bingo cards are currently available"
-      );
-    }
 
-    // 9. Deduct entry fee
-    const balanceBefore =
-      wallet.balance;
+      /* =========================
+         2. GAME
+      ========================= */
 
-    const balanceAfter =
-      balanceBefore -
-      game.entryFee;
+      const game =
+        await Game.findOne({
+          _id: gameId,
+          status: "waiting",
+        }).session(session);
 
-    wallet.balance =
-      balanceAfter;
+      if (!game) {
+        throw new Error(
+          "Game is already running or is not accepting players. Please wait for the next game."
+        );
+      }
 
-    await wallet.save({
-      session,
-    });
 
-    // 10. Create game participation
-    const gamePlayer =
-      await createGamePlayer(
+      /* =========================
+         3. PLAYER LIMIT
+      ========================= */
+
+      if (
+        game.currentPlayers >=
+        game.maxPlayers
+      ) {
+        throw new Error(
+          "Game is full"
+        );
+      }
+
+
+      /* =========================
+         4. DUPLICATE JOIN
+      ========================= */
+
+      const existingPlayer =
+        await findGamePlayer(
+          gameId,
+          playerId,
+          session
+        );
+
+      if (existingPlayer) {
+        throw new Error(
+          "Player has already joined this game"
+        );
+      }
+
+
+      /* =========================
+         5. WALLET
+      ========================= */
+
+      const wallet =
+        await Wallet.findOne({
+          userId: playerId,
+          status: "active",
+        }).session(session);
+
+      if (!wallet) {
+        throw new Error(
+          "Player wallet not found or inactive"
+        );
+      }
+
+
+      /* =========================
+         6. TOTAL ENTRY COST
+      ========================= */
+
+      const totalEntryFee =
+        game.entryFee *
+        cardCount;
+
+
+      const availableBalance =
+        wallet.balance -
+        wallet.reservedBalance;
+
+
+      if (
+        availableBalance <
+        totalEntryFee
+      ) {
+        throw new Error(
+          `Insufficient available balance. ${cardCount} cards cost ${totalEntryFee} ETB.`
+        );
+      }
+
+
+      /* =========================
+         7. ASSIGN CARDS
+      ========================= */
+
+      const cards =
+        await findAndAssignAvailableCards(
+          cardCount,
+          session
+        );
+
+      if (
+        cards.length !==
+        cardCount
+      ) {
+        throw new Error(
+          "Failed to assign requested Bingo cards"
+        );
+      }
+
+
+      const cardIds =
+        cards.map(
+          (card) =>
+            card._id
+        );
+
+
+      /* =========================
+         8. DEDUCT BALANCE
+      ========================= */
+
+      const balanceBefore =
+        wallet.balance;
+
+      const balanceAfter =
+        balanceBefore -
+        totalEntryFee;
+
+      wallet.balance =
+        balanceAfter;
+
+      await wallet.save({
+        session,
+      });
+
+
+      /* =========================
+         9. GAME PARTICIPATION
+      ========================= */
+
+      const gamePlayer =
+        await createGamePlayer(
+          {
+            gameId:
+              new mongoose.Types.ObjectId(
+                gameId
+              ),
+
+            playerId:
+              new mongoose.Types.ObjectId(
+                playerId
+              ),
+
+            entryFee:
+              totalEntryFee,
+
+            cardIds:
+              cardIds as mongoose.Types.ObjectId[],
+
+            cardCount,
+          },
+          session
+        );
+
+
+      /* =========================
+         10. UPDATE GAME
+      ========================= */
+
+      // One PLAYER joined,
+      // regardless of card quantity.
+      game.currentPlayers += 1;
+
+      // Every purchased card
+      // contributes entry fee.
+      game.prizePool +=
+        totalEntryFee;
+
+      await game.save({
+        session,
+      });
+
+
+      /* =========================
+         11. TRANSACTION
+      ========================= */
+
+      await Transaction.create(
+        [
+          {
+            userId:
+              new mongoose.Types.ObjectId(
+                playerId
+              ),
+
+            type:
+              "game_entry",
+
+            amount:
+              totalEntryFee,
+
+            balanceBefore,
+
+            balanceAfter,
+
+            currency:
+              "ETB",
+
+            status:
+              "completed",
+
+            requestId:
+              gamePlayer._id,
+
+            description:
+              `Bingo entry fee for ${cardCount} card(s) in ${game.name}`,
+          },
+        ],
         {
-          gameId:
-            new mongoose.Types.ObjectId(
-              gameId
-            ),
-
-          playerId:
-            new mongoose.Types.ObjectId(
-              playerId
-            ),
-
-          entryFee:
-            game.entryFee,
-
-          cardId: card._id,
-        },
-        session
+          session,
+        }
       );
 
-    // 11. Update game
-    game.currentPlayers += 1;
 
-    game.prizePool +=
-      game.entryFee;
+      /* =========================
+         12. COMMIT
+      ========================= */
 
-    await game.save({
-      session,
-    });
+      await session.commitTransaction();
 
-    // 12. Create transaction
-    await Transaction.create(
-      [
-        {
-          userId:
-            new mongoose.Types.ObjectId(
-              playerId
-            ),
 
-          type: "game_entry",
+      /*
+       * Start joining timer only
+       * when first PLAYER joins.
+       */
+      if (
+        game.currentPlayers === 1
+      ) {
+        startJoiningWindow(
+          gameId
+        );
+      }
 
-          amount:
-            game.entryFee,
 
-          balanceBefore,
+      return {
+        gamePlayer,
 
+        cardCount,
+
+        cards:
+          cards.map(
+            (card) => ({
+              id:
+                card._id,
+
+              cardNumber:
+                card.cardNumber,
+
+              numbers:
+                card.numbers,
+            })
+          ),
+
+        totalEntryFee,
+
+        balance:
           balanceAfter,
 
-          currency: "ETB",
+        reservedBalance:
+          wallet.reservedBalance,
 
-          status: "completed",
+        availableBalance:
+          balanceAfter -
+          wallet.reservedBalance,
+      };
 
-          requestId:
-            gamePlayer._id,
+    } catch (error) {
+      await session.abortTransaction();
 
-          description:
-            `Bingo entry fee for ${game.name}`,
-        },
-      ],
-      { session }
-    );
+      throw error;
 
-    // 13. Commit transaction ONCE
-    await session.commitTransaction();
-
-    // 14. Start 2-minute joining window
-    // ONLY for the first player
-    if (game.currentPlayers === 1) {
-      startJoiningWindow(gameId);
+    } finally {
+      await session.endSession();
     }
-
-    return {
-      gamePlayer,
-
-      card: {
-        id: card._id,
-        cardNumber:
-          card.cardNumber,
-        numbers:
-          card.numbers,
-      },
-
-      balance:
-        balanceAfter,
-
-      reservedBalance:
-        wallet.reservedBalance,
-
-      availableBalance:
-        balanceAfter -
-        wallet.reservedBalance,
-    };
-
-  } catch (error) {
-    await session.abortTransaction();
-
-    throw error;
-
-  } finally {
-    await session.endSession();
-  }
-};
+  };
 
 export const getGamePlayers =
   async (

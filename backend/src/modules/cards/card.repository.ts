@@ -111,3 +111,43 @@ export const releaseCard = async (
     }
   );
 };
+
+export const findAndAssignAvailableCards =
+  async (
+    count: number,
+    session: mongoose.ClientSession
+  ) => {
+    const cards = [];
+
+    for (
+      let index = 0;
+      index < count;
+      index++
+    ) {
+      const card =
+        await Card.findOneAndUpdate(
+          {
+            status: "available",
+          },
+          {
+            $set: {
+              status: "assigned",
+            },
+          },
+          {
+            new: true,
+            session,
+          }
+        );
+
+      if (!card) {
+        throw new Error(
+          `Not enough Bingo cards are available. ${count} cards are required.`
+        );
+      }
+
+      cards.push(card);
+    }
+
+    return cards;
+  };

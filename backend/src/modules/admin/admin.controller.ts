@@ -5,6 +5,7 @@ import {
 
 import {
   createAgent,
+  updateAgent,
   getAdminDashboardStats,
   getAllAgents,
   getAllPlayers,
@@ -23,7 +24,12 @@ export const createAgentController =
         phone,
         password,
         email,
+        paymentSettings,
       } = req.body;
+      console.log(
+  "[ADMIN] Payment settings received:",
+  JSON.stringify(paymentSettings, null, 2)
+);
 
       if (
         typeof fullName !== "string" ||
@@ -63,6 +69,7 @@ export const createAgentController =
           phone,
           password,
           email,
+          paymentSettings,
         });
 
       return res.status(201).json({
@@ -84,6 +91,97 @@ export const createAgentController =
           error instanceof Error
             ? error.message
             : "Failed to create agent",
+      });
+    }
+  };
+export const updateAgentController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+     const { agentId } = req.params;
+
+if (
+  typeof agentId !== "string" ||
+  !agentId.trim()
+) {
+  return res.status(400).json({
+    success: false,
+    message: "Valid agent ID is required",
+  });
+}
+
+      const {
+        fullName,
+        phone,
+        email,
+        password,
+        paymentSettings,
+      } = req.body;
+
+      if (
+        typeof fullName !== "string" ||
+        typeof phone !== "string"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Full name and phone are required",
+        });
+      }
+
+      if (
+        fullName.trim().length < 2
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Full name must be at least 2 characters",
+        });
+      }
+
+      if (
+        password !== undefined &&
+        password !== "" &&
+        typeof password !== "string"
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid password",
+        });
+      }
+
+      const agent =
+        await updateAgent(
+          agentId,
+          {
+            fullName,
+            phone,
+            email,
+            password,
+            paymentSettings,
+          }
+        );
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Agent updated successfully",
+        data: agent,
+      });
+    } catch (error) {
+      console.error(
+        "[ADMIN] Update agent error:",
+        error
+      );
+
+      return res.status(400).json({
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update agent",
       });
     }
   };

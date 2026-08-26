@@ -7,15 +7,20 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
+    "@dicebear/core": "^10.6.0",
+    "@dicebear/styles": "^10.5.0",
     "axios": "^1.19.0",
     "firebase": "^12.17.1",
     "lucide-react": "^1.31.0",
+    "motion": "^13.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.2"
+    "react-router-dom": "^7.18.2",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -26,6 +31,8 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
     "globals": "^17.7.0",
+    "png-to-ico": "^3.0.2",
+    "sharp": "^0.35.3",
     "vite": "^8.2.0"
   }
 }

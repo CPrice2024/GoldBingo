@@ -1,3 +1,7 @@
+import type {
+  WinningPattern,
+} from "./game.patterns";
+
 export type GameStatus =
   | "waiting"
   | "active"
@@ -11,17 +15,34 @@ export interface IGame {
 
   maxPlayers: number;
 
+  winningPattern:
+    WinningPattern;
+
+  joiningWindowSeconds: number;
+
+  callIntervalSeconds: number;
+
+  joiningEndsAt?: Date | null;
+
+  nextCallAt?: Date | null;
+
   currentPlayers: number;
 
   prizePool: number;
+
+  prizeAmount:
+  number | null;
+
+scheduledStartAt:
+  Date | null;
 
   status: GameStatus;
 
   calledNumbers: number[];
 
-  startedAt?: Date;
+  startedAt?: Date | null;
 
-  completedAt?: Date;
+  completedAt?: Date | null;
 
   createdAt: Date;
 

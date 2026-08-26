@@ -53,9 +53,17 @@ export const findAgentPendingDeposits = async (
   })
     .populate(
       "playerId",
-      "fullName phone email avatar"
+      "phone avatar"
     )
     .sort({
       createdAt: 1,
     });
+};
+
+export const findDepositByReference = async (
+  reference: string
+) => {
+  return Deposit.findOne({
+    reference: reference.trim(),
+  });
 };

@@ -14,7 +14,9 @@ import {
   getGameStateController,
   checkBingoController,
   claimBingoController,
+  getGameWinnersController,
   getCurrentGameController,
+  updateGameController,
 } from "./game.controller";
 
 const router = Router();
@@ -38,6 +40,21 @@ router.post(
   authenticate,
   authorize("admin"),
   createGame
+);
+// Admin: update waiting game
+/* Player: winner information */
+
+router.get(
+  "/:id/winners",
+  authenticate,
+  authorize("player"),
+  getGameWinnersController
+);
+router.patch(
+  "/:id",
+  authenticate,
+  authorize("admin"),
+  updateGameController
 );
 
 // Admin: start a game

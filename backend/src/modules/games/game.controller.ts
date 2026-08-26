@@ -3,16 +3,18 @@ import {
   Response,
 } from "express";
 
-import {
-  createNewGame,
-  getGames,
-  getGame,
-  startGame,
-  callGameNumber,
-  getGameState,
-  checkBingo,
-  claimBingo,
+import { 
+  createNewGame, 
+  getGames, 
+  getGame, 
+  startGame, 
+  callGameNumber, 
+  getGameState, 
+  checkBingo, 
+  claimBingo, 
   getCurrentGame,
+  updateExistingGame,
+  getGameWinners,
 } from "./game.service";
 
 export const createGame =
@@ -21,18 +23,41 @@ export const createGame =
     res: Response
   ) => {
     try {
-      const {
-        name,
-        entryFee,
-        maxPlayers,
-      } = req.body;
+     const {
+  name,
+  entryFee,
+  maxPlayers,
+  winningPattern,
+  prizeAmount,
+  scheduledStartAt,
+} = req.body;
 
-      const game =
-        await createNewGame({
-          name,
-          entryFee,
-          maxPlayers,
-        });
+
+const game =
+  await createNewGame({
+    name,
+    entryFee:
+      Number(entryFee),
+
+    maxPlayers:
+      Number(maxPlayers),
+
+    winningPattern,
+
+    prizeAmount:
+      prizeAmount ===
+        undefined
+        ? null
+        : prizeAmount === null
+        ? null
+        : Number(
+            prizeAmount
+          ),
+
+    scheduledStartAt:
+      scheduledStartAt ||
+      null,
+  });
 
       return res.status(201).json({
         success: true,
@@ -112,7 +137,146 @@ export const getGameById =
       });
     }
   };
-  export const startGameController =
+
+/* =========================================================
+   UPDATE GAME
+========================================================= */
+
+export const updateGameController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+
+      const {
+        id,
+      } = req.params;
+
+
+      /* =========================================
+         VALIDATE ID
+      ========================================= */
+
+      if (
+        !id ||
+        Array.isArray(id)
+      ) {
+        return res.status(
+          400
+        ).json({
+          success: false,
+          message:
+            "Invalid game ID",
+        });
+      }
+
+
+      /* =========================================
+         BODY
+      ========================================= */
+
+      const {
+  name,
+  entryFee,
+  maxPlayers,
+  winningPattern,
+  prizeAmount,
+  scheduledStartAt,
+} = req.body;
+
+
+      /* =========================================
+         UPDATE
+      ========================================= */
+
+      const game =
+  await updateExistingGame(
+    id,
+    {
+      name:
+        name !== undefined
+          ? String(name)
+          : undefined,
+
+      entryFee:
+        entryFee !== undefined
+          ? Number(entryFee)
+          : undefined,
+
+      maxPlayers:
+        maxPlayers !== undefined
+          ? Number(maxPlayers)
+          : undefined,
+
+      winningPattern:
+        winningPattern !== undefined
+          ? winningPattern
+          : undefined,
+
+      prizeAmount:
+        prizeAmount === undefined
+          ? undefined
+          : prizeAmount === null
+          ? null
+          : Number(prizeAmount),
+
+      scheduledStartAt:
+        scheduledStartAt === undefined
+          ? undefined
+          : scheduledStartAt || null,
+    }
+  );
+
+
+      return res.status(
+        200
+      ).json({
+
+        success: true,
+
+        message:
+          "Game updated successfully",
+
+        data:
+          game,
+
+      });
+
+    } catch (error) {
+
+      console.error(
+        "Update game error:",
+        error
+      );
+
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Failed to update game";
+
+
+      const statusCode =
+        message ===
+        "Game not found"
+          ? 404
+          : 400;
+
+
+      return res.status(
+        statusCode
+      ).json({
+
+        success: false,
+
+        message,
+
+      });
+    }
+  };
+  
+export const startGameController =
 async (
   req: Request,
   res: Response
@@ -350,3 +514,86 @@ export const getCurrentGameController = async (
     });
   }
 };
+
+/* =========================================================
+   GET WINNERS
+========================================================= */
+
+export const getGameWinnersController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+
+      if (
+        Array.isArray(id)
+      ) {
+        return res
+          .status(400)
+          .json({
+            success:
+              false,
+
+            message:
+              "Invalid game ID",
+          });
+      }
+
+
+      const playerId =
+        (req as any)
+          .user?.userId;
+
+
+      if (!playerId) {
+        return res
+          .status(401)
+          .json({
+            success:
+              false,
+
+            message:
+              "Authentication required",
+          });
+      }
+
+
+      const result =
+        await getGameWinners(
+          id,
+          playerId
+        );
+
+
+      return res
+        .status(200)
+        .json({
+          success:
+            true,
+
+          data:
+            result,
+        });
+
+    } catch (error) {
+
+      return res
+        .status(400)
+        .json({
+          success:
+            false,
+
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to retrieve winner",
+        });
+
+    }
+  };

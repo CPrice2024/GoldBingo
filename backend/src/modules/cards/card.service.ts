@@ -195,21 +195,67 @@ export const createNewCard = async (
     numbers: data.numbers,
   });
 };
+/* =========================================================
+   RANDOM CARD NUMBER
+========================================================= */
 
+const generateRandomCardNumber =
+  async () => {
+
+    for (
+      let attempt = 0;
+      attempt < 10;
+      attempt++
+    ) {
+
+      const randomNumber =
+        Math.floor(
+          100000 +
+            Math.random() * 900000
+        );
+
+      const cardNumber =
+        `GB-${randomNumber}`;
+
+
+      const existingCard =
+        await findCardByNumber(
+          cardNumber
+        );
+
+
+      if (!existingCard) {
+        return cardNumber;
+      }
+
+    }
+
+
+    return `GB-${Date.now()
+      .toString()
+      .slice(-6)}`;
+
+  };
 /**
  * Generate and create a Bingo card automatically.
  */
-export const generateNewCard = async (
-  cardNumber: string
-) => {
-  const numbers =
-    generateBingoNumbers();
+export const generateNewCard =
+  async () => {
 
-  return createNewCard({
-    cardNumber,
-    numbers,
-  });
-};
+    const numbers =
+      generateBingoNumbers();
+
+
+    const cardNumber =
+      await generateRandomCardNumber();
+
+
+    return createNewCard({
+      cardNumber,
+      numbers,
+    });
+
+  };
 
 export const getCard = async (
   cardId: string

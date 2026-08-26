@@ -27,7 +27,32 @@ export const joinGameController =
         });
       }
 
-      const { gameId } = req.body;
+      const {
+  gameId,
+  cardCount = 1,
+} = req.body;
+const parsedCardCount =
+  Number(cardCount);
+
+const allowedCardCounts = [
+  1,
+  2,
+  3,
+  5,
+  10,
+];
+
+if (
+  !allowedCardCounts.includes(
+    parsedCardCount
+  )
+) {
+  return res.status(400).json({
+    success: false,
+    message:
+      "Card count must be 1, 2, 3, 5, or 10",
+  });
+}
 
       if (
         typeof gameId !== "string" ||
@@ -41,10 +66,11 @@ export const joinGameController =
       }
 
       const result =
-        await joinGame(
-          playerId,
-          gameId
-        );
+  await joinGame(
+    playerId,
+    gameId,
+    parsedCardCount
+  );
 
       return res.status(201).json({
         success: true,

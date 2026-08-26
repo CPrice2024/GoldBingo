@@ -14,6 +14,7 @@ import {
 import {
   getAdminAgents,
   createAgent,
+  updateAgent,
 } from "../../../api/admin.api";
 
 export default function Agents() {
@@ -25,6 +26,9 @@ export default function Agents() {
   const [showCreate, setShowCreate] =
     useState(false);
 
+  const [editingAgent, setEditingAgent] =
+  useState(null);
+
   const [creating, setCreating] =
     useState(false);
 
@@ -32,11 +36,24 @@ export default function Agents() {
   const [success, setSuccess] = useState("");
 
   const [form, setForm] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    password: "",
-  });
+  fullName: "",
+  phone: "",
+  email: "",
+  password: "",
+
+  paymentSettings: {
+    telebirr: {
+      enabled: true,
+      account: "",
+    },
+    cbe: {
+      enabled: true,
+      account: "",
+    },
+    minDeposit: 10,
+    maxDeposit: 10000,
+  },
+});
 
   const loadAgents = async () => {
     try {
@@ -84,42 +101,168 @@ export default function Agents() {
     setError("");
     setSuccess("");
 
-    if (
-      !form.fullName.trim() ||
-      !form.phone.trim() ||
-      !form.password
-    ) {
-      setError(
-        "Full name, phone and password are required"
-      );
-      return;
-    }
+   if (
+  !form.fullName.trim() ||
+  !form.phone.trim() ||
+  (!editingAgent && !form.password)
+) {
+  setError(
+    editingAgent
+      ? "Full name and phone are required"
+      : "Full name, phone and password are required"
+  );
+
+  return;
+}
+
+    const {
+  telebirr,
+  cbe,
+  minDeposit,
+  maxDeposit,
+} = form.paymentSettings;
+
+if (!telebirr.enabled && !cbe.enabled) {
+  setError(
+    "At least one payment method must be enabled"
+  );
+  return;
+}
+
+if (
+  telebirr.enabled &&
+  !telebirr.account.trim()
+) {
+  setError(
+    "Telebirr payment number is required"
+  );
+  return;
+}
+
+if (
+  cbe.enabled &&
+  !cbe.account.trim()
+) {
+  setError(
+    "CBE account number is required"
+  );
+  return;
+}
+
+if (Number(minDeposit) <= 0) {
+  setError(
+    "Minimum deposit must be greater than 0"
+  );
+  return;
+}
+
+if (Number(maxDeposit) <= 0) {
+  setError(
+    "Maximum deposit must be greater than 0"
+  );
+  return;
+}
+
+if (
+  Number(minDeposit) >= Number(maxDeposit)
+) {
+  setError(
+    "Maximum deposit must be greater than minimum deposit"
+  );
+  return;
+}
 
     try {
       setCreating(true);
 
-      const response =
-        await createAgent({
-          fullName: form.fullName.trim(),
-          phone: form.phone.trim(),
-          email:
-            form.email.trim() || undefined,
-          password: form.password,
-        });
+      const agentData = {
+  fullName: form.fullName.trim(),
+  phone: form.phone.trim(),
+  email:
+    form.email.trim() || undefined,
 
-      setSuccess(
-        response?.message ||
-          "Agent created successfully"
-      );
+  paymentSettings: {
+    telebirr: {
+      enabled:
+        form.paymentSettings.telebirr.enabled,
+
+      account:
+        form.paymentSettings.telebirr.account.trim(),
+    },
+
+    cbe: {
+      enabled:
+        form.paymentSettings.cbe.enabled,
+
+      account:
+        form.paymentSettings.cbe.account.trim(),
+    },
+
+    minDeposit: Number(
+      form.paymentSettings.minDeposit
+    ),
+
+    maxDeposit: Number(
+      form.paymentSettings.maxDeposit
+    ),
+  },
+};
+if (!editingAgent) {
+  agentData.password = form.password;
+
+  const response =
+    await createAgent(agentData);
+
+  setSuccess(
+    response?.message ||
+      "Agent created successfully"
+  );
+} else {
+  const response =
+    await updateAgent(
+      editingAgent._id,
+      {
+        ...agentData,
+
+        // Only send password when changed
+        ...(form.password.trim()
+          ? {
+              password:
+                form.password.trim(),
+            }
+          : {}),
+      }
+    );
+
+  setSuccess(
+    response?.message ||
+      "Agent updated successfully"
+  );
+}
 
       setForm({
-        fullName: "",
-        phone: "",
-        email: "",
-        password: "",
-      });
+  fullName: "",
+  phone: "",
+  email: "",
+  password: "",
+
+  paymentSettings: {
+    telebirr: {
+      enabled: true,
+      account: "",
+    },
+    cbe: {
+      enabled: true,
+      account: "",
+    },
+    minDeposit: 10,
+    maxDeposit: 10000,
+  },
+});
 
       setShowCreate(false);
+setEditingAgent(null);
+setError("");
 
       await loadAgents();
     } catch (err) {
@@ -136,6 +279,54 @@ export default function Agents() {
       setCreating(false);
     }
   };
+
+const handleEditAgent = (agent) => {
+  setError("");
+  setSuccess("");
+
+  setEditingAgent(agent);
+
+  setForm({
+    fullName: agent.fullName || "",
+    phone: agent.phone || "",
+    email: agent.email || "",
+    password: "",
+
+    paymentSettings: {
+      telebirr: {
+        enabled:
+          agent.paymentSettings?.telebirr?.enabled ??
+          false,
+
+        account:
+          agent.paymentSettings?.telebirr?.account ||
+          "",
+      },
+
+      cbe: {
+        enabled:
+          agent.paymentSettings?.cbe?.enabled ??
+          false,
+
+        account:
+          agent.paymentSettings?.cbe?.account ||
+          "",
+      },
+
+      minDeposit:
+        agent.paymentSettings?.minDeposit ?? 10,
+
+      maxDeposit:
+        agent.paymentSettings?.maxDeposit ?? 10000,
+    },
+  });
+};
+const closeAgentModal = () => {
+  setShowCreate(false);
+  setEditingAgent(null);
+  setError("");
+  setSuccess("");
+};
 
   const filteredAgents =
     agents.filter((agent) => {
@@ -387,6 +578,13 @@ export default function Agents() {
                 </div>
 
                 <div className="admin-agent-footer">
+                  <button
+  type="button"
+  className="admin-agent-edit-btn"
+  onClick={() => handleEditAgent(agent)}
+>
+  Edit
+</button>
 
                   <span>
                     Created{" "}
@@ -416,41 +614,43 @@ export default function Agents() {
 
       {/* Create Agent Modal */}
 
-      {showCreate && (
+      {(showCreate || editingAgent) && (
         <div
-          className="admin-modal-overlay"
-          onMouseDown={(e) => {
-            if (
-              e.target === e.currentTarget
-            ) {
-              setShowCreate(false);
-            }
-          }}
-        >
+  className="admin-modal-overlay"
+  onClick={(e) => {
+    if (e.target === e.currentTarget) {
+      closeAgentModal();
+    }
+  }}
+>
 
-          <div className="admin-modal">
+         <div
+  className="admin-modal"
+  onClick={(e) => e.stopPropagation()}
+>
 
             <div className="admin-modal-header">
 
               <div>
                 <h2>
-                  Create Agent
-                </h2>
+  {editingAgent
+    ? "Edit Agent"
+    : "Create Agent"}
+</h2>
 
                 <p>
-                  Create a new GoldBingo
-                  management account.
-                </p>
+  {editingAgent
+    ? "Update agent account and payment settings."
+    : "Create a new GoldBingo management account."}
+</p>
               </div>
 
               <button
-                type="button"
-                onClick={() =>
-                  setShowCreate(false)
-                }
-              >
-                <X size={20} />
-              </button>
+  type="button"
+  onClick={closeAgentModal}
+>
+  <X size={20} />
+</button>
 
             </div>
 
@@ -505,25 +705,228 @@ export default function Agents() {
                   placeholder="Minimum 6 characters"
                 />
               </label>
+              <div className="agent-payment-settings">
+
+  <div className="agent-payment-settings-header">
+    <div>
+      <h3>Payment Settings</h3>
+      <p>
+        Configure the payment methods this agent
+        will use for player deposits.
+      </p>
+    </div>
+  </div>
+
+  {/* Telebirr */}
+  <div className="agent-payment-method">
+
+    <div className="agent-payment-method-header">
+
+      <div>
+        <strong>Telebirr</strong>
+        <span>
+          Player deposit payment number
+        </span>
+      </div>
+
+      <label className="agent-payment-toggle">
+        <input
+          type="checkbox"
+          checked={
+            form.paymentSettings.telebirr.enabled
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                telebirr: {
+                  ...prev.paymentSettings.telebirr,
+                  enabled: e.target.checked,
+                },
+              },
+            }))
+          }
+        />
+
+        <span />
+      </label>
+
+    </div>
+
+    {form.paymentSettings.telebirr.enabled && (
+      <label>
+        Telebirr Payment Number
+
+        <input
+          type="tel"
+          value={
+            form.paymentSettings.telebirr.account
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                telebirr: {
+                  ...prev.paymentSettings.telebirr,
+                  account: e.target.value,
+                },
+              },
+            }))
+          }
+          placeholder="e.g. 0942953765"
+        />
+      </label>
+    )}
+
+  </div>
+
+  {/* CBE */}
+  <div className="agent-payment-method">
+
+    <div className="agent-payment-method-header">
+
+      <div>
+        <strong>CBE</strong>
+        <span>
+          Commercial Bank of Ethiopia account
+        </span>
+      </div>
+
+      <label className="agent-payment-toggle">
+        <input
+          type="checkbox"
+          checked={
+            form.paymentSettings.cbe.enabled
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                cbe: {
+                  ...prev.paymentSettings.cbe,
+                  enabled: e.target.checked,
+                },
+              },
+            }))
+          }
+        />
+
+        <span />
+      </label>
+
+    </div>
+
+    {form.paymentSettings.cbe.enabled && (
+      <label>
+        CBE Account Number
+
+        <input
+          type="text"
+          value={
+            form.paymentSettings.cbe.account
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                cbe: {
+                  ...prev.paymentSettings.cbe,
+                  account: e.target.value,
+                },
+              },
+            }))
+          }
+          placeholder="Enter CBE account number"
+        />
+      </label>
+    )}
+
+  </div>
+
+  {/* Deposit Limits */}
+  <div className="agent-deposit-limits">
+
+    <div>
+      <label>
+        Minimum Deposit
+
+        <input
+          type="number"
+          min="1"
+          value={
+            form.paymentSettings.minDeposit
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                minDeposit: e.target.value,
+              },
+            }))
+          }
+        />
+      </label>
+    </div>
+
+    <div>
+      <label>
+        Maximum Deposit
+
+        <input
+          type="number"
+          min="1"
+          value={
+            form.paymentSettings.maxDeposit
+          }
+          onChange={(e) =>
+            setForm((prev) => ({
+              ...prev,
+              paymentSettings: {
+                ...prev.paymentSettings,
+                maxDeposit: e.target.value,
+              },
+            }))
+          }
+        />
+      </label>
+    </div>
+
+  </div>
+
+  <div className="agent-payment-limit-hint">
+    Deposit range:{" "}
+    {form.paymentSettings.minDeposit || 0} ETB
+    {" "}–{" "}
+    {form.paymentSettings.maxDeposit || 0} ETB
+  </div>
+
+</div>
 
               <div className="admin-modal-actions">
 
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowCreate(false)
-                  }
-                >
-                  Cancel
-                </button>
+               <button
+  type="button"
+  onClick={closeAgentModal}
+>
+  Cancel
+</button>
 
                 <button
                   type="submit"
                   disabled={creating}
                 >
                   {creating
-                    ? "Creating..."
-                    : "Create Agent"}
+  ? editingAgent
+    ? "Saving..."
+    : "Creating..."
+  : editingAgent
+    ? "Save Changes"
+    : "Create Agent"}
                 </button>
 
               </div>

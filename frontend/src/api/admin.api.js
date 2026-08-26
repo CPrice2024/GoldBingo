@@ -86,3 +86,39 @@ export const changePassword = async (
 
   return response.data;
 };
+
+export const updateAgent = async (
+  agentId,
+  data
+) => {
+  const response = await api.patch(
+    `/admin/agents/${agentId}`,
+    data
+  );
+
+  return response.data;
+};
+
+export const getDepositBonusSettings =
+  async () => {
+
+    const response =
+      await api.get(
+        "/settings/deposit-bonus"
+      );
+
+    return response.data;
+  };
+
+
+export const updateDepositBonusSettings =
+  async (data) => {
+
+    const response =
+      await api.patch(
+        "/settings/deposit-bonus",
+        data
+      );
+
+    return response.data;
+  };

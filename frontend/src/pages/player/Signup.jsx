@@ -9,27 +9,26 @@ import {
   EyeOff,
   Lock,
   Phone,
-  User,
-  Mail,
-  Gift,
   ArrowRight,
 } from "lucide-react";
+
+import logo from "../../assets/logo.png";
 
 import { registerPlayer } from "../../api/auth.api";
 
 function Signup() {
   const navigate = useNavigate();
 
-  const [form, setForm] =
-    useState({
-      fullName: "",
-      phone: "",
-      email: "",
-      password: "",
-      referralCode: "",
-    });
+  const [form, setForm] = useState({
+    phone: "",
+    password: "",
+    repeatPassword: "",
+  });
 
   const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [showRepeatPassword, setShowRepeatPassword] =
     useState(false);
 
   const [loading, setLoading] =
@@ -60,13 +59,7 @@ function Signup() {
     setError("");
     setSuccess("");
 
-    if (form.fullName.trim().length < 2) {
-      setError(
-        "Full name must be at least 2 characters."
-      );
-      return;
-    }
-
+    // Validate phone
     if (form.phone.trim().length < 8) {
       setError(
         "Valid phone number is required."
@@ -74,9 +67,21 @@ function Signup() {
       return;
     }
 
+    // Validate password length
     if (form.password.length < 6) {
       setError(
         "Password must be at least 6 characters."
+      );
+      return;
+    }
+
+    // Validate matching passwords
+    if (
+      form.password !==
+      form.repeatPassword
+    ) {
+      setError(
+        "Passwords do not match."
       );
       return;
     }
@@ -85,23 +90,10 @@ function Signup() {
       setLoading(true);
 
       const result =
-        await registerPlayer({
-          fullName:
-            form.fullName.trim(),
-
-          phone:
-            form.phone.trim(),
-
-          email:
-            form.email.trim() || undefined,
-
-          password:
-            form.password,
-
-          referralCode:
-            form.referralCode.trim() ||
-            undefined,
-        });
+  await registerPlayer({
+    phone: form.phone.trim(),
+    password: form.password,
+  });
 
       if (!result.success) {
         throw new Error(
@@ -138,18 +130,18 @@ function Signup() {
 
   return (
     <div className="player-auth-page">
-
       <div className="player-auth-container">
 
         <div className="player-auth-brand">
           <div className="player-logo">
-            B
-          </div>
-
-          <h1>GoldBingo</h1>
+  <img
+    src={logo}
+    alt="GoldBingo Logo"
+  />
+</div>
 
           <p>
-            Create your account and start playing.
+            Create & play now.
           </p>
         </div>
 
@@ -157,10 +149,6 @@ function Signup() {
 
           <div className="auth-heading">
             <h2>Create Account</h2>
-
-            <p>
-              Join GoldBingo today
-            </p>
           </div>
 
           {error && (
@@ -175,32 +163,9 @@ function Signup() {
             </div>
           )}
 
-          <form
-            onSubmit={handleSubmit}
-          >
+          <form onSubmit={handleSubmit}>
 
-            <div className="form-group">
-              <label>
-                Full Name
-              </label>
-
-              <div className="input-wrapper">
-                <User size={18} />
-
-                <input
-                  type="text"
-                  name="fullName"
-                  value={form.fullName}
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Your full name"
-                  autoComplete="name"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
+            {/* Phone Number */}
             <div className="form-group">
               <label>
                 Phone Number
@@ -213,9 +178,7 @@ function Signup() {
                   type="tel"
                   name="phone"
                   value={form.phone}
-                  onChange={
-                    handleChange
-                  }
+                  onChange={handleChange}
                   placeholder="09XXXXXXXX"
                   autoComplete="tel"
                   disabled={loading}
@@ -223,31 +186,7 @@ function Signup() {
               </div>
             </div>
 
-            <div className="form-group">
-              <label>
-                Email
-                <span>
-                  {" "}Optional
-                </span>
-              </label>
-
-              <div className="input-wrapper">
-                <Mail size={18} />
-
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="you@example.com"
-                  autoComplete="email"
-                  disabled={loading}
-                />
-              </div>
-            </div>
-
+            {/* Password */}
             <div className="form-group">
               <label>
                 Password
@@ -264,9 +203,7 @@ function Signup() {
                   }
                   name="password"
                   value={form.password}
-                  onChange={
-                    handleChange
-                  }
+                  onChange={handleChange}
                   placeholder="At least 6 characters"
                   autoComplete="new-password"
                   disabled={loading}
@@ -291,30 +228,63 @@ function Signup() {
               </div>
             </div>
 
+            {/* Repeat Password */}
             <div className="form-group">
               <label>
-                Agent Referral Code
-                <span>
-                  {" "}Optional
-                </span>
+                Repeat Password
               </label>
 
               <div className="input-wrapper">
-                <Gift size={18} />
+                <Lock size={18} />
 
                 <input
-                  type="text"
-                  name="referralCode"
-                  value={
-                    form.referralCode
+                  type={
+                    showRepeatPassword
+                      ? "text"
+                      : "password"
                   }
-                  onChange={
-                    handleChange
-                  }
-                  placeholder="Enter referral code"
+                  name="repeatPassword"
+                  value={form.repeatPassword}
+                  onChange={handleChange}
+                  placeholder="Repeat your password"
+                  autoComplete="new-password"
                   disabled={loading}
                 />
+
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() =>
+                    setShowRepeatPassword(
+                      (prev) => !prev
+                    )
+                  }
+                  disabled={loading}
+                >
+                  {showRepeatPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
               </div>
+
+              {/* Password Match Message */}
+              {form.repeatPassword && (
+                <small
+                  className={
+                    form.password ===
+                    form.repeatPassword
+                      ? "password-match"
+                      : "password-no-match"
+                  }
+                >
+                  {form.password ===
+                  form.repeatPassword
+                    ? "Passwords match"
+                    : "Passwords do not match"}
+                </small>
+              )}
             </div>
 
             <button
@@ -344,9 +314,7 @@ function Signup() {
           </div>
 
         </div>
-
       </div>
-
     </div>
   );
 }

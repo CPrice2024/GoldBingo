@@ -11,6 +11,21 @@ export type UserStatus =
   | "suspended"
   | "blocked";
 
+export interface AgentPaymentSettings {
+  telebirr: {
+    enabled: boolean;
+    account: string;
+  };
+
+  cbe: {
+    enabled: boolean;
+    account: string;
+  };
+
+  minDeposit: number;
+  maxDeposit: number;
+}
+
 export interface IUser {
   fullName: string;
   phone: string;
@@ -26,9 +41,12 @@ export interface IUser {
 
   agentId?: mongoose.Types.ObjectId;
 
+  paymentSettings?: AgentPaymentSettings;
+
   isVerified: boolean;
 
   avatar?: string;
   fcmToken?: string | null;
   lastLogin?: Date;
+  
 }

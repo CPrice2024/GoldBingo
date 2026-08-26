@@ -1,12 +1,13 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { createUserWallet } from "../wallet/wallet.service";
-
+import { PLAYER_AVATARS, generateRandomAvatar } from "../../utils/avatar";
 import {
   createAuthUser,
-  findAgentByReferralCode,
+  findFirstActiveAgent,
   findUserByPhone,
   findUserByPhoneWithPassword,
+  findUsedPlayerAvatars,
 } from "./auth.repository";
 
 import {
@@ -23,42 +24,65 @@ if (!JWT_SECRET) {
 
 const generateToken = (payload: AuthPayload): string => {
   return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "48h",
   });
 };
 
 export const registerPlayer = async (
   data: RegisterInput
 ) => {
-  const existingUser = await findUserByPhone(data.phone);
-
-  if (existingUser) {
-    throw new Error("Phone number is already registered");
-  }
-
-  let referredBy = undefined;
-
-  if (data.referralCode) {
-    const agent = await findAgentByReferralCode(
-      data.referralCode
-    );
-
-    if (!agent) {
-      throw new Error("Invalid referral code");
-    }
-
-    referredBy = agent._id;
-  }
-
-  const hashedPassword = await bcrypt.hash(
-    data.password,
-    12
+  const existingUser = await findUserByPhone(
+    data.phone
   );
 
+  if (existingUser) {
+    throw new Error(
+      "Phone number is already registered"
+    );
+  }
+/* ======================================
+   DEFAULT AGENT
+====================================== */
+
+const defaultAgent =
+  await findFirstActiveAgent();
+
+if (!defaultAgent) {
+  throw new Error(
+    "No active agent is available"
+  );
+}
+
+const referredBy =
+  defaultAgent._id;
+
+  const hashedPassword =
+    await bcrypt.hash(
+      data.password,
+      12
+    );
+
+  const usedAvatars =
+  await findUsedPlayerAvatars();
+
+const availableAvatars =
+  PLAYER_AVATARS.filter(
+    (avatar) =>
+      !usedAvatars.includes(avatar)
+  );
+
+const avatar =
+  availableAvatars.length > 0
+    ? availableAvatars[
+        Math.floor(
+          Math.random() *
+            availableAvatars.length
+        )
+      ]
+    : generateRandomAvatar();
+
   const user = await createAuthUser({
-    fullName: data.fullName.trim(),
     phone: data.phone.trim(),
-    email: data.email?.trim(),
     password: hashedPassword,
 
     role: "player",
@@ -68,14 +92,19 @@ export const registerPlayer = async (
     referredBy,
 
     isVerified: false,
+
+    avatar,
   });
-  await createUserWallet(user._id.toString());
+
+  await createUserWallet(
+    user._id.toString()
+  );
 
   return {
     userId: user._id,
-    fullName: user.fullName,
     phone: user.phone,
     role: user.role,
+    avatar: user.avatar,
   };
 };
 
@@ -117,7 +146,6 @@ export const login = async (data: LoginInput) => {
 
     user: {
       id: user._id,
-      fullName: user.fullName,
       phone: user.phone,
       role: user.role,
     },

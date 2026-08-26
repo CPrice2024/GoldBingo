@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+
 import {
   RecaptchaVerifier,
   signInWithPhoneNumber,
@@ -257,7 +258,7 @@ export default function ForgotPassword() {
         <h1>Forgot Password?</h1>
 
         <p>
-          Reset your GoldBingo player password
+          Reset your GoldBingo password
           using your phone number.
         </p>
 

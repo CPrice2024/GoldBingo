@@ -1,8 +1,6 @@
 import api from "./axios";
 
-export const createDeposit = async (
-  data
-) => {
+export const createDeposit = async (data) => {
   const response = await api.post(
     "/deposits",
     data
@@ -27,11 +25,17 @@ export const getPendingDeposits = async () => {
   return response.data;
 };
 
-export const approveDeposit = async (
-  depositId
-) => {
+export const approveDeposit = async (depositId) => {
   const response = await api.patch(
     `/deposits/${depositId}/approve`
+  );
+
+  return response.data;
+};
+
+export const getMyPaymentSettings = async () => {
+  const response = await api.get(
+    "/deposits/payment-settings"
   );
 
   return response.data;

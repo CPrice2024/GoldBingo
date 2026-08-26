@@ -1,24 +1,66 @@
 import { Game } from "./game.model";
 import { GameStatus } from "./game.types";
+import type {
+  WinningPattern,
+} from "./game.patterns";
 
 interface CreateGameData {
   name: string;
+
   entryFee: number;
+
   maxPlayers: number;
+
+  winningPattern:
+    WinningPattern;
+
+  prizeAmount?:
+    number | null;
+
+  scheduledStartAt?:
+    Date | null;
 }
 
 export const createGame = async (
   data: CreateGameData
 ) => {
+
   return Game.create({
-    name: data.name,
-    entryFee: data.entryFee,
-    maxPlayers: data.maxPlayers,
-    currentPlayers: 0,
-    prizePool: 0,
-    status: "waiting",
-    calledNumbers: [],
+
+    name:
+      data.name,
+
+    entryFee:
+      data.entryFee,
+
+    maxPlayers:
+      data.maxPlayers,
+
+    winningPattern:
+      data.winningPattern,
+
+    currentPlayers:
+      0,
+
+    prizePool:
+      0,
+
+    prizeAmount:
+      data.prizeAmount ??
+      null,
+
+    scheduledStartAt:
+      data.scheduledStartAt ??
+      null,
+
+    status:
+      "waiting",
+
+    calledNumbers:
+      [],
+
   });
+
 };
 
 export const findGameById = async (

@@ -26,10 +26,27 @@ export const getUserWallet = async (
     throw new Error("Wallet not found");
   }
 
+  const winningBalance =
+  wallet.winningBalance ?? 0;
+
+const reservedWinningBalance =
+  wallet.reservedWinningBalance ?? 0;
+
+const withdrawableWinningBalance =
+  Math.max(
+    0,
+    winningBalance -
+      reservedWinningBalance
+  );
+
   return {
     id: wallet._id,
+
     userId: wallet.userId,
+
+    // Normal wallet
     balance: wallet.balance,
+
     reservedBalance:
       wallet.reservedBalance,
 
@@ -37,10 +54,20 @@ export const getUserWallet = async (
       wallet.balance -
       wallet.reservedBalance,
 
+    // Winning wallet
+    winningBalance,
+
+reservedWinningBalance,
+
+    // ONLY winnings can be withdrawn
+    withdrawableWinningBalance,
+
     currency: wallet.currency,
+
     status: wallet.status,
 
     createdAt: wallet.createdAt,
+
     updatedAt: wallet.updatedAt,
   };
 };

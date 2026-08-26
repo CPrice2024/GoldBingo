@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import { useLanguage } from "../../context/LanguageContext";
 import {
   User,
   Phone,
@@ -8,7 +8,13 @@ import {
   Calendar,
   UserCheck,
   RefreshCw,
+  Volume2,
+  VolumeX,
+  Sun,
+  Moon,
+  MousePointerClick,
 } from "lucide-react";
+import PlayerAvatar from "../../components/PlayerAvatar";
 
 import { getMyProfile } from "../../api/profile.api";
 
@@ -18,11 +24,32 @@ function Profile() {
 
   const [loading, setLoading] =
     useState(true);
+    const [soundEnabled, setSoundEnabled] =
+  useState(() => {
+    return (
+      localStorage.getItem(
+        "bingoSoundEnabled"
+      ) !== "false"
+    );
+  });
+  const [
+  manualMarkingEnabled,
+  setManualMarkingEnabled,
+] = useState(() => {
+
+  return (
+    localStorage.getItem(
+      "bingoManualMarkingEnabled"
+    ) !== "false"
+  );
+
+});
 
   const [error, setError] =
     useState("");
 
     const navigate = useNavigate();
+    const { t } = useLanguage();
 
   const fetchProfile = async () => {
     try {
@@ -48,6 +75,82 @@ function Profile() {
     }
   };
 
+  const handleSoundToggle = () => {
+  setSoundEnabled(
+    (currentValue) => {
+      const nextValue =
+        !currentValue;
+
+      localStorage.setItem(
+        "bingoSoundEnabled",
+        String(nextValue)
+      );
+
+      return nextValue;
+    }
+  );
+};
+const [theme, setTheme] =
+  useState(() => {
+    return (
+      localStorage.getItem(
+        "playerTheme"
+      ) || "day"
+    );
+  });
+  const handleThemeToggle = () => {
+  setTheme(
+    (currentTheme) => {
+      const nextTheme =
+        currentTheme === "day"
+          ? "night"
+          : "day";
+
+      localStorage.setItem(
+        "playerTheme",
+        nextTheme
+      );
+
+      document.documentElement.setAttribute(
+        "data-theme",
+        nextTheme
+      );
+
+      return nextTheme;
+    }
+  );
+};
+const handleManualMarkingToggle =
+  () => {
+
+    setManualMarkingEnabled(
+      (currentValue) => {
+
+        const nextValue =
+          !currentValue;
+
+
+        localStorage.setItem(
+          "bingoManualMarkingEnabled",
+          String(
+            nextValue
+          )
+        );
+
+
+        window.dispatchEvent(
+          new Event(
+            "bingoManualMarkingChanged"
+          )
+        );
+
+
+        return nextValue;
+      }
+    );
+
+  };
+
   useEffect(() => {
     fetchProfile();
   }, []);
@@ -60,7 +163,7 @@ function Profile() {
             size={20}
             className="spin"
           />
-          Loading profile...
+          {t("profile.loading")}
         </div>
       </div>
     );
@@ -77,7 +180,7 @@ function Profile() {
             className="profile-refresh-btn"
           >
             <RefreshCw size={17} />
-            Try Again
+           {t("common.tryAgain")}
           </button>
         </div>
       </div>
@@ -88,13 +191,7 @@ function Profile() {
     return null;
   }
 
-  const initials =
-    profile.fullName
-      ?.split(" ")
-      .map((name) => name[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase() || "U";
+  
 
   const createdDate = profile.createdAt
     ? new Date(
@@ -108,12 +205,13 @@ function Profile() {
       {/* Header */}
       <div className="profile-header">
         <div>
-          <h1>Profile</h1>
+          <h1>
+  {t("profile.title")}
+</h1>
 
-          <p>
-            Manage your GoldBingo account
-            information.
-          </p>
+<p>
+  {t("profile.subtitle")}
+</p>
         </div>
 
         <button
@@ -121,7 +219,7 @@ function Profile() {
           className="profile-refresh-btn"
         >
           <RefreshCw size={17} />
-          Refresh
+{t("common.refresh")}
         </button>
       </div>
 
@@ -129,15 +227,11 @@ function Profile() {
       <section className="profile-card">
 
         <div className="profile-avatar">
-          {profile.avatar ? (
-            <img
-              src={profile.avatar}
-              alt={profile.fullName}
-            />
-          ) : (
-            <span>{initials}</span>
-          )}
-        </div>
+  <PlayerAvatar
+  avatarId={1}
+  size={110}
+/>
+</div>
 
         <div className="profile-main-info">
           <h2>{profile.fullName}</h2>
@@ -150,18 +244,20 @@ function Profile() {
 
             <span className="profile-badge role">
               <User size={14} />
-              Player
+{t("profile.player")}
             </span>
 
             <span className="profile-badge active">
               <ShieldCheck size={14} />
-              {profile.status}
+{profile.status === "active"
+  ? t("profile.active")
+  : profile.status}
             </span>
 
             {profile.isVerified && (
               <span className="profile-badge verified">
                 <UserCheck size={14} />
-                Verified
+{t("profile.verified")}
               </span>
             )}
 
@@ -169,17 +265,195 @@ function Profile() {
         </div>
 
       </section>
+      {/* Game Preferences */}
+<section className="profile-section">
+
+  <div className="profile-section-header">
+    <div>
+      <h2>
+        Game settings
+      </h2>
+
+      <p>
+        Manage game settings.
+      </p>
+    </div>
+  </div>
+
+  <div className="profile-sound-setting">
+
+    <div className="profile-sound-info">
+
+      <div className="profile-info-icon">
+        {soundEnabled ? (
+          <Volume2 size={20} />
+        ) : (
+          <VolumeX size={20} />
+        )}
+      </div>
+
+      <div>
+        <strong>
+          Game Sound
+        </strong>
+
+        <span>
+          {soundEnabled
+            ? "Call and winning sounds are on."
+            : "Game sounds are muted."}
+        </span>
+      </div>
+
+    </div>
+
+    <button
+      type="button"
+      className={`profile-sound-toggle ${
+        soundEnabled
+          ? "enabled"
+          : ""
+      }`}
+      onClick={
+        handleSoundToggle
+      }
+      aria-pressed={
+        soundEnabled
+      }
+      aria-label={
+        soundEnabled
+          ? "Turn game sound off"
+          : "Turn game sound on"
+      }
+    >
+      <span className="profile-sound-toggle-knob" />
+    </button>
+
+  </div>
+  {/* Manual Card Marking */}
+
+<div className="profile-sound-setting profile-manual-marking-setting">
+
+  <div className="profile-sound-info">
+
+    <div className="profile-info-icon">
+
+      <MousePointerClick
+        size={20}
+      />
+
+    </div>
+
+    <div>
+
+      <strong>
+        Manual Card Marking
+      </strong>
+
+      <span>
+        {manualMarkingEnabled
+          ? "Click called numbers on your card."
+          : "Called numbers are marked automatically."}
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <button
+    type="button"
+    className={`profile-sound-toggle ${
+      manualMarkingEnabled
+        ? "enabled"
+        : ""
+    }`}
+    onClick={
+      handleManualMarkingToggle
+    }
+    aria-pressed={
+      manualMarkingEnabled
+    }
+    aria-label={
+      manualMarkingEnabled
+        ? "Turn manual card marking off"
+        : "Turn manual card marking on"
+    }
+  >
+
+    <span className="profile-sound-toggle-knob" />
+
+  </button>
+
+</div>
+  <div className="profile-theme-setting">
+
+  <div className="profile-theme-info">
+
+    <div className="profile-info-icon">
+      {theme === "day" ? (
+        <Sun size={20} />
+      ) : (
+        <Moon size={20} />
+      )}
+    </div>
+
+    <div>
+      <strong>
+        Appearance
+      </strong>
+
+      <span>
+        {theme === "day"
+          ? "Day mode uses a bright white palette."
+          : "Night mode uses the dark Bingo palette."}
+      </span>
+    </div>
+
+  </div>
+
+  <button
+    type="button"
+    className={`profile-theme-toggle ${
+      theme === "night"
+        ? "night"
+        : ""
+    }`}
+    onClick={
+      handleThemeToggle
+    }
+    aria-label={
+      theme === "day"
+        ? "Switch to night mode"
+        : "Switch to day mode"
+    }
+  >
+    <span className="profile-theme-toggle-knob">
+      {theme === "day" ? (
+        <Sun size={14} />
+      ) : (
+        <Moon size={14} />
+      )}
+    </span>
+  </button>
+
+</div>
+
+</section>
+
+
 
       {/* Account Information */}
       <section className="profile-section">
 
         <div className="profile-section-header">
           <div>
-            <h2>Account Information</h2>
+           <h2>
+  {t("profile.accountInformation")}
+</h2>
 
-            <p>
-              Your basic account details.
-            </p>
+<p>
+  {t("profile.accountDescription")}
+</p>
           </div>
         </div>
 
@@ -191,7 +465,9 @@ function Profile() {
             </div>
 
             <div>
-              <span>Full Name</span>
+              <span>
+  {t("profile.fullName")}
+</span>
               <strong>
                 {profile.fullName}
               </strong>
@@ -204,7 +480,7 @@ function Profile() {
             </div>
 
             <div>
-              <span>Phone Number</span>
+                {t("profile.phoneNumber")}
               <strong>
                 {profile.phone}
               </strong>
@@ -217,7 +493,7 @@ function Profile() {
             </div>
 
             <div>
-              <span>Account Status</span>
+              <span>{t("profile.accountStatus")}</span>
               <strong>
                 {profile.status}
               </strong>
@@ -230,7 +506,7 @@ function Profile() {
             </div>
 
             <div>
-              <span>Member Since</span>
+              <span>{t("profile.memberSince")}</span>
               <strong>
                 {createdDate}
               </strong>
@@ -246,26 +522,25 @@ function Profile() {
 
         <div className="profile-section-header">
           <div>
-            <h2>Security</h2>
+            <h2>
+  {t("profile.security")}
+</h2>
 
-            <p>
-              Keep your account secure.
-            </p>
+<p>
+  {t("profile.securityDescription")}
+</p>
           </div>
         </div>
 
         <div className="profile-security-card">
 
-          <div>
-            <div className="security-title">
-              Password
-            </div>
+          <div className="security-title">
+  {t("profile.password")}
+</div>
 
-            <div className="security-description">
-              Your password is securely
-              encrypted.
-            </div>
-          </div>
+<div className="security-description">
+  {t("profile.passwordDescription")}
+</div>
 
           <button
   className="profile-secondary-btn"
@@ -273,7 +548,7 @@ function Profile() {
     navigate("/player/change-password")
   }
 >
-  Change Password
+  {t("profile.changePassword")}
 </button>
 
         </div>

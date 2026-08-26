@@ -3,9 +3,6 @@ import { RegisterInput, LoginInput } from "./auth.types";
 export const validateRegisterInput = (
   data: RegisterInput
 ): string | null => {
-  if (!data.fullName || data.fullName.trim().length < 2) {
-    return "Full name must be at least 2 characters";
-  }
 
   if (!data.phone || data.phone.trim().length < 8) {
     return "Valid phone number is required";

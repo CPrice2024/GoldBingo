@@ -8,13 +8,15 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "seed:admin": "ts-node src/database/seedAdmin.ts",
-    "seed:wallets": "ts-node src/database/seedWallets.ts"
+    "seed:wallets": "ts-node src/database/seedWallets.ts",
+    "randomize:cards": "ts-node src/database/randomizeCardNumbers.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "axios": "^1.19.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",

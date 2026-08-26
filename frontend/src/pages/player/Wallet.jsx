@@ -5,15 +5,28 @@ import {
   RefreshCw,
   ShieldCheck,
 } from "lucide-react";
+
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import { getMyWallet } from "../../api/wallet.api";
+import { useLanguage } from "../../context/LanguageContext";
 
 const Wallet = () => {
+  const { t } = useLanguage();
+
   const [wallet, setWallet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const totalReservedBalance =
+  Number(
+    wallet?.reservedBalance ||
+      0
+  ) +
+  Number(
+    wallet?.reservedWinningBalance ||
+      0
+  );
 
   const loadWallet = async () => {
     try {
@@ -61,9 +74,12 @@ const Wallet = () => {
       {/* Header */}
       <div className="wallet-page-header">
         <div>
-          <h2>Wallet</h2>
+          <h2>
+            {t("wallet.title")}
+          </h2>
+
           <p>
-            Manage your GoldBingo balance and funds.
+            {t("wallet.subtitle")}
           </p>
         </div>
 
@@ -76,7 +92,8 @@ const Wallet = () => {
             size={17}
             className={loading ? "spin" : ""}
           />
-          Refresh
+
+          {t("common.refresh")}
         </button>
       </div>
 
@@ -91,9 +108,11 @@ const Wallet = () => {
       <section className="wallet-balance-card">
 
         <div className="wallet-balance-content">
+
           <div className="wallet-balance-label">
             <WalletIcon size={18} />
-            Available Balance
+
+            {t("wallet.availableBalance")}
           </div>
 
           <div className="wallet-balance-amount">
@@ -106,11 +125,15 @@ const Wallet = () => {
 
           <div className="wallet-balance-status">
             <ShieldCheck size={15} />
-            Wallet is{" "}
+
+            {t("wallet.walletIs")}{" "}
+
             {wallet?.status === "active"
-              ? "active"
-              : wallet?.status || "unknown"}
+              ? t("wallet.active")
+              : wallet?.status ||
+                t("common.unknown")}
           </div>
+
         </div>
 
         <div className="wallet-balance-decoration">
@@ -123,7 +146,10 @@ const Wallet = () => {
       <section className="wallet-stat-grid">
 
         <div className="wallet-stat-card">
-          <span>Total Balance</span>
+
+          <span>
+            {t("wallet.totalBalance")}
+          </span>
 
           <strong>
             {loading
@@ -134,41 +160,32 @@ const Wallet = () => {
           </strong>
 
           <small>
-            Your total wallet balance
+            {t("wallet.totalBalanceDescription")}
           </small>
+
         </div>
 
         <div className="wallet-stat-card">
-          <span>Reserved Balance</span>
+
+          <span>
+            {t("wallet.reservedBalance")}
+          </span>
 
           <strong>
-            {loading
-              ? "..."
-              : `${formatAmount(
-                  wallet?.reservedBalance
-                )} ${currency}`}
-          </strong>
+  {loading
+    ? "..."
+    : `${formatAmount(
+        totalReservedBalance
+      )} ${currency}`}
+</strong>
 
           <small>
-            Currently reserved funds
+            {t("wallet.reservedBalanceDescription")}
           </small>
+
         </div>
 
-        <div className="wallet-stat-card">
-          <span>Available Balance</span>
-
-          <strong className="available-amount">
-            {loading
-              ? "..."
-              : `${formatAmount(
-                  wallet?.availableBalance
-                )} ${currency}`}
-          </strong>
-
-          <small>
-            Funds available to use
-          </small>
-        </div>
+        
 
       </section>
 
@@ -176,54 +193,75 @@ const Wallet = () => {
       <section className="wallet-actions-section">
 
         <div className="section-heading">
-          <h3>Wallet Actions</h3>
+
+          <h3>
+            {t("wallet.actions")}
+          </h3>
+
           <p>
-            Add money or withdraw your winnings.
+            {t("wallet.actionsDescription")}
           </p>
+
         </div>
 
         <div className="wallet-action-grid">
+
+          {/* Deposit */}
 
           <Link
             to="/player/deposit"
             className="wallet-action-card deposit-action"
           >
+
             <div className="wallet-action-icon">
               <ArrowDownToLine size={25} />
             </div>
 
             <div className="wallet-action-content">
-              <strong>Deposit Funds</strong>
+
+              <strong>
+                {t("wallet.depositFunds")}
+              </strong>
 
               <span>
-                Add funds to your GoldBingo wallet
+                {t("wallet.depositDescription")}
               </span>
+
             </div>
 
             <div className="wallet-action-arrow">
               →
             </div>
+
           </Link>
+
+          {/* Withdraw */}
 
           <Link
             to="/player/withdraw"
             className="wallet-action-card withdraw-action"
           >
+
             <div className="wallet-action-icon">
               <ArrowUpFromLine size={25} />
             </div>
 
             <div className="wallet-action-content">
-              <strong>Withdraw Funds</strong>
+
+              <strong>
+                {t("wallet.withdrawFunds")}
+              </strong>
 
               <span>
-                Withdraw your available winnings
+                {t("wallet.withdrawDescription")}
               </span>
+
             </div>
 
             <div className="wallet-action-arrow">
               →
             </div>
+
           </Link>
 
         </div>
@@ -238,14 +276,15 @@ const Wallet = () => {
         </div>
 
         <div>
-          <h3>Wallet Information</h3>
+
+          <h3>
+            {t("wallet.informationTitle")}
+          </h3>
 
           <p>
-            Your available balance is the amount
-            you can currently use for playing or
-            withdrawing. Reserved funds are temporarily
-            held for pending transactions.
+            {t("wallet.informationDescription")}
           </p>
+
         </div>
 
       </section>

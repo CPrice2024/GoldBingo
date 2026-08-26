@@ -1,8 +1,25 @@
+export interface AgentPaymentSettingsInput {
+  telebirr: {
+    enabled: boolean;
+    account: string;
+  };
+
+  cbe: {
+    enabled: boolean;
+    account: string;
+  };
+
+  minDeposit: number;
+  maxDeposit: number;
+}
+
 export interface CreateAgentInput {
   fullName: string;
   phone: string;
   password: string;
   email?: string;
+
+  paymentSettings: AgentPaymentSettingsInput;
 }
 
 export interface AdminDashboardStats {

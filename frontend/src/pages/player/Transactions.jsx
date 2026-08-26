@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 
 import { getMyTransactions } from "../../api/transactions.api";
+import { useLanguage } from "../../context/LanguageContext";
 
 function Transactions() {
   const [transactions, setTransactions] = useState([]);
@@ -20,6 +21,7 @@ function Transactions() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const { t } = useLanguage();
 
   const loadTransactions = async (isRefresh = false) => {
     try {
@@ -137,32 +139,32 @@ function Transactions() {
   };
 
   const getTransactionTitle = (type) => {
-    switch (type) {
-      case "deposit":
-        return "Deposit";
+  switch (type) {
+    case "deposit":
+      return t("transactions.types.deposit");
 
-      case "withdrawal":
-        return "Withdrawal";
+    case "withdrawal":
+      return t("transactions.types.withdrawal");
 
-      case "deposit_reversal":
-        return "Deposit Reversal";
+    case "deposit_reversal":
+      return t("transactions.types.depositReversal");
 
-      case "withdrawal_reversal":
-        return "Withdrawal Reversal";
+    case "withdrawal_reversal":
+      return t("transactions.types.withdrawalReversal");
 
-      case "game_entry":
-        return "Game Entry";
+    case "game_entry":
+      return t("transactions.types.gameEntry");
 
-      case "game_entry_reversal":
-        return "Game Entry Reversal";
+    case "game_entry_reversal":
+      return t("transactions.types.gameEntryReversal");
 
-      case "game_win":
-        return "Game Win";
+    case "game_win":
+      return t("transactions.types.gameWin");
 
-      default:
-        return "Transaction";
-    }
-  };
+    default:
+      return t("transactions.types.transaction");
+  }
+};
 
   const getAmountClass = (type) => {
     if (
@@ -233,10 +235,11 @@ function Transactions() {
     <div className="player-page transactions-page">
       <div className="page-header">
         <div>
-          <h1>Transactions</h1>
-          <p>
-            View your complete GoldBingo wallet history.
-          </p>
+          <h1>{t("transactions.title")}</h1>
+
+<p>
+  {t("transactions.subtitle")}
+</p>
         </div>
 
         <button
@@ -254,8 +257,8 @@ function Transactions() {
           />
 
           {refreshing
-            ? "Refreshing..."
-            : "Refresh"}
+  ? t("transactions.refreshing")
+  : t("common.refresh")}
         </button>
       </div>
 
@@ -266,7 +269,7 @@ function Transactions() {
           </div>
 
           <div>
-            <span>Total Transactions</span>
+            <span>{t("transactions.totalTransactions")}</span>
             <strong>{transactions.length}</strong>
           </div>
         </div>
@@ -277,7 +280,7 @@ function Transactions() {
           </div>
 
           <div>
-            <span>Deposits</span>
+            <span>{t("transactions.deposits")}</span>
             <strong>
               {
                 transactions.filter(
@@ -294,7 +297,7 @@ function Transactions() {
           </div>
 
           <div>
-            <span>Withdrawals</span>
+            <span>{t("transactions.withdrawals")}</span>
             <strong>
               {
                 transactions.filter(
@@ -312,7 +315,7 @@ function Transactions() {
           </div>
 
           <div>
-            <span>Game Activity</span>
+            <span>{t("transactions.gameActivity")}</span>
             <strong>
               {
                 transactions.filter(
@@ -331,62 +334,41 @@ function Transactions() {
       <div className="transactions-card">
         <div className="transactions-card-header">
           <div>
-            <h2>Transaction History</h2>
-            <p>
-              Your latest wallet activity.
-            </p>
+            <h2>{t("transactions.history")}</h2>
+
+<p>
+  {t("transactions.historyDescription")}
+</p>
           </div>
 
           <div className="transaction-filters">
             <button
-              className={
-                filter === "all"
-                  ? "active"
-                  : ""
-              }
-              onClick={() => setFilter("all")}
-            >
-              All
-            </button>
+  className={filter === "all" ? "active" : ""}
+  onClick={() => setFilter("all")}
+>
+  {t("transactions.filters.all")}
+</button>
 
-            <button
-              className={
-                filter === "deposit"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setFilter("deposit")
-              }
-            >
-              Deposits
-            </button>
+<button
+  className={filter === "deposit" ? "active" : ""}
+  onClick={() => setFilter("deposit")}
+>
+  {t("transactions.filters.deposits")}
+</button>
 
-            <button
-              className={
-                filter === "withdrawal"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setFilter("withdrawal")
-              }
-            >
-              Withdrawals
-            </button>
+<button
+  className={filter === "withdrawal" ? "active" : ""}
+  onClick={() => setFilter("withdrawal")}
+>
+  {t("transactions.filters.withdrawals")}
+</button>
 
-            <button
-              className={
-                filter === "game"
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setFilter("game")
-              }
-            >
-              Games
-            </button>
+<button
+  className={filter === "game" ? "active" : ""}
+  onClick={() => setFilter("game")}
+>
+  {t("transactions.filters.games")}
+</button>
           </div>
         </div>
 
@@ -398,7 +380,7 @@ function Transactions() {
             />
 
             <p>
-              Loading your transactions...
+              {t("transactions.loading")}.
             </p>
           </div>
         ) : error ? (
@@ -406,8 +388,8 @@ function Transactions() {
             <AlertCircle size={30} />
 
             <h3>
-              Unable to load transactions
-            </h3>
+  {t("transactions.loadError")}
+</h3>
 
             <p>{error}</p>
 
@@ -416,7 +398,7 @@ function Transactions() {
                 loadTransactions()
               }
             >
-              Try Again
+             {t("common.tryAgain")}
             </button>
           </div>
         ) : filteredTransactions.length ===
@@ -426,12 +408,13 @@ function Transactions() {
               <WalletCards size={32} />
             </div>
 
-            <h3>No transactions found</h3>
+            <h3>
+  {t("transactions.emptyTitle")}
+</h3>
 
-            <p>
-              Your wallet activity will
-              appear here.
-            </p>
+<p>
+  {t("transactions.emptyDescription")}
+</p>
           </div>
         ) : (
           <div className="transaction-list">
@@ -469,7 +452,7 @@ function Transactions() {
                           transaction.status
                         )}
 
-                        {transaction.status}
+                        {t(`transactions.status.${transaction.status}`)}
                       </span>
                     </div>
 
@@ -493,7 +476,7 @@ function Transactions() {
                           </span>
 
                           <span>
-                            Ref:{" "}
+                            {t("transactions.reference")}:{" "}
                             {
                               transaction.reference
                             }
@@ -520,7 +503,7 @@ function Transactions() {
                     </strong>
 
                     <span>
-                      Balance:{" "}
+                      {t("transactions.balance")}:{" "}
                       {formatAmount(
                         transaction.balanceAfter
                       )}{" "}

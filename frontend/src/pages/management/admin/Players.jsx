@@ -68,13 +68,7 @@ export default function AdminPlayers() {
     return players.filter((player) => {
       const matchesSearch =
         !query ||
-        player.fullName
-          ?.toLowerCase()
-          .includes(query) ||
         player.phone
-          ?.toLowerCase()
-          .includes(query) ||
-        player.email
           ?.toLowerCase()
           .includes(query) ||
         player.referredBy?.fullName

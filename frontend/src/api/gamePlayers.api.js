@@ -1,10 +1,14 @@
 import api from "./axios";
 
-export const joinGame = async (gameId) => {
+export const joinGame = async (
+  gameId,
+  cardCount = 1
+) => {
   const response = await api.post(
     "/game-players/join",
     {
       gameId,
+      cardCount,
     }
   );
 

@@ -7,6 +7,7 @@ import {
 
 import {
   createAgentController,
+  updateAgentController,
   getAdminDashboardController,
   getAllAgentsController,
   getAllPlayersController,
@@ -34,6 +35,12 @@ router.get(
   authenticate,
   authorize("admin"),
   getAllAgentsController
+);
+router.patch(
+  "/agents/:agentId",
+  authenticate,
+  authorize("admin"),
+  updateAgentController
 );
 router.get(
   "/players",

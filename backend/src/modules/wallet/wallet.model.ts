@@ -34,6 +34,20 @@ const walletSchema = new Schema<IWalletDocument>(
       min: 0,
     },
 
+    winningBalance: {
+  type: Number,
+  required: true,
+  default: 0,
+  min: 0,
+},
+
+reservedWinningBalance: {
+  type: Number,
+  required: true,
+  default: 0,
+  min: 0,
+},
+
     currency: {
       type: String,
       enum: ["ETB"],

@@ -26,3 +26,40 @@ export const findUserByPhoneWithPassword = async (
 ) => {
   return User.findOne({ phone }).select("+password");
 };
+
+export const findUsedPlayerAvatars = async (): Promise<
+  string[]
+> => {
+  const users = await User.find(
+    {
+      role: "player",
+      avatar: {
+        $ne: null,
+      },
+    },
+    {
+      avatar: 1,
+      _id: 0,
+    }
+  ).lean();
+
+  return users
+    .map((user) => user.avatar)
+    .filter(
+      (avatar): avatar is string =>
+        typeof avatar === "string" &&
+        avatar.length > 0
+    );
+};
+export const findFirstActiveAgent =
+  async () => {
+    return User.findOne({
+      role: "agent",
+      status: "active",
+    })
+      .sort({
+        createdAt: 1,
+        _id: 1,
+      })
+      .select("_id fullName phone");
+  };

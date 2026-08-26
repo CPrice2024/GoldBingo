@@ -3,9 +3,6 @@ import {
   ArrowDownToLine,
   Wallet,
   RefreshCw,
-  CreditCard,
-  Smartphone,
-  Building2,
   CheckCircle2,
   Clock3,
   XCircle,
@@ -18,15 +15,39 @@ import {
   getMyWithdrawals,
 } from "../../api/withdrawals.api";
 
+import { useLanguage } from "../../context/LanguageContext";
+
 import api from "../../api/axios";
+import telebirrLogo from "../../assets/payment/telebirr.png";
+import cbeLogo from "../../assets/payment/cbe.png";
+
+const PAYMENT_METHOD_META = {
+  telebirr: {
+    value: "telebirr",
+    label: "Telebirr",
+    descriptionKey: "withdraw.telebirrDescription",
+    icon: telebirrLogo,
+  },
+
+  cbe: {
+    value: "cbe",
+    label: "CBE",
+    descriptionKey: "withdraw.cbeDescription",
+    icon: cbeLogo,
+  },
+};
 
 export default function Withdraw() {
+  const { t } = useLanguage();
   const [wallet, setWallet] = useState(null);
   const [withdrawals, setWithdrawals] = useState([]);
 
   const [amount, setAmount] = useState("");
   const [paymentMethod, setPaymentMethod] =
     useState("telebirr");
+
+  const MIN_WITHDRAWAL = 100;
+const MAX_WITHDRAWAL = 100000;
 
   const [accountNumber, setAccountNumber] =
     useState("");
@@ -52,9 +73,9 @@ const loadData = async () => {
     console.log("Wallet response:", walletResponse);
     console.log("Wallet data:", walletResponse?.data);
     console.log(
-      "Available balance:",
-      walletResponse?.data?.data?.availableBalance
-    );
+  "Withdrawable winnings:",
+  walletResponse?.data?.data?.withdrawableWinningBalance
+);
     console.log("======================================");
 
     if (walletResponse?.data?.success) {
@@ -97,7 +118,7 @@ const loadData = async () => {
     setError(
       err?.response?.data?.message ||
         err?.message ||
-        "Failed to load withdrawal information"
+        t("withdraw.loadError")
     );
   } finally {
     setLoading(false);
@@ -116,27 +137,48 @@ const loadData = async () => {
     const numericAmount = Number(amount);
 
     if (!numericAmount || numericAmount <= 0) {
-      setError(
-        "Please enter a valid withdrawal amount."
-      );
-      return;
-    }
+  setError(
+    t("withdraw.invalidAmount")
+  );
+  return;
+}
 
-    if (
-      wallet &&
-      numericAmount > wallet.availableBalance
-    ) {
-      setError(
-        `Insufficient available balance. You can withdraw up to ${wallet.availableBalance.toFixed(
-          2
-        )} ETB.`
-      );
-      return;
-    }
+if (numericAmount < MIN_WITHDRAWAL) {
+  setError(
+    `${t("withdraw.minimumWithdrawal")} ${MIN_WITHDRAWAL.toLocaleString()} ${t(
+      "common.birr"
+    )}.`
+  );
+  return;
+}
+
+if (numericAmount > MAX_WITHDRAWAL) {
+  setError(
+     `${t("withdraw.maximumWithdrawal")} ${MAX_WITHDRAWAL.toLocaleString()} ${t(
+      "common.birr"
+    )}.`
+  );
+  return;
+}
+
+const withdrawableWinningBalance = Number(
+  wallet?.withdrawableWinningBalance || 0
+);
+
+if (numericAmount > withdrawableWinningBalance) {
+  setError(
+   `${t(
+      "withdraw.insufficientBalance"
+    )} ${withdrawableWinningBalance.toFixed(
+      2
+    )} ${t("common.birr")}.`
+  );
+  return;
+}
 
     if (!accountNumber.trim()) {
       setError(
-        "Please enter your account or phone number."
+       t("withdraw.accountRequired")
       );
       return;
     }
@@ -161,7 +203,7 @@ const loadData = async () => {
       }
 
       setSuccess(
-        "Withdrawal request submitted successfully."
+        t("withdraw.requestSubmitted")
       );
 
       setAmount("");
@@ -178,7 +220,7 @@ const loadData = async () => {
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "Failed to submit withdrawal"
+          t("withdraw.submitFailed")
       );
     } finally {
       setSubmitting(false);
@@ -212,7 +254,7 @@ const loadData = async () => {
             className="spin"
           />
           <p>
-            Loading withdrawal information...
+            {t("withdraw.loading")}
           </p>
         </div>
       </div>
@@ -224,10 +266,13 @@ const loadData = async () => {
       {/* Header */}
       <div className="page-header">
         <div>
-          <h1>Withdraw</h1>
-          <p>
-            Withdraw your available winnings.
-          </p>
+          <h1>
+  {t("withdraw.title")}
+</h1>
+
+<p>
+  {t("withdraw.subtitle")}
+</p>
         </div>
 
         <button
@@ -237,7 +282,7 @@ const loadData = async () => {
           disabled={loading}
         >
           <RefreshCw size={17} />
-          Refresh
+          {t("common.refresh")}
         </button>
       </div>
 
@@ -257,21 +302,28 @@ const loadData = async () => {
       )}
 
       <div className="withdraw-balance-card">
-
   <div className="withdraw-balance-label">
     <Wallet size={22} />
-    <span>Available Balance</span>
+
+    <span>
+      {t("withdraw.withdrawableAmount")}
+    </span>
   </div>
 
   <div className="withdraw-balance-amount">
-    {Number(wallet?.availableBalance || 0).toFixed(2)} ETB
+    {Number(
+      wallet?.withdrawableWinningBalance || 0
+    ).toFixed(2)}{" "}
+    {t("common.birr")}
   </div>
 
   <div className="withdraw-balance-status">
     <ShieldCheck size={16} />
-    <span>Amount available for withdrawal</span>
-  </div>
 
+    <span>
+      {t("withdraw.currentWithdrawableAmount")}
+    </span>
+  </div>
 </div>
 
       <div className="withdraw-layout">
@@ -283,10 +335,11 @@ const loadData = async () => {
             </div>
 
             <div>
-              <h2>Withdraw Funds</h2>
+              <h2>
+                {t("withdraw.withdrawFunds")}
+              </h2>
               <p>
-                Send a withdrawal request to your
-                assigned agent.
+                {t("withdraw.withdrawDescription")}
               </p>
             </div>
           </div>
@@ -294,160 +347,98 @@ const loadData = async () => {
           <form onSubmit={handleSubmit}>
             {/* Amount */}
             <div className="form-group">
-              <label>
-                Amount <span>*</span>
-              </label>
+  <label>
+    {t("withdraw.amount")} <span>*</span>
+  </label>
 
-              <div className="input-with-suffix">
-                <input
-                  type="number"
-                  min="0.01"
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) =>
-                    setAmount(e.target.value)
-                  }
-                  placeholder="Enter amount"
-                  disabled={submitting}
-                />
+  <div className="input-with-suffix">
+    <input
+      type="number"
+      min={MIN_WITHDRAWAL}
+      max={MAX_WITHDRAWAL}
+      step="1"
+      value={amount}
+      onChange={(e) =>
+        setAmount(e.target.value)
+      }
+      placeholder={t("withdraw.enterAmount")}
+      disabled={submitting}
+    />
 
-                <span>ETB</span>
-              </div>
+    <span>
+      {t("common.birr")}
+    </span>
+  </div>
 
-              <div className="available-hint">
-                Available:{" "}
-                {wallet?.availableBalance?.toFixed(
-                  2
-                ) || "0.00"}{" "}
-                ETB
-              </div>
-            </div>
+  <div className="payment-info span">
+    {t("withdraw.withdrawalLimits")}:{" "}
+    {MIN_WITHDRAWAL.toLocaleString()} -{" "}
+    {MAX_WITHDRAWAL.toLocaleString()}{" "}
+    {t("common.birr")}
+  </div>
+
+  <div className="payment-info span">
+    {t("withdraw.availableAmount")}:{" "}
+    {Number(
+      wallet?.withdrawableWinningBalance || 0
+    ).toFixed(2)}{" "}
+    {t("common.birr")}
+  </div>
+</div>
 
             {/* Payment Method */}
-            <div className="form-group">
-              <label>
-                Payment Method <span>*</span>
-              </label>
+            {/* Payment Method */}
+<div className="form-group">
+  <label>
+    {t("withdraw.paymentMethod")} <span>*</span>
+  </label>
 
-              <div className="payment-methods">
-                <button
-                  type="button"
-                  className={`payment-method ${
-                    paymentMethod === "telebirr"
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPaymentMethod("telebirr")
-                  }
-                >
-                  <div className="payment-icon">
-                    <Smartphone size={19} />
-                  </div>
+  <div className="payment-methods">
+    {Object.values(PAYMENT_METHOD_META).map(
+      (method) => (
+        <button
+          type="button"
+          key={method.value}
+          className={`payment-method ${
+            paymentMethod === method.value
+              ? "selected"
+              : ""
+          }`}
+          onClick={() =>
+            setPaymentMethod(method.value)
+          }
+          disabled={submitting}
+        >
+          <div className="payment-icon payment-logo">
+            <img
+              src={method.icon}
+              alt={method.label}
+            />
+          </div>
 
-                  <div className="payment-info">
-                    <strong>
-                      Telebirr
-                    </strong>
-                    <span>
-                      Withdraw using Telebirr
-                    </span>
-                  </div>
+          <div className="payment-info">
+            <strong>{method.label}</strong>
 
-                  {paymentMethod ===
-                    "telebirr" && (
-                    <CheckCircle2 size={18} />
-                  )}
-                </button>
+            <span>
+              {t(method.descriptionKey)}
+            </span>
+          </div>
 
-                <button
-                  type="button"
-                  className={`payment-method ${
-                    paymentMethod === "cbe"
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPaymentMethod("cbe")
-                  }
-                >
-                  <div className="payment-icon">
-                    <Building2 size={19} />
-                  </div>
-
-                  <div className="payment-info">
-                    <strong>CBE</strong>
-                    <span>
-                      Commercial Bank of
-                      Ethiopia
-                    </span>
-                  </div>
-
-                  {paymentMethod === "cbe" && (
-                    <CheckCircle2 size={18} />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className={`payment-method ${
-                    paymentMethod === "mpesa"
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPaymentMethod("mpesa")
-                  }
-                >
-                  <div className="payment-icon">
-                    <Smartphone size={19} />
-                  </div>
-
-                  <div className="payment-info">
-                    <strong>M-Pesa</strong>
-                    <span>
-                      Withdraw using M-Pesa
-                    </span>
-                  </div>
-
-                  {paymentMethod === "mpesa" && (
-                    <CheckCircle2 size={18} />
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  className={`payment-method ${
-                    paymentMethod === "bank"
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setPaymentMethod("bank")
-                  }
-                >
-                  <div className="payment-icon">
-                    <CreditCard size={19} />
-                  </div>
-
-                  <div className="payment-info">
-                    <strong>Bank</strong>
-                    <span>
-                      Bank account transfer
-                    </span>
-                  </div>
-
-                  {paymentMethod === "bank" && (
-                    <CheckCircle2 size={18} />
-                  )}
-                </button>
-              </div>
-            </div>
+          <div className="payment-radio">
+            {paymentMethod === method.value && (
+              <CheckCircle2 size={18} />
+            )}
+          </div>
+        </button>
+      )
+    )}
+  </div>
+</div>
 
             {/* Account */}
             <div className="form-group">
               <label>
-                Account / Phone Number{" "}
+                {t("withdraw.accountOrPhone")}{" "}
                 <span>*</span>
               </label>
 
@@ -460,10 +451,10 @@ const loadData = async () => {
                   )
                 }
                 placeholder={
-                  paymentMethod === "bank"
-                    ? "Enter bank account number"
-                    : "Enter phone number"
-                }
+  paymentMethod === "cbe"
+   ? t("withdraw.enterCbeAccount")
+    : t("withdraw.enterTelebirrPhone")
+}
                 disabled={submitting}
               />
             </div>
@@ -471,28 +462,30 @@ const loadData = async () => {
             {/* Note */}
             <div className="form-group">
               <label>
-                Note
-                <small>Optional</small>
-              </label>
+  {t("withdraw.note")}
+  <small>
+    {t("withdraw.optional")}
+  </small>
+</label>
 
               <textarea
                 value={note}
                 onChange={(e) =>
                   setNote(e.target.value)
                 }
-                placeholder="Add a note about this withdrawal..."
+                placeholder={t("withdraw.notePlaceholder")}
                 disabled={submitting}
               />
             </div>
 
             <button
               type="submit"
-              className="submit-withdraw-btn"
+              className="submit-deposit-btn"
               disabled={
-                submitting ||
-                !wallet ||
-                wallet.availableBalance <= 0
-              }
+  submitting ||
+  !wallet ||
+  Number(wallet.withdrawableWinningBalance || 0) <= 0
+}
             >
               {submitting ? (
                 <>
@@ -500,12 +493,12 @@ const loadData = async () => {
                     size={18}
                     className="spin"
                   />
-                  Processing...
+                  {t("withdraw.processing")}
                 </>
               ) : (
                 <>
                   <ArrowDownToLine size={18} />
-                  Withdraw Funds
+                  {t("withdraw.withdrawFunds")}
                 </>
               )}
             </button>
@@ -514,116 +507,107 @@ const loadData = async () => {
 
         {/* Instructions */}
         <div className="withdraw-info-card">
-          <div className="info-icon">
-            <Wallet size={22} />
-          </div>
+  <div className="info-icon">
+    <Wallet size={22} />
+  </div>
 
-          <h3>
-            How withdrawals work
-          </h3>
+  <h3>
+    {t("withdraw.howWithdrawalsWork")}
+  </h3>
 
-          <div className="steps">
-            <div className="step">
-              <span>1</span>
+  <div className="steps">
+    <div className="step">
+      <span>1</span>
 
-              <div>
-                <strong>
-                  Enter amount
-                </strong>
+      <div>
+        <strong>
+          {t("withdraw.checkBalance")}
+        </strong>
 
-                <p>
-                  Choose the amount you want
-                  to withdraw from your
-                  available balance.
-                </p>
-              </div>
-            </div>
+        <p>
+          {t("withdraw.checkBalanceDescription")}
+        </p>
+      </div>
+    </div>
 
-            <div className="step">
-              <span>2</span>
+    <div className="step">
+      <span>2</span>
 
-              <div>
-                <strong>
-                  Choose payment method
-                </strong>
+      <div>
+        <strong>
+          {t("withdraw.choosePaymentMethod")}
+        </strong>
 
-                <p>
-                  Select Telebirr, CBE,
-                  M-Pesa, or Bank.
-                </p>
-              </div>
-            </div>
+        <p>
+          {t("withdraw.choosePaymentDescription")}
+        </p>
+      </div>
+    </div>
 
-            <div className="step">
-              <span>3</span>
+    <div className="step">
+      <span>3</span>
 
-              <div>
-                <strong>
-                  Submit request
-                </strong>
+      <div>
+        <strong>
+          {t("withdraw.submitRequest")}
+        </strong>
 
-                <p>
-                  Your withdrawal amount
-                  will temporarily be
-                  reserved.
-                </p>
-              </div>
-            </div>
+        <p>
+          {t("withdraw.submitRequestDescription")}
+        </p>
+      </div>
+    </div>
 
-            <div className="step">
-              <span>4</span>
+    <div className="step">
+      <span>4</span>
 
-              <div>
-                <strong>
-                  Agent approval
-                </strong>
+      <div>
+        <strong>
+          {t("withdraw.agentApproval")}
+        </strong>
 
-                <p>
-                  Your assigned agent
-                  reviews and processes
-                  the request.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <p>
+          {t("withdraw.agentApprovalDescription")}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
       </div>
 
       {/* History */}
       <div className="withdrawals-history">
         <div className="history-header">
-          <div>
-            <h2>
-              Withdrawal History
-            </h2>
+  <div>
+    <h2>
+      {t("withdraw.history")}
+    </h2>
 
-            <p>
-              View your previous withdrawal
-              requests.
-            </p>
-          </div>
+    <p>
+      {t("withdraw.historyDescription")}
+    </p>
+  </div>
 
-          <div className="withdrawal-count">
-            {withdrawals.length}{" "}
-            {withdrawals.length === 1
-              ? "request"
-              : "requests"}
-          </div>
-        </div>
+  <div className="withdrawal-count">
+    {withdrawals.length}{" "}
+    {withdrawals.length === 1
+      ? t("withdraw.request")
+      : t("withdraw.requests")}
+  </div>
+</div>
 
         {withdrawals.length === 0 ? (
           <div className="empty-state">
-            <ArrowDownToLine size={30} />
+  <ArrowDownToLine size={30} />
 
-            <h3>
-              No withdrawals yet
-            </h3>
+  <h3>
+    {t("withdraw.noWithdrawals")}
+  </h3>
 
-            <p>
-              Your withdrawal requests will
-              appear here.
-            </p>
-          </div>
+  <p>
+    {t("withdraw.withdrawalsAppearHere")}
+  </p>
+</div>
         ) : (
           <div className="withdrawal-list">
             {withdrawals.map(
@@ -632,14 +616,20 @@ const loadData = async () => {
                   className="withdrawal-row"
                   key={withdrawal._id}
                 >
-                  <div className="withdrawal-method-icon">
-                    {withdrawal.paymentMethod ===
-                    "bank" ? (
-                      <Building2 size={19} />
-                    ) : (
-                      <Smartphone size={19} />
-                    )}
-                  </div>
+                  <div className="withdrawal-method-icon payment-logo">
+  <img
+    src={
+      PAYMENT_METHOD_META[
+        withdrawal.paymentMethod
+      ]?.icon || telebirrLogo
+    }
+    alt={
+      PAYMENT_METHOD_META[
+        withdrawal.paymentMethod
+      ]?.label || "Payment"
+    }
+  />
+</div>
 
                   <div className="withdrawal-main">
                     <strong>
@@ -665,7 +655,7 @@ const loadData = async () => {
                       {Number(
                         withdrawal.amount
                       ).toFixed(2)}{" "}
-                      ETB
+                      Birr
                     </strong>
                   </div>
 
@@ -676,7 +666,11 @@ const loadData = async () => {
                       withdrawal.status
                     )}
 
-                    {withdrawal.status}
+                    {withdrawal.status === "approved"
+  ? t("withdraw.statusApproved")
+  : withdrawal.status === "rejected"
+  ? t("withdraw.statusRejected")
+  : t("withdraw.statusPending")}
                   </div>
                 </div>
               )

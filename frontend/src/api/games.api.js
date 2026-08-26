@@ -13,6 +13,16 @@ export const getCurrentGame = async () => {
 
   return response.data;
 };
+export const getGameWinners = async (
+  gameId
+) => {
+  const response =
+    await api.get(
+      `/games/${gameId}/winners`
+    );
+
+  return response.data;
+};
 
 export const getGameById = async (gameId) => {
   const response = await api.get(`/games/${gameId}`);

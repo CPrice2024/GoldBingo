@@ -24,6 +24,7 @@ export const createAgent = async (
   const fullName = data.fullName.trim();
   const phone = data.phone.trim();
   const email = data.email?.trim().toLowerCase();
+  const paymentSettings = data.paymentSettings;
 
   // Check required fields
   if (!fullName || !phone || !data.password) {
@@ -31,6 +32,87 @@ export const createAgent = async (
       "Full name, phone and password are required"
     );
   }
+  if (!paymentSettings) {
+  throw new Error(
+    "Payment settings are required"
+  );
+}
+
+if (
+  typeof paymentSettings.minDeposit !== "number" ||
+  paymentSettings.minDeposit <= 0
+) {
+  throw new Error(
+    "Minimum deposit must be greater than 0"
+  );
+}
+
+if (
+  typeof paymentSettings.maxDeposit !== "number" ||
+  paymentSettings.maxDeposit <= 0
+) {
+  throw new Error(
+    "Maximum deposit must be greater than 0"
+  );
+}
+
+if (
+  paymentSettings.minDeposit >=
+  paymentSettings.maxDeposit
+) {
+  throw new Error(
+    "Maximum deposit must be greater than minimum deposit"
+  );
+}
+
+const telebirrEnabled =
+  paymentSettings.telebirr?.enabled === true;
+
+const cbeEnabled =
+  paymentSettings.cbe?.enabled === true;
+
+console.log(
+  "[ADMIN] Payment method status:",
+  {
+    telebirrEnabled,
+    cbeEnabled,
+  }
+);
+
+// At least one payment method must be enabled
+if (!telebirrEnabled && !cbeEnabled) {
+  throw new Error(
+    "At least one payment method must be enabled"
+  );
+}
+
+// Validate Telebirr
+if (telebirrEnabled) {
+  const account =
+    paymentSettings.telebirr.account?.trim();
+
+  if (!account) {
+    throw new Error(
+      "Telebirr payment number is required when Telebirr is enabled"
+    );
+  }
+
+  paymentSettings.telebirr.account = account;
+}
+
+// Validate CBE
+if (cbeEnabled) {
+  const account =
+    paymentSettings.cbe.account?.trim();
+
+  if (!account) {
+    throw new Error(
+      "CBE account number is required when CBE is enabled"
+    );
+  }
+
+  paymentSettings.cbe.account = account;
+}
 
   if (data.password.length < 6) {
     throw new Error(
@@ -81,20 +163,22 @@ export const createAgent = async (
     );
 
   // Create agent
-  const agent = await User.create({
-    fullName,
-    phone,
-    email,
+const agent = await User.create({
+  fullName,
+  phone,
+  email,
 
-    password: hashedPassword,
+  password: hashedPassword,
 
-    role: "agent",
-    status: "active",
+  role: "agent",
+  status: "active",
 
-    referralCode,
+  referralCode,
 
-    isVerified: true,
-  });
+  paymentSettings,
+
+  isVerified: true,
+});
 
   // Create wallet
   await createUserWallet(
@@ -109,9 +193,222 @@ export const createAgent = async (
     role: agent.role,
     referralCode: agent.referralCode,
     status: agent.status,
+    paymentSettings: agent.paymentSettings,
     createdAt: agent.createdAt,
   };
 };
+
+interface UpdateAgentInput {
+  fullName: string;
+  phone: string;
+  email?: string;
+  password?: string;
+  paymentSettings: {
+    telebirr?: {
+      enabled: boolean;
+      account?: string;
+    };
+    cbe?: {
+      enabled: boolean;
+      account?: string;
+    };
+    minDeposit: number;
+    maxDeposit: number;
+  };
+}
+
+export const updateAgent = async (
+  agentId: string,
+  data: UpdateAgentInput
+) => {
+  const agent = await User.findOne({
+    _id: agentId,
+    role: "agent",
+  });
+
+  if (!agent) {
+    throw new Error("Agent not found");
+  }
+
+  const fullName = data.fullName?.trim();
+  const phone = data.phone?.trim();
+  const email = data.email?.trim().toLowerCase();
+
+  if (!fullName || !phone) {
+    throw new Error(
+      "Full name and phone are required"
+    );
+  }
+
+  if (fullName.length < 2) {
+    throw new Error(
+      "Full name must be at least 2 characters"
+    );
+  }
+
+  // Check phone belongs to another user
+  const existingPhone = await User.findOne({
+    phone,
+    _id: { $ne: agentId },
+  });
+
+  if (existingPhone) {
+    throw new Error(
+      "A user with this phone number already exists"
+    );
+  }
+
+  // Check email belongs to another user
+  if (email) {
+    const existingEmail = await User.findOne({
+      email,
+      _id: { $ne: agentId },
+    });
+
+    if (existingEmail) {
+      throw new Error(
+        "A user with this email already exists"
+      );
+    }
+  }
+
+  // Validate payment settings
+  const paymentSettings =
+    data.paymentSettings;
+
+  if (!paymentSettings) {
+    throw new Error(
+      "Payment settings are required"
+    );
+  }
+
+  const minDeposit = Number(
+    paymentSettings.minDeposit
+  );
+
+  const maxDeposit = Number(
+    paymentSettings.maxDeposit
+  );
+
+  if (
+    !Number.isFinite(minDeposit) ||
+    minDeposit <= 0
+  ) {
+    throw new Error(
+      "Minimum deposit must be greater than 0"
+    );
+  }
+
+  if (
+    !Number.isFinite(maxDeposit) ||
+    maxDeposit <= 0
+  ) {
+    throw new Error(
+      "Maximum deposit must be greater than 0"
+    );
+  }
+
+  if (minDeposit >= maxDeposit) {
+    throw new Error(
+      "Maximum deposit must be greater than minimum deposit"
+    );
+  }
+
+  const telebirrEnabled =
+    paymentSettings.telebirr?.enabled === true;
+
+  const cbeEnabled =
+    paymentSettings.cbe?.enabled === true;
+
+  if (!telebirrEnabled && !cbeEnabled) {
+    throw new Error(
+      "At least one payment method must be enabled"
+    );
+  }
+
+  // Validate Telebirr
+  let telebirrAccount = "";
+
+  if (telebirrEnabled) {
+    telebirrAccount =
+      paymentSettings.telebirr?.account
+        ?.trim() || "";
+
+    if (!telebirrAccount) {
+      throw new Error(
+        "Telebirr payment number is required when Telebirr is enabled"
+      );
+    }
+  }
+
+  // Validate CBE
+  let cbeAccount = "";
+
+  if (cbeEnabled) {
+    cbeAccount =
+      paymentSettings.cbe?.account
+        ?.trim() || "";
+
+    if (!cbeAccount) {
+      throw new Error(
+        "CBE account number is required when CBE is enabled"
+      );
+    }
+  }
+
+  // Update basic information
+  agent.fullName = fullName;
+  agent.phone = phone;
+  agent.email = email || undefined;
+
+  // Update payment settings
+  agent.paymentSettings = {
+    telebirr: {
+      enabled: telebirrEnabled,
+      account: telebirrAccount,
+    },
+
+    cbe: {
+      enabled: cbeEnabled,
+      account: cbeAccount,
+    },
+
+    minDeposit,
+    maxDeposit,
+  };
+
+  // Password is optional during edit
+  if (data.password?.trim()) {
+    if (data.password.length < 6) {
+      throw new Error(
+        "Password must be at least 6 characters"
+      );
+    }
+
+    agent.password = await bcrypt.hash(
+      data.password,
+      12
+    );
+  }
+
+  await agent.save();
+
+  return {
+    id: agent._id,
+    fullName: agent.fullName,
+    phone: agent.phone,
+    email: agent.email,
+    role: agent.role,
+    referralCode: agent.referralCode,
+    status: agent.status,
+    paymentSettings: agent.paymentSettings,
+    isVerified: agent.isVerified,
+    createdAt: agent.createdAt,
+    updatedAt: agent.updatedAt,
+    lastLogin: agent.lastLogin,
+  };
+};
+
 export const getAdminDashboardStats = async () => {
   const [userCounts, gameCounts] =
     await Promise.all([
