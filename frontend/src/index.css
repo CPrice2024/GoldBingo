@@ -366,12 +366,12 @@ a {
   background:
     linear-gradient(
       145deg,
-      rgba(255, 255, 255, 0.045),
+      rgba(0, 0, 0, 0.759),
       rgba(13, 16, 23, 0.82) 35%,
       rgba(13, 16, 23, 0.92)
     );
 
-  backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(48px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
 
   border-right: 1px solid rgba(255, 255, 255, 0.08);
