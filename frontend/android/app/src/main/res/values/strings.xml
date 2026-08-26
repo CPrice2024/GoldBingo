@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GoldBingo</string>
+    <string name="title_activity_main">GoldBingo</string>
+    <string name="package_name">com.goldbingo.app</string>
+    <string name="custom_url_scheme">com.goldbingo.app</string>
+</resources>
