@@ -433,7 +433,7 @@ a {
 }
 
 .player-nav-link {
-  height: 44px;
+  height: 40px;
 
   display: flex;
   align-items: center;
@@ -1007,7 +1007,7 @@ a {
 
   color: #cbd5e1;
 
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 
   cursor: pointer;
@@ -8321,7 +8321,7 @@ html[data-theme="night"]
   display: flex;
   flex-direction: column;
 
-  gap: 7px;
+  gap: 3px;
 }
 
 
@@ -8341,7 +8341,7 @@ html[data-theme="night"]
 
   color: #229ed9;
 
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
 
   transition:
@@ -11308,7 +11308,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .player-sidebar {
-        background: linear-gradient(145deg, #ffffff, #f8fafcd9);
+        background: linear-gradient(145deg, #ffffff61, #f8fafc3b);
     border-right: 1px solid #e2e8f0;
         box-shadow: 8px 0 30px rgb(0 1 5 / 34%);
 }
