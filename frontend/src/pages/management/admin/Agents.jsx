@@ -395,6 +395,7 @@ const closeAgentModal = () => {
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
+            class="management-refresh-button"
           >
             <RefreshCw
               size={17}
@@ -410,6 +411,7 @@ const closeAgentModal = () => {
 
           <button
             type="button"
+            class="management-refresh-button"
             onClick={() =>
               setShowCreate(true)
             }

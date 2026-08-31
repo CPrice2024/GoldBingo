@@ -142,7 +142,7 @@ export const findAndAssignAvailableCards =
 
       if (!card) {
         throw new Error(
-          `Not enough Bingo cards are available. ${count} cards are required.`
+          `Not enough cards are available. ${count} cards are required.`
         );
       }
 

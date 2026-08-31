@@ -9,7 +9,6 @@ import PlayerLogin from "../pages/player/Login";
 import PlayerSignup from "../pages/player/Signup";
 import ForgotPassword from "../pages/player/ForgotPassword";
 import ChangePassword from "../pages/player/ChangePassword";
-import PlayerDashboard from "../pages/player/Dashboard";
 import PlayerWallet from "../pages/player/Wallet";
 import Deposit from "../pages/player/Deposit";
 import Withdraw from "../pages/player/Withdraw";
@@ -90,9 +89,14 @@ function AppRoutes() {
           }
         >
           <Route
-            path="dashboard"
-            element={<PlayerDashboard />}
-          />
+  path="dashboard"
+  element={
+    <Navigate
+      to="/player/play"
+      replace
+    />
+  }
+/>
 
           <Route
             path="play"
@@ -151,7 +155,7 @@ function AppRoutes() {
             index
             element={
               <Navigate
-                to="/player/dashboard"
+                to="/player/play"
                 replace
               />
             }

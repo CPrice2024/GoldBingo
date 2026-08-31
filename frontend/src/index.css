@@ -1461,7 +1461,7 @@ a {
 
 
 .admin-auto-game-info strong {
-  color: #f8fafc;
+  color: #175695;
 
   font-size: 14px;
 }
@@ -2294,7 +2294,7 @@ html[data-theme="day"]
 
 .deposit-page .page-header h1 {
   margin: 0 0 8px;
-  font-size: 32px;
+  font-size: 18px;
   font-weight: 700;
   color: #f8fafc;
 }
@@ -2497,7 +2497,7 @@ width: 100%;
   border-radius: 10px;
 
   background: #0b0e1500;
-  color: #e6e9ed;
+  color: #43638e;
 
   font-family: inherit;
   font-size: 14px;
@@ -2828,7 +2828,8 @@ html[data-theme="day"]
 
 .payment-method {
   width: 100%;
-  min-height: 76px;
+  min-height: 65px;
+  height: 65px;
 
   display: flex;
   align-items: center;
@@ -2837,7 +2838,7 @@ html[data-theme="day"]
   padding: 13px 14px;
 
   border: 1px solid #293044;
-  border-radius: 11px;
+  border-radius: 8px;
 
   background: #0b0e15;
   color: #dce3ef;
@@ -2889,7 +2890,7 @@ html[data-theme="day"]
 }
 
 .payment-method.selected .payment-icon {
-  background: rgba(236, 235, 237, 0.966);
+  background: rgba(236, 235, 237, 0);
   color: #b69cff;
 }
 
@@ -3381,7 +3382,7 @@ html[data-theme="day"]
 
 @media (max-width: 480px) {
   .deposit-page .page-header h1 {
-    font-size: 27px;
+    font-size: 18px;
   }
 
   .card-title h2 {
@@ -3547,8 +3548,8 @@ html[data-theme="day"]
 
   margin-top: 12px;
 
-  color: #39e58c;
-  font-size: 13px;
+  color: #005a2b;
+  font-size: 12px;
 }
 
 .withdraw-balance-status svg {
@@ -4253,8 +4254,8 @@ html[data-theme="day"]
 
   border-radius: 12px;
 
-  background: #211a46;
-  border: 1px solid #382b72;
+  background: #211a4600;
+  border: 1px solid #382b7200;
 
   color: #a78bfa;
 }
@@ -4277,7 +4278,7 @@ html[data-theme="day"]
 }
 
 .withdrawal-main strong {
-  color: #ffffff;
+  color: #46448a;
   font-size: 15px;
   font-weight: 650;
   text-transform: capitalize;
@@ -4307,10 +4308,10 @@ html[data-theme="day"]
   min-width: 115px;
 }
 
-.withdrawal-amount strong {
-  color: #f87171;
-  font-size: 15px;
-  font-weight: 700;
+.withdrawal-amount  {
+  color: #dd2626;
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -4344,13 +4345,13 @@ html[data-theme="day"]
 }
 
 .withdrawal-status.approved {
-  color: #4ade80;
+  color: #00772b;
   background: rgba(34, 197, 94, 0.10);
   border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
 .withdrawal-status.rejected {
-  color: #f87171;
+  color: #a20000;
   background: rgba(239, 68, 68, 0.10);
   border: 1px solid rgba(239, 68, 68, 0.25);
 }
@@ -4426,7 +4427,7 @@ html[data-theme="day"]
   .withdrawal-status {
     grid-column: 2;
     grid-row: auto;
-    justify-self: flex-start;
+    justify-self: end;
   }
 }
 
@@ -5271,36 +5272,21 @@ strong {
 ======================================== */
 
 .play-refresh-button {
-  margin-top: 22px;
-
-  min-height: 42px;
-
-  padding:
-    0
-    18px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  border: 1px solid
-    rgba(212, 167, 44, 0.35);
-
-  border-radius: 11px;
-
-  background:
-    rgba(212, 167, 44, 0.08);
-
-  color: #b88c18;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition:
-    0.2s ease;
+     margin-top: 22px;
+    min-height: 42px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid rgba(212, 167, 44, 0.35);
+    border-radius: 5px;
+    background: rgb(238 238 238 / 50%);
+    color: #777674;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
 }
 
 
@@ -6899,8 +6885,8 @@ html[data-theme="night"]
 
 .change-password-header h1 {
   margin: 0;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   letter-spacing: -0.5px;
 }
 
@@ -7154,7 +7140,7 @@ html[data-theme="night"]
   }
 
   .change-password-header h1 {
-    font-size: 27px;
+    font-size: 18px;
   }
 
   .change-password-card {
@@ -7839,7 +7825,7 @@ html[data-theme="night"]
 
   border-radius: 9px;
 
-  color: #55d98a;
+  color: #00943b;
 
   background: rgba(50, 210, 120, 0.08);
 
@@ -8604,7 +8590,7 @@ html[data-theme="day"]
   }
 
   .payment-method {
-    min-height: 74px;
+    min-height: 65px;
   }
 
   .deposit-payment-account-value {
@@ -10085,7 +10071,7 @@ html[data-theme="day"]
 }
 .sidebar-promo-image {
   width: 100%;
-  height: 92px;
+  height: 125px;
 
   overflow: hidden;
   border-radius: 10px;
@@ -11952,14 +11938,8 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .payment-method.selected {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(212, 167, 44, 0.12),
-      rgba(255, 255, 255, 0.9)
-    );
-
-  border-color: #d4a72c;
+     background: linear-gradient(135deg, rgb(44 81 212 / 12%), rgba(255, 255, 255, 0.9));
+    border-color: #2c3bd4;
 }
 
 html[data-theme="day"]
@@ -12137,13 +12117,9 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .withdraw-balance-card {
-  background: radial-gradient(circle at 90% 0%, rgb(93 93 93), #0000001f 42%), linear-gradient(135deg, #ffffff, #f8fafc);
-
-  border-color: #e2e8f0;
-
-  box-shadow:
-    0 6px 24px
-    rgba(15, 23, 42, 0.06);
+      background: radial-gradient(circle at 90% 0%, rgb(0 40 159), #381c770a 42%), linear-gradient(135deg, #ffffff, #f8fafc);
+    border-color: #e2e8f0;
+    box-shadow: 0 6px 24px rgb(15 23 42 / 30%);
 }
 
 html[data-theme="day"]
@@ -12153,7 +12129,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .withdraw-balance-amount {
-  color: #0f172a;
+  color: #006f1f;
 }
 
 
@@ -13541,4 +13517,1266 @@ form > input:-webkit-autofill:focus {
     animation: none !important;
   }
 
+}
+
+/* =====================================================
+   MOBILE PROFILE DRAWER
+===================================================== */
+
+.player-profile-backdrop,
+.player-profile-drawer {
+  display: none;
+}
+
+
+@media (max-width: 700px) {
+
+  /* OLD SIDEBAR OFF */
+
+  .player-desktop-sidebar {
+    display: none !important;
+  }
+
+
+  .player-main {
+    margin-left: 0 !important;
+  }
+
+
+  /* BACKDROP */
+
+  .player-profile-backdrop {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 5000;
+
+    display: block;
+
+    visibility: hidden;
+
+    background:
+      rgba(
+        0,
+        0,
+        0,
+        0.55
+      );
+
+    opacity: 0;
+
+    transition:
+      0.25s ease;
+  }
+
+
+  .player-profile-backdrop.show {
+    visibility: visible;
+
+    opacity: 1;
+  }
+
+
+  /* DRAWER */
+
+  .player-profile-drawer {
+    position: fixed;
+
+    top: 0;
+    right: 0;
+    bottom: 0;
+
+    z-index: 5100;
+
+    display: block;
+
+    width: 85%;
+
+    max-width: 430px;
+
+    overflow: hidden;
+
+    border-radius:
+      0px 0 0 0px;
+
+    background:
+      #f4f7fb;
+
+    color:
+      #1f2937;
+
+    box-shadow:
+      -15px 0 40px
+      rgba(
+        0,
+        0,
+        0,
+        0.25
+      );
+
+    transform:
+      translateX(105%);
+
+    transition:
+      transform
+      0.32s
+      cubic-bezier(
+        0.22,
+        1,
+        0.36,
+        1
+      );
+  }
+
+
+  .player-profile-drawer.open {
+    transform:
+      translateX(0);
+  }
+
+
+  /* SCROLL */
+
+  .player-profile-drawer-scroll {
+    width: 100%;
+    height: 100%;
+
+    overflow-y: auto;
+
+            padding: calc(12px + env(safe-area-inset-top)) 7px 22px;
+
+    scrollbar-width: none;
+  }
+
+
+  .player-profile-drawer-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+
+  /* CLOSE */
+
+  .player-profile-drawer-close {
+    position: absolute;
+
+    top:
+      calc(
+        8px +
+        env(
+          safe-area-inset-top
+        )
+      );
+
+    right: 8px;
+
+    z-index: 20;
+
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: 0;
+
+    border-radius: 50%;
+
+    background:
+      rgba(
+        0,
+        0,
+        0,
+        0.68
+      );
+
+    color: white;
+  }
+
+
+  /* PROMO */
+
+  .player-profile-promo {
+    width: 100%;
+
+    margin-bottom: 18px;
+
+    overflow: hidden;
+
+    border-radius: 19px;
+  }
+
+
+  /* CARDS */
+
+  .player-profile-menu-card {
+    width: 100%;
+
+    margin-bottom: 10px;
+
+    padding: 14px;
+
+    border:
+      1px solid
+      #e1e5ec;
+
+    border-radius: 8px;
+
+    background:
+      #ffffff;
+
+    box-shadow:
+      0 2px 8px
+      rgba(
+        15,
+        23,
+        42,
+        0.03
+      );
+  }
+
+
+  .player-profile-header-card {
+    min-height: 82px;
+
+    display: flex;
+
+    align-items: center;
+  }
+
+
+  .player-profile-card-title,
+  .player-profile-section-title {
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+  }
+
+
+  .player-profile-card-title {
+    color: #ff4c43;
+  }
+
+
+  .player-profile-card-title strong {
+    color: #22252d;
+        font-size: 16px;
+        font-family: math;
+  }
+
+
+  .player-profile-section-title {
+    margin-bottom: 11px;
+
+    color: #1688d3;
+  }
+
+
+  .player-profile-section-title span {
+    color: #74777d;
+
+    font-size: 14px;
+
+    font-weight: 700;
+  }
+
+
+  /* ACCOUNT */
+
+  .player-profile-detail-row {
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    color: #777b83;
+
+    font-size: 13px;
+  }
+
+
+  .player-profile-detail-row strong {
+    color: #272b32;
+  }
+
+
+  /* MESSAGE */
+
+  .player-profile-message-card {
+    min-height: 82px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+      space-between;
+
+    color: inherit;
+  }
+
+
+  .player-profile-message-right {
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+  }
+
+
+  .player-profile-message-right
+  > strong {
+    color: #ef4444;
+
+    font-size: 12px;
+  }
+
+
+  .player-profile-message-bell {
+    position: relative;
+
+    color: #ef4444;
+  }
+
+
+  .player-profile-message-bell span {
+    position: absolute;
+
+    top: -9px;
+    right: -9px;
+
+    min-width: 20px;
+    height: 20px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #ef4444;
+
+    color: white;
+
+    font-size: 10px;
+  }
+
+
+  /* MENU ROW */
+
+  .player-profile-action-row {
+    min-height: 46px;
+
+    display: grid;
+
+    grid-template-columns:
+      25px
+      1fr
+      auto;
+
+    align-items: center;
+
+    gap: 9px;
+
+    color: #24272d;
+
+    font-size: 14px;
+  }
+
+
+  /* SETTINGS */
+
+  .player-profile-setting-row {
+    min-height: 57px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+      space-between;
+
+    gap: 10px;
+  }
+
+
+  .player-profile-setting-row
+  > div {
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    color: #25282e;
+  }
+
+
+  .player-profile-setting-row select {
+          outline: 0;
+        border: 1px solid #afafaf;
+        background: transparent;
+        border-radius: 8px;
+        width: auto;
+        height: 33px;
+        padding: 5px;
+        color: #25282e;
+        font-size: 14px;
+  }
+
+
+  /* SOUND */
+
+  .player-profile-sound-toggle {
+           position: relative;
+        width: 55px;
+        height: 25px;
+        padding: 0;
+        border: 1px solid #3f3f3f;
+        border-radius: 999px;
+        background: transparent;
+  }
+
+
+  .player-profile-sound-toggle span {
+    position: absolute;
+
+    top: 3px;
+    left: 5px;
+
+    width: 18px;
+    height: 18px;
+
+    border-radius: 50%;
+
+    background: #3981f1;
+
+    transition:
+      transform
+      0.2s ease;
+  }
+
+
+  .player-profile-sound-toggle.active span {
+    transform:
+      translateX(23px);
+
+    background:
+      #3981f1;
+  }
+
+
+  /* RED OPEN */
+
+  .player-profile-open {
+    color: #276ec3;
+        font-weight: 600;
+  }
+
+
+  /* LOGOUT */
+
+  .player-profile-logout {
+           min-width: 145px;
+        min-height: 50px;
+        margin: 26px auto 8px;
+        padding: 0 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        border: 0;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #a50600, #e92618);
+        color: white;
+        font-size: 14px;
+        font-weight: 800;
+    
+  }
+
+}
+
+
+/* NIGHT MODE */
+
+@media (max-width: 700px) {
+
+  html[data-theme="night"]
+  .player-profile-drawer {
+    background: #0d1017;
+  }
+
+
+  html[data-theme="night"]
+  .player-profile-menu-card {
+           background: #050505;
+        border-color: #252a36;
+  }
+
+
+  html[data-theme="night"]
+  .player-profile-card-title strong,
+
+  html[data-theme="night"]
+  .player-profile-detail-row strong,
+
+  html[data-theme="night"]
+  .player-profile-action-row,
+
+  html[data-theme="night"]
+  .player-profile-setting-row
+  > div,
+
+  html[data-theme="night"]
+  .player-profile-setting-row
+  select {
+    color: #ffffff;
+  }
+
+}
+/* =====================================================
+   PROFILE DRAWER - BALANCE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .player-profile-balance-card {
+    padding:
+      14px 16px;
+  }
+
+
+  .player-profile-balance-title {
+    color:
+      #2fa84f;
+  }
+
+
+  .player-profile-balance-values {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+
+    gap:
+      1px;
+
+    align-items:
+      center;
+  }
+
+
+  .player-profile-balance-item {
+    min-width: 0;
+
+    display: flex;
+
+    align-items:
+      center;
+
+    gap: 5px;
+  }
+
+
+  .player-profile-balance-item
+  span {
+    flex-shrink: 0;
+
+    color:
+      #7b7f86;
+
+    font-size:
+      11px;
+
+    font-weight:
+      700;
+  }
+
+
+  .player-profile-balance-item
+  strong {
+           min-width: 0;
+        color: #008f22;
+        font-family: revert-layer;
+        font-size: 12px;
+        font-weight: 700;
+        white-space: nowrap;
+  }
+
+
+  .player-profile-balance-item.withdrawable {
+    justify-content:
+      flex-end;
+              margin-right: 10px;
+
+    text-align:
+      right;
+  }
+
+
+  .player-profile-balance-loading {
+    min-height:
+      31px;
+
+    display: flex;
+
+    align-items:
+      center;
+
+    color:
+      #7b7f86;
+
+    font-size:
+      12px;
+  }
+
+
+  .player-profile-balance-error {
+    padding:
+      7px 9px;
+
+    border-radius:
+      8px;
+
+    background:
+      rgba(
+        239,
+        68,
+        68,
+        0.08
+      );
+
+    color:
+      #ef4444;
+
+    font-size:
+      11px;
+  }
+
+}
+
+
+/* NIGHT MODE */
+
+@media (max-width: 700px) {
+
+  html[data-theme="night"]
+  .player-profile-balance-item
+  span {
+    color:
+      #9ca3af;
+  }
+
+}
+/* =====================================================
+   PROFILE DRAWER
+   THEME + LANGUAGE DROPDOWN STYLE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  /* ==========================================
+     SELECT
+  ========================================== */
+
+  .player-profile-setting-row select {
+    min-width: 112px;
+    height: 38px;
+
+    padding:
+      0 32px
+      0 12px;
+
+    border:
+      1px solid
+      #d8dde6 !important;
+
+    border-radius:
+      11px !important;
+
+    outline:
+      none !important;
+
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f8f9fb 100%
+      ) !important;
+
+    color:
+      #24272e !important;
+
+    font-family:
+      inherit;
+
+    font-size:
+      13px !important;
+
+    font-weight:
+      600;
+
+    cursor:
+      pointer;
+
+    box-shadow:
+      0 2px 6px
+      rgba(
+        15,
+        23,
+        42,
+        0.05
+      );
+
+    transition:
+      border-color
+        0.2s ease,
+      box-shadow
+        0.2s ease,
+      background
+        0.2s ease,
+      transform
+        0.15s ease;
+  }
+
+
+  /* ==========================================
+     HOVER
+  ========================================== */
+
+  .player-profile-setting-row
+  select:hover {
+
+    border-color:
+      #3981f1 !important;
+
+    background:
+      #ffffff !important;
+
+    box-shadow:
+      0 3px 9px
+      rgba(
+        57,
+        129,
+        241,
+        0.10
+      );
+
+  }
+
+
+  /* ==========================================
+     OPEN / FOCUS
+  ========================================== */
+
+  .player-profile-setting-row
+  select:focus {
+
+    border-color:
+      #3981f1 !important;
+
+    background:
+      #ffffff !important;
+
+    box-shadow:
+      0 0 0 3px
+      rgba(
+        57,
+        129,
+        241,
+        0.12
+      );
+
+  }
+
+
+  /* ==========================================
+     OPTIONS
+  ========================================== */
+
+  .player-profile-setting-row
+  select option {
+
+    padding:
+      10px;
+
+    background:
+      #ffffff;
+
+    color:
+      #25282e;
+
+    font-family:
+      inherit;
+
+    font-size:
+      13px;
+
+    font-weight:
+      500;
+
+  }
+
+
+  /* ==========================================
+     SETTINGS ROW SEPARATION
+  ========================================== */
+
+  .player-profile-setting-row {
+    position:
+      relative;
+
+    padding:
+      3px 0;
+  }
+
+
+  .player-profile-setting-row
+  + .player-profile-setting-row {
+
+    border-top:
+      1px solid
+      rgba(
+        148,
+        163,
+        184,
+        0.12
+      );
+
+  }
+
+
+  /* ==========================================
+     ICON
+  ========================================== */
+
+  .player-profile-setting-row
+  > div:first-child {
+
+    display:
+      flex;
+
+    align-items:
+      center;
+
+    gap:
+      10px;
+
+  }
+
+
+  .player-profile-setting-row
+  > div:first-child svg {
+
+    color:
+      #727981;
+
+    flex-shrink:
+      0;
+
+  }
+
+
+  .player-profile-setting-row
+  > div:first-child strong {
+
+    color: #5e75a1;
+
+    font-size:
+      13px;
+
+    font-weight:
+      700;
+
+  }
+
+}
+
+
+/* =====================================================
+   PROFILE DRAWER CUSTOM DROPDOWNS
+   THEME + LANGUAGE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .player-profile-dropdown {
+    position: relative;
+
+    flex-shrink: 0;
+  }
+
+
+  /* ==========================================
+     TRIGGER
+  ========================================== */
+
+  .player-profile-dropdown-trigger {
+    min-width: 112px;
+    height: 38px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content:
+      space-between;
+
+    gap: 10px;
+
+    padding:
+      0 11px;
+
+    border:
+      1px solid
+      #d8dde6;
+
+    border-radius:
+      11px;
+
+    background:
+      linear-gradient(
+        180deg,
+        #ffffff,
+        #f7f9fc
+      );
+
+    color:
+      #25282e;
+
+    font-size:
+      13px;
+
+    font-weight:
+      600;
+
+    cursor:
+      pointer;
+
+    box-shadow:
+      0 2px 6px
+      rgba(
+        15,
+        23,
+        42,
+        0.05
+      );
+
+    transition:
+      border-color
+        0.2s ease,
+      box-shadow
+        0.2s ease;
+  }
+
+
+  .player-profile-dropdown-trigger:hover {
+    border-color:
+      #3981f1;
+
+    box-shadow:
+      0 3px 10px
+      rgba(
+        57,
+        129,
+        241,
+        0.1
+      );
+  }
+
+
+  .player-profile-dropdown-trigger
+  svg {
+    color:
+      #69717c;
+
+    transition:
+      transform
+      0.2s ease;
+  }
+
+
+  .player-profile-dropdown-trigger
+  svg.open {
+    transform:
+      rotate(180deg);
+  }
+
+
+  /* ==========================================
+     MENU
+  ========================================== */
+
+  .player-profile-dropdown-menu {
+    position:
+      absolute;
+
+    top:
+      calc(
+        100% +
+        6px
+      );
+
+    right:
+      0;
+
+    z-index:
+      7000;
+
+    width:
+      155px;
+
+    overflow:
+      hidden;
+
+    padding:
+      5px;
+
+    border:
+      1px solid
+      #e0e5ec;
+
+    border-radius:
+      13px;
+
+    background:
+      #ffffff;
+
+    box-shadow:
+      0 12px 32px
+      rgba(
+        15,
+        23,
+        42,
+        0.16
+      );
+
+    animation:
+      profileDropdownOpen
+      0.18s
+      ease-out;
+  }
+
+
+  .player-profile-language-menu {
+    width:
+      175px;
+  }
+
+
+  /* ==========================================
+     OPTION
+  ========================================== */
+
+  .player-profile-dropdown-menu
+  > button {
+    width:
+      100%;
+
+    min-height:
+      42px;
+
+    display:
+      grid;
+
+    grid-template-columns:
+      22px
+      1fr
+      20px;
+
+    align-items:
+      center;
+
+    gap:
+      7px;
+
+    padding:
+      7px 9px;
+
+    border:
+      0;
+
+    border-radius:
+      9px;
+
+    background:
+      transparent;
+
+    color:
+      #30343b;
+
+    text-align:
+      left;
+
+    font-size:
+      13px;
+
+    font-weight:
+      600;
+
+    cursor:
+      pointer;
+  }
+
+
+  .player-profile-dropdown-menu
+  > button:hover {
+    background:
+      #f3f6fb;
+  }
+
+
+  .player-profile-dropdown-menu
+  > button.selected {
+    background:
+      rgba(
+        57,
+        129,
+        241,
+        0.09
+      );
+
+    color:
+      #276ec3;
+  }
+
+
+  .player-profile-dropdown-menu
+  > button
+  svg:last-child {
+    color:
+      #3981f1;
+  }
+
+
+  @keyframes profileDropdownOpen {
+
+    from {
+      opacity: 0;
+
+      transform:
+        translateY(-5px)
+        scale(0.97);
+    }
+
+
+    to {
+      opacity: 1;
+
+      transform:
+        translateY(0)
+        scale(1);
+    }
+
+  }
+
+}
+
+/* ==============================
+   FORGOT PASSWORD - WAITING
+============================== */
+
+.forgot-waiting-box {
+  width: 100%;
+  padding: 22px;
+  border: 1px solid #e6e9ef;
+  border-radius: 14px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.forgot-waiting-icon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #fff7df;
+  color: #d4a72c;
+}
+
+.forgot-waiting-box h3 {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.forgot-waiting-box p {
+  margin: 5px 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.forgot-status-row {
+  margin-top: 18px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 10px;
+  background: white;
+  border: 1px solid #e5e7eb;
+}
+
+.forgot-status-row span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.forgot-status-row strong {
+  color: #d4a72c;
+  font-size: 13px;
+}
+
+
+/* ==============================
+   SECONDARY BUTTON
+============================== */
+
+.forgot-secondary-btn {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 10px;
+  border: 1px solid #d8dee8;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.forgot-secondary-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.forgot-secondary-btn:active {
+  transform: scale(0.99);
+}
+
+.forgot-secondary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }

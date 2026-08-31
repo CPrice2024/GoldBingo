@@ -10,6 +10,462 @@
     color: #fefefe;
 }
 
+/* =====================================================
+   LAST CALLED INSIDE PLAYER CARD
+   COLLAPSIBLE
+===================================================== */
+
+.bingo-card-last-called-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 8px;
+}
+
+
+.bingo-card-last-called-title {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+
+.bingo-card-last-called-toggle {
+     padding: 2px 9px;
+    border: 1px solid rgba(0, 62, 3, 0.35);
+    border-radius: 6px;
+    background: rgba(80, 212, 44, 0.08);
+    color: #00ab0a;
+    font-size: 9px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+
+.bingo-card-last-called-expand {
+  animation:
+    bingoCardLastCalledExpand
+    0.25s
+    ease-out
+    both;
+}
+
+
+@keyframes bingoCardLastCalledExpand {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(-5px);
+  }
+
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0);
+  }
+
+}
+
+/* =====================================================
+   INLINE JOINED PLAYER CARDS
+===================================================== */
+
+.bingo-inline-my-cards-section {
+  width: 100%;
+
+  margin:
+    14px 0 18px;
+
+  padding:
+    12px;
+
+
+  border-radius:
+    14px;
+
+  scroll-margin-top:
+    80px;
+
+  animation:
+    bingoMyCardsEnter
+    0.35s
+    ease-out
+    both;
+}
+
+
+/* ==========================================
+   HEADER
+========================================== */
+
+.bingo-inline-my-cards-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 10px;
+
+  margin-bottom:
+    10px;
+}
+
+
+.bingo-inline-my-cards-header
+> div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.bingo-inline-my-cards-header
+strong {
+  color:
+    #f8fafc;
+
+  font-size:
+    14px;
+}
+
+
+.bingo-inline-my-cards-header
+span {
+  color:
+    #5d6881;
+
+  font-size:
+    10px;
+}
+
+
+.bingo-inline-my-cards-badge {
+  padding: 5px 9px;
+    border-radius: 8px;
+    background: rgba(34, 197, 94, 0.12);
+    color: #00812f !important;
+    font-size: 9px !important;
+    font-weight: 600;
+}
+
+
+/* ==========================================
+   CARDS GRID
+========================================== */
+
+.bingo-inline-player-card-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap: 8px;
+}
+
+
+/* ==========================================
+   CARD
+========================================== */
+
+.bingo-inline-player-card-item {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border:
+    2px solid
+    #001e65dd;
+
+  border-radius:
+    8px;
+    box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.152),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+  background:
+    #11141c00;
+}
+
+
+/* HEADER */
+
+.bingo-inline-player-card-header {
+  min-height:
+    35px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 8px;
+
+  padding:
+    7px 9px;
+
+      background: linear-gradient(135deg, #fa3503, #ed793a);
+}
+
+
+.bingo-inline-player-card-header
+> div {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1px;
+}
+
+
+.bingo-inline-player-card-header
+span {
+  color:
+    rgba(
+      255,
+      255,
+      255,
+      0.72
+    );
+
+  font-size:
+    9px;
+}
+
+
+.bingo-inline-player-card-header
+strong {
+  overflow: hidden;
+
+  color:
+    #ffffff;
+
+  font-family:
+    monospace;
+
+  font-size:
+    12px;
+
+  white-space:
+    nowrap;
+
+  text-overflow:
+    ellipsis;
+}
+
+
+.bingo-inline-card-active {
+  flex-shrink: 0;
+
+  padding:
+    4px 6px;
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.16
+    );
+
+  color:
+    #ffffff !important;
+
+  font-size:
+    8px !important;
+
+  font-weight:
+    900;
+}
+
+
+/* ==========================================
+   CARD BODY
+========================================== */
+
+.bingo-inline-player-card-body {
+  padding:
+    7px 5px 9px;
+}
+
+
+.bingo-inline-player-card-body
+.bingo-card-wrapper {
+  width:
+    100% !important;
+
+  max-width:
+    none !important;
+
+  margin:
+    0 !important;
+}
+
+
+/* ==========================================
+   CHECK / CLAIM
+========================================== */
+
+.bingo-inline-card-actions {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap: 8px;
+
+  margin-top:
+    11px;
+}
+
+
+.bingo-inline-card-actions
+button {
+  width: 100%;
+}
+
+
+/* ==========================================
+   ANIMATION
+========================================== */
+
+@keyframes bingoMyCardsEnter {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(
+        12px
+      );
+  }
+
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(
+        0
+      );
+  }
+
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .bingo-inline-my-cards-section {
+    padding:
+      8px;
+
+    border-radius:
+      12px;
+  }
+
+
+  .bingo-inline-player-card-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap:
+      5px;
+  }
+
+
+  .bingo-inline-player-card-header {
+    min-height:
+      40px;
+
+    padding:
+      5px 6px;
+  }
+
+
+  .bingo-inline-player-card-header
+  strong {
+    font-size:
+      10px;
+  }
+
+
+  .bingo-inline-player-card-body {
+    padding:
+      5px 3px 7px;
+  }
+
+
+  .bingo-inline-card-actions {
+    position: sticky;
+
+    bottom:
+      8px;
+
+    z-index:
+      30;
+
+    padding:
+      7px;
+
+    border-radius:
+      8px;
+
+    background:
+      rgba(13, 16, 23, 0);
+
+    backdrop-filter:
+      blur(
+        1px
+      );
+  }
+
+}
 /* =========================================================
    TOP BAR
    ========================================================= */
@@ -91,10 +547,10 @@
 }
 
 .bingo-game-info-main {
-  display: flex;
-  align-items: flex-start;
-
-  gap: 10px;
+     display: flex;
+    align-items: flex-start;
+    margin-top: 10px;
+    gap: 5px;
 }
 
 .bingo-live-icon {
@@ -114,14 +570,14 @@
 }
 
 .bingo-game-info-main strong {
-     display: block;
+        display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     color: #d4d4d4;
     font-family: monospace;
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 500;
 }
 
 .bingo-game-info-main span {
@@ -148,18 +604,14 @@
 }
 
 .bingo-info-stats > div {
-  display: grid;
-
-  grid-template-columns: auto 1fr;
-  grid-template-rows: auto auto;
-
-  column-gap: 5px;
-
-  padding: 0px 8px;
-
-  border-radius: 10px;
-
-  background: #f8fafc00;
+    display: grid;
+    grid-template-columns: auto 2fr;
+    grid-template-rows: auto auto;
+    column-gap: 5px;
+    width: auto;
+    padding: 0px 8px;
+    border-radius: 3px;
+    background: #f8fafc00;
 }
 
 .bingo-info-stats svg {
@@ -732,15 +1184,12 @@ html[data-theme="day"]
 
 .bingo-current-pattern-button
 > span:first-child {
-  min-width: 0;
-
-  color: inherit;
-
-  font-size: inherit;
-  font-weight: inherit;
-
-  white-space: normal;
-  overflow-wrap: anywhere;
+      min-width: 0;
+    color: #393939;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
 .bingo-current-pattern-button:hover {
@@ -842,7 +1291,1054 @@ html[data-theme="day"]
   }
 }
 
+/* =====================================================
+   CARD SPEED DIAL
+===================================================== */
 
+.bingo-card-speed-dial {
+  position: fixed;
+
+  right: 18px;
+  bottom: 24px;
+
+  z-index: 2300;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+/* ==========================================
+   OPTIONS CONTAINER
+========================================== */
+
+.bingo-card-speed-options {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 10px;
+
+  pointer-events: none;
+}
+
+
+/* ==========================================
+   CIRCLE OPTION
+========================================== */
+
+.bingo-card-speed-option {
+  width: 50px;
+  height: 50px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.15
+    );
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,#ff9d06, #ff4700);
+
+  color: #ffffff;
+
+  font-family: monospace;
+
+  font-size: 16px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 6px 18px
+    rgba(
+      0,
+      0,
+      0,
+      0.32
+    );
+
+  opacity: 0;
+
+  transform:
+    translateY(20px)
+    scale(0.65);
+
+  transition:
+    opacity 0.22s ease,
+    transform 0.28s
+      cubic-bezier(
+        0.34,
+        1.56,
+        0.64,
+        1
+      ),
+    box-shadow 0.2s ease;
+
+  transition-delay:
+    calc(
+      var(--option-index) *
+      35ms
+    );
+}
+
+
+/* OPEN */
+
+.bingo-card-speed-dial.open
+.bingo-card-speed-option {
+  opacity: 1;
+
+  transform:
+    translateY(0)
+    scale(1);
+
+  pointer-events: auto;
+}
+
+
+.bingo-card-speed-option:hover {
+  transform:
+    scale(1.08);
+
+  box-shadow:
+    0 8px 24px
+    rgba(
+      212,
+      167,
+      44,
+      0.42
+    );
+}
+
+
+.bingo-card-speed-option:active {
+  transform:
+    scale(0.92);
+}
+
+
+/* ==========================================
+   MAIN + BUTTON
+========================================== */
+
+.bingo-card-speed-dial
+.bingo-fixed-card-button {
+
+  position: relative !important;
+
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+
+  margin: 0 !important;
+
+  transform: none !important;
+
+  width: 62px;
+  height: 62px;
+
+  min-width: 62px;
+  min-height: 62px;
+
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 0;
+
+  border: none;
+
+  border-radius: 50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff9d06,
+      #ff4700
+    );
+
+  box-shadow:
+    0 8px 26px
+    rgba(
+      0,
+      0,
+      0,
+      0.38
+    );
+}
+
+
+/* PLUS */
+
+.bingo-card-speed-dial
+.bingo-fixed-plus {
+
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color: #ffffff;
+
+  transition:
+    transform
+    0.25s ease;
+}
+
+
+/* Rotate + while menu is open */
+
+.bingo-card-speed-dial.open
+.bingo-fixed-plus {
+
+  transform:
+    rotate(45deg);
+
+}
+
+
+/* MY CARDS LABEL */
+
+.bingo-fixed-card-label {
+  position: absolute;
+
+  right: 70px;
+
+  width: max-content;
+
+  padding:
+    7px 11px;
+
+  border-radius: 20px;
+
+  background:
+    rgba(
+      15,
+      23,
+      42,
+      0.92
+    );
+
+  color: #ffffff;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  box-shadow:
+    0 5px 15px
+    rgba(
+      0,
+      0,
+      0,
+      0.25
+    );
+}
+
+
+/* ==========================================
+   MOBILE
+========================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .bingo-card-speed-dial {
+    right: 17px;
+
+    bottom:
+      calc(
+        22px +
+        env(
+          safe-area-inset-bottom
+        )
+      );
+  }
+
+
+  .bingo-card-speed-option {
+    width: 48px;
+    height: 48px;
+
+    font-size: 15px;
+  }
+
+
+  .bingo-card-speed-dial
+  .bingo-fixed-card-button {
+
+    width: 60px;
+    height: 60px;
+
+    min-width: 60px;
+    min-height: 60px;
+
+  }
+
+}
+/* =====================================================
+   INLINE BINGO CARD SELECTION
+   REFERENCE-STYLE 2 COLUMN GRID
+===================================================== */
+
+.bingo-inline-card-section {
+  width: 100%;
+
+  margin:
+    12px 0 18px;
+
+  scroll-margin-top: 80px;
+
+  animation:
+    bingoInlineCardsEnter
+    0.35s
+    cubic-bezier(
+      0.22,
+      1,
+      0.36,
+      1
+    )
+    both;
+}
+
+
+/* ==========================================
+   SECTION HEADER
+========================================== */
+
+.bingo-inline-card-section-header {
+display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 9px;
+    padding: 5px 13px;
+    border: 1px solid #292e3a;
+    border-radius: 12px;
+    background: #24386e;
+}
+
+
+.bingo-inline-card-section-header
+> div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.bingo-inline-card-section-header
+strong {
+  color:
+    #f8fafc;
+
+  font-size: 13px;
+}
+
+
+.bingo-inline-card-section-header
+span {
+  color:
+    #e6e8ed;
+
+  font-size: 11px;
+}
+
+
+.bingo-inline-card-total {
+  color:
+    #ffffff !important;
+
+  font-family:
+    monospace;
+
+  font-size:
+    15px !important;
+}
+
+
+/* ==========================================
+   CARD GRID
+========================================== */
+
+.bingo-inline-card-grid {
+  width: 100%;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 7px;
+
+  align-items: start;
+}
+
+
+/* ==========================================
+   INDIVIDUAL CARD
+========================================== */
+
+.bingo-inline-card-item {
+  min-width: 0;
+
+  overflow: hidden;
+
+  border:
+    2px solid
+    #7027c9;
+
+  border-radius:
+    13px;
+
+  background:
+    #17171700;
+
+  box-shadow:
+    0 5px 15px
+    rgba(
+      0,
+      0,
+      0,
+      0.24
+    );
+}
+
+
+/* ==========================================
+   PURPLE CARD HEADER
+========================================== */
+
+.bingo-inline-card-top {
+  min-height: 42px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 5px;
+
+  padding:
+    5px 7px 5px 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #6e16d9,
+      #891fe0
+    );
+
+  color:
+    #ffffff;
+}
+
+
+.bingo-inline-card-number {
+  min-width: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+
+.bingo-inline-card-icon {
+  flex-shrink: 0;
+
+  font-size: 13px;
+}
+
+
+.bingo-inline-card-number
+strong {
+  overflow: hidden;
+
+  color:
+    #ffffff;
+
+  font-family:
+    monospace;
+
+  font-size:
+    13px;
+
+  font-weight:
+    900;
+
+  white-space:
+    nowrap;
+
+  text-overflow:
+    ellipsis;
+}
+
+
+/* ==========================================
+   REMOVE X
+========================================== */
+
+.bingo-inline-card-remove {
+  width: 31px;
+  height: 31px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    center;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius:
+    50%;
+
+  background:
+    transparent;
+
+  color:
+    #ffffff;
+
+  cursor:
+    pointer;
+
+  transition:
+    background
+    0.2s ease,
+    transform
+    0.2s ease;
+}
+
+
+.bingo-inline-card-remove:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.14
+    );
+
+  transform:
+    rotate(5deg);
+}
+
+
+/* ==========================================
+   CARD BODY
+========================================== */
+
+.bingo-inline-card-body {
+  padding:
+    6px 5px 8px;
+
+  background:
+    #19191900;
+}
+
+
+.bingo-inline-card-body
+.bingo-card-wrapper {
+  width:
+    100% !important;
+
+  max-width:
+    none !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* B I N G O */
+
+.bingo-inline-card-body
+.bingo-card-header {
+  width:
+    100% !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    ) !important;
+
+  gap:
+    3px !important;
+
+  margin-bottom:
+    5px !important;
+}
+
+
+.bingo-inline-card-body
+.bingo-column {
+  min-width: 0;
+
+  height:
+    30px !important;
+
+  border-radius:
+    6px !important;
+
+  font-size:
+    11px !important;
+    min-height: 31px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    background: #f3f4f6;
+    color: #004f9e;
+    font-size: 16px;
+    font-weight: 900;
+}
+
+
+/* 5 X 5 NUMBERS */
+
+.bingo-inline-card-body
+.bingo-grid {
+  width:
+    100% !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    ) !important;
+
+  gap:
+    4px !important;
+}
+
+
+.bingo-inline-card-body
+.bingo-cell {
+  width:
+    100% !important;
+  border: 1px solid #202532;
+  min-width:
+    0 !important;
+  font-family: math;
+  min-height:
+    0 !important;
+  aspect-ratio:
+    1 / 1;
+  padding:
+    0 !important;
+  display:
+    flex !important;
+  align-items:
+    center;
+  justify-content:
+    center;
+  border-radius:
+    50% !important;
+  font-size:
+    clamp(
+      9px,
+      3vw,
+      14px
+    ) !important;
+
+  font-weight:
+    800;
+}
+
+
+/* ==========================================
+   ADD CARD
+========================================== */
+
+.bingo-inline-add-card {
+    min-height: 42px;
+    width: 100%;
+    margin-top: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border: 1px solid #016f2d;
+    border-radius: 10px;
+    background: rgba(76, 175, 80, 0.07);
+    color: #008605;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+
+/* ==========================================
+   SUMMARY
+========================================== */
+
+.bingo-inline-card-summary {
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      1fr
+    );
+
+  gap:
+    6px;
+
+  margin-top:
+    9px;
+}
+
+
+.bingo-inline-card-summary
+> div {
+  min-width: 0;
+
+  padding:
+    8px 5px;
+
+  text-align:
+    center;
+
+  border:
+    1px solid
+    #292e3a;
+
+  border-radius:
+    9px;
+
+  background:
+    #11141c;
+}
+
+
+.bingo-inline-card-summary
+span {
+  display:
+    block;
+
+  color:
+    #727b8c;
+
+  font-size:
+    9px;
+}
+
+
+.bingo-inline-card-summary
+strong {
+  display:
+    block;
+
+  margin-top:
+    3px;
+
+  color:
+    #f8fafc;
+
+  font-size:
+    10px;
+
+  white-space:
+    nowrap;
+}
+
+
+.bingo-inline-total-value {
+  color:
+    #d4a72c !important;
+}
+
+
+/* ==========================================
+   JOIN
+========================================== */
+
+.bingo-inline-join-button {
+  width:
+    100%;
+
+  min-height:
+    48px;
+
+  margin-top:
+    9px;
+
+  border:
+    none;
+
+  border-radius:
+    11px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ff9d06,
+      #ff4700
+    );
+
+  color:
+    #ffffff;
+
+  font-size:
+    13px;
+
+  font-weight:
+    900;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 7px 20px
+    rgba(
+      255,
+      89,
+      0,
+      0.2
+    );
+}
+
+
+.bingo-inline-join-button:disabled {
+  opacity:
+    0.55;
+
+  cursor:
+    not-allowed;
+}
+
+
+/* ==========================================
+   LOADING / ERROR
+========================================== */
+
+.bingo-inline-card-loading,
+.bingo-inline-card-error {
+  min-height:
+    70px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    8px;
+
+  margin-bottom:
+    8px;
+
+  border-radius:
+    10px;
+}
+
+
+.bingo-inline-card-loading {
+  color:
+    #94a3b8;
+
+  background:
+    #11141c;
+}
+
+
+.bingo-inline-card-error {
+  color:
+    #fca5a5;
+
+  background:
+    rgba(
+      127,
+      29,
+      29,
+      0.18
+    );
+}
+
+
+/* ==========================================
+   ENTER ANIMATION
+========================================== */
+
+@keyframes bingoInlineCardsEnter {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(
+        15px
+      );
+  }
+
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(
+        0
+      );
+  }
+
+}
+
+
+/* ==========================================
+   MOBILE
+   KEEP 2 CARDS PER ROW
+========================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .bingo-inline-card-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+
+    gap:
+      5px;
+  }
+
+
+  .bingo-inline-card-item {
+    border-radius:
+      11px;
+  }
+
+
+  .bingo-inline-card-top {
+    min-height:
+      38px;
+
+    padding:
+      4px 5px 4px 7px;
+  }
+
+
+  .bingo-inline-card-number
+  strong {
+    font-size:
+      12px;
+  }
+
+
+  .bingo-inline-card-remove {
+    width:
+      28px;
+
+    height:
+      28px;
+  }
+
+
+  .bingo-inline-card-body {
+    padding:
+      5px 4px 7px;
+  }
+
+
+  .bingo-inline-card-body
+  .bingo-column {
+    height:
+      27px !important;
+
+    font-size:
+      10px !important;
+  }
+
+
+  .bingo-inline-card-body
+  .bingo-grid {
+    gap:
+      3px !important;
+  }
+
+
+  .bingo-inline-card-body
+  .bingo-cell {
+    font-size:
+      clamp(
+        9px,
+        3vw,
+        12px
+      ) !important;
+  }
+
+}
 /* =========================================================
    POPUP CARD
    ========================================================= */
@@ -1273,13 +2769,9 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-current-pattern-button {
-  background:
-    rgba(212, 167, 44, 0.1);
-
-  border-color:
-    rgba(154, 114, 20, 0.35);
-
-  color: #ffe100;
+  background: rgb(255 118 0 / 0%);
+    border-color: rgb(44 44 44);
+    color: #000000;
 }
 
 html[data-theme="day"]
@@ -1388,10 +2880,9 @@ html[data-theme="day"]
 @media (max-width: 640px) {
 
   .bingo-current-pattern {
-    align-items: flex-start;
-    flex-direction: column;
-
-    gap: 4px;
+          flex-direction: column;
+        align-items: center;
+        gap: 9px;
   }
 
   .bingo-current-pattern-button {
@@ -2423,11 +3914,11 @@ html[data-theme="day"]
   cursor: pointer;
 
   border-color:
-    rgba(212, 167, 44, 0.5);
+    rgb(3, 0, 57);
 
   box-shadow:
     inset 0 0 0 1px
-    rgba(212, 167, 44, 0.12);
+    rgba(0, 9, 78, 0.144);
 }
 
 
@@ -2436,11 +3927,11 @@ html[data-theme="day"]
     translateY(-1px);
 
   border-color:
-    #d4a72c;
+    #2c37d4;
 
   box-shadow:
     0 4px 12px
-    rgba(212, 167, 44, 0.18);
+    rgba(0, 0, 122, 0.18);
 }
 
 
@@ -2538,8 +4029,147 @@ html[data-theme="day"]
 
 .bingo-cell.manual-mode.called {
   cursor: pointer;
+      background: #fe6a0c;
+    color: white;
+}
+/* =====================================================
+   BINGO CARD HEADER COLORS
+   SAME AS MAIN 1-75 BOARD
+===================================================== */
+
+/* =========================
+   B - BLUE
+========================= */
+
+.bingo-inline-player-card-body
+.bingo-card-header
+.bingo-column:nth-child(1),
+
+.bingo-inline-card-body
+.bingo-card-header
+.bingo-column:nth-child(1) {
+
+  background:
+    linear-gradient(
+      359deg,
+      #00226e,
+      #275ff9
+    ) !important;
+
+  border-color:
+    #3b82f6 !important;
+
+  color:
+    #ffffff !important;
 }
 
+
+/* =========================
+   I - PINK
+========================= */
+
+.bingo-inline-player-card-body
+.bingo-card-header
+.bingo-column:nth-child(2),
+
+.bingo-inline-card-body
+.bingo-card-header
+.bingo-column:nth-child(2) {
+
+  background:
+    linear-gradient(
+      359deg,
+      #910048,
+      #fa449f
+    ) !important;
+
+  border-color:
+    #f472b6 !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* =========================
+   N - GREEN
+========================= */
+
+.bingo-inline-player-card-body
+.bingo-card-header
+.bingo-column:nth-child(3),
+
+.bingo-inline-card-body
+.bingo-card-header
+.bingo-column:nth-child(3) {
+
+  background:
+    linear-gradient(
+      359deg,
+      #006e28,
+      #26de6a
+    ) !important;
+
+  border-color:
+    #22c55e !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* =========================
+   G - GOLD
+========================= */
+
+.bingo-inline-player-card-body
+.bingo-card-header
+.bingo-column:nth-child(4),
+
+.bingo-inline-card-body
+.bingo-card-header
+.bingo-column:nth-child(4) {
+
+  background:
+    linear-gradient(
+      359deg,
+      #997000,
+      #ffbe0a
+    ) !important;
+
+  border-color:
+    #e5bd4a !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* =========================
+   O - RED
+========================= */
+
+.bingo-inline-player-card-body
+.bingo-card-header
+.bingo-column:nth-child(5),
+
+.bingo-inline-card-body
+.bingo-card-header
+.bingo-column:nth-child(5) {
+
+  background:
+    linear-gradient(
+      359deg,
+      #6f0000,
+      #ff3e3e
+    ) !important;
+
+  border-color:
+    #ef4444 !important;
+
+  color:
+    #ffffff !important;
+}
 
 /* Auto mode */
 
@@ -2552,6 +4182,8 @@ html[data-theme="day"]
 
 .bingo-cell.free {
   cursor: default;
+  color: #fc2c00;
+      border: 1px solid #4c597a;
 }
 /* Called card number */
 .bingo-modal .bingo-cell.called {
@@ -3914,7 +5546,7 @@ html[data-theme="day"] .bingo-game-info {
 
 html[data-theme="day"]
 .bingo-game-info-main strong {
-  color: #0f172a;
+  color: #535353;
 }
 
 html[data-theme="day"]
@@ -4205,13 +5837,13 @@ html[data-theme="day"]
 ========================================================= */
 
 .bingo-card-last-called {
-  margin: 8px 0 12px;
-  padding: 9px 10px;
+  margin: 2px 0 2px;
+  padding: 2px 2px;
 
   border: 1px solid
     rgba(255, 255, 255, 0.07);
 
-  border-radius: 9px;
+  border-radius: 0px;
 
   background:
     rgba(255, 255, 255, 0.025);
@@ -5645,9 +7277,9 @@ html[data-theme="day"]
 
 @media (max-width: 640px) {
   .bingo-current-pattern {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 3px;
+            flex-direction: column;
+        align-items: center;
+        gap: 9px;
   }
 
   .bingo-game-info-main
@@ -5761,20 +7393,16 @@ html[data-theme="day"]
 @media (max-width: 700px) {
 
   .bingo-fixed-card-button {
-    top: 48% !important;
-
-    min-width: 96px;
-    min-height: 46px;
-
-    padding:
-      6px 18px 6px 7px;
-
-    gap: 6px;
-
-    border-radius:
-      12px 0 0 12px;
-
-    font-size: 11px;
+  top: 93% !important;
+        min-width: 46px;
+        min-height: 46px;
+        padding: 4px 4px 4px 4px;
+        background: linear-gradient(135deg, #ff9d06, #ff4700);
+        gap: 6px;
+        color: white;
+        border-radius: 25px 25px 25px 25px;
+        margin-right: 12px;
+        font-size: 11px;
   }
 
 
@@ -5888,16 +7516,16 @@ html[data-theme="day"]
 @media (max-width: 700px) {
 
   .bingo-fixed-card-button {
-    top: 93% !important;
-    min-width: 96px;
-    min-height: 46px;
-    padding: 6px 11px 6px 7px;
-    background: linear-gradient(135deg, #ff9d06, #ff4700);
-    gap: 6px;
-    color: white;
-    border-radius: 25px 25px 25px 25px;
-    margin-right: 12px;
-    font-size: 11px;
+top: 93% !important;
+        min-width: 46px;
+        min-height: 46px;
+        padding: 4px 4px 4px 4px;
+        background: linear-gradient(135deg, #ff9d06, #ff4700);
+        gap: 6px;
+        color: white;
+        border-radius: 25px 25px 25px 25px;
+        margin-right: 12px;
+        font-size: 11px;
   }
 
 
@@ -5907,6 +7535,700 @@ html[data-theme="day"]
     color: #886000;
     background: white;
     height: 30px;
+    box-shadow:
+    0 10px 30px
+    rgba(15, 23, 42, 0.05);
+  }
+
+}
+
+/* =====================================================
+   FIX - JOINED CARDS INSIDE MAIN GAME ROOM
+   TRUE 5 x 5 BINGO FORMATION
+===================================================== */
+
+.bingo-inline-player-card-body {
+  width: 100%;
+
+  padding:
+    8px;
+
+  background:
+    #ffffff;
+
+  overflow: hidden;
+}
+
+
+/* ==========================================
+   CARD WRAPPER
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-card-wrapper {
+  width:
+    100% !important;
+
+  max-width:
+    none !important;
+
+  min-width:
+    0 !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+
+  background:
+    transparent !important;
+}
+
+
+/* ==========================================
+   B I N G O HEADER
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-card-header {
+  width:
+    100% !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    ) !important;
+
+  gap:
+    5px !important;
+
+  margin:
+    0 0 6px !important;
+}
+
+
+.bingo-inline-player-card-body
+.bingo-column {
+  width:
+    100% !important;
+
+  min-width:
+    0 !important;
+
+  height:
+    35px !important;
+
+  min-height:
+    35px !important;
+
+  display:
+    flex !important;
+
+  align-items:
+    center !important;
+
+  justify-content:
+    center !important;
+
+  padding:
+    0 !important;
+
+  border-radius:
+    7px !important;
+
+  font-size:
+    14px !important;
+
+  font-weight:
+    900 !important;
+}
+
+
+/* ==========================================
+   5 x 5 NUMBER GRID
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-grid {
+  width:
+    100% !important;
+
+  display:
+    grid !important;
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(0, 1fr)
+    ) !important;
+
+  grid-auto-flow:
+    row !important;
+
+  gap:
+    6px !important;
+
+  margin:
+    0 !important;
+
+  padding:
+    0 !important;
+}
+
+
+/* ==========================================
+   NUMBER CELL
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-cell {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    border: 1px solid #202532;
+    aspect-ratio: 1 / 1;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    border: 1px solid rgba(212, 167, 44, 0.48);
+    border-radius: 50% !important;
+    background: #11151d00;
+    color: #011c37;
+    font-size: clamp(11px, 1.5vw, 16px) !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    box-sizing: border-box;
+}
+
+
+/* ==========================================
+   FREE CENTER
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-cell.free {
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #2563eb
+    ) !important;
+
+  border-color:
+    #7c3aed !important;
+
+  color:
+    #ffffff !important;
+}
+
+
+/* ==========================================
+   MANUAL CLICK
+========================================== */
+
+.bingo-inline-player-card-body
+.bingo-cell.manual-mode:not(.free) {
+  cursor:
+    pointer;
+
+  transition:
+    transform
+      0.15s ease,
+    box-shadow
+      0.15s ease;
+}
+
+
+.bingo-inline-player-card-body
+.bingo-cell.manual-mode:not(.free):active {
+  transform:
+    scale(0.92);
+}
+
+
+/* =====================================================
+   MOBILE - STILL 2 CARDS PER ROW
+===================================================== */
+
+@media (
+  max-width: 700px
+) {
+
+  .bingo-inline-player-card-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+
+    gap:
+      5px !important;
+  }
+
+
+  .bingo-inline-player-card-body {
+    padding:
+      5px 4px 7px;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-card-header {
+    gap:
+      3px !important;
+
+    margin-bottom:
+      4px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-column {
+    height:
+      27px !important;
+
+    min-height:
+      27px !important;
+
+    border-radius:
+      5px !important;
+
+    font-size:
+      10px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-grid {
+    gap:
+      3px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-cell {
+    min-height:
+      0 !important;
+
+    aspect-ratio:
+      1 / 1;
+
+    font-size:
+      clamp(
+        9px,
+        3vw,
+        12px
+      ) !important;
+  }
+
+}
+
+
+/* =====================================================
+   VERY SMALL PHONE
+===================================================== */
+
+@media (
+  max-width: 380px
+) {
+
+  .bingo-inline-player-card-body {
+    padding:
+      4px 3px 6px;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-grid {
+    gap:
+      2px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-card-header {
+    gap:
+      2px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-column {
+    height:
+      24px !important;
+
+    min-height:
+      24px !important;
+
+    font-size:
+      9px !important;
+  }
+
+
+  .bingo-inline-player-card-body
+  .bingo-cell {
+    font-size:
+      9px !important;
+  }
+
+}
+
+/* =========================================================
+   SINGLE BINGO BUTTON
+   ========================================================= */
+
+/* Old layout had 2 buttons.
+   Now we have only one BINGO button. */
+
+.bingo-inline-card-actions,
+.bingo-card-actions {
+  display: block;
+
+  width: 100%;
+
+  margin-top: 12px;
+}
+
+
+/* =========================================================
+   MAIN BINGO BUTTON
+   ========================================================= */
+
+.bingo-inline-card-actions
+.bingo-claim-button,
+.bingo-card-actions
+.bingo-claim-button {
+  width: 100%;
+
+  min-height: 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 18px;
+
+  border:
+    1px solid
+    rgba(
+      212,
+      167,
+      44,
+      0.7
+    );
+
+  border-radius: 12px;
+
+    background: linear-gradient(135deg, #d70505, #e26000);
+    color: #ffffff;
+    font-family: math;
+
+  font-size: 18px;
+
+  font-weight: 900;
+
+  letter-spacing: 2px;
+
+  line-height: 1;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 5px 16px
+    rgba(
+      212,
+      167,
+      44,
+      0.25
+    );
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease,
+    filter 0.2s ease;
+}
+
+
+/* HOVER */
+
+.bingo-inline-card-actions
+.bingo-claim-button:not(:disabled):hover,
+.bingo-card-actions
+.bingo-claim-button:not(:disabled):hover {
+  filter: brightness(1.08);
+
+  box-shadow:
+    0 7px 20px
+    rgba(
+      212,
+      167,
+      44,
+      0.35
+    );
+}
+
+
+/* CLICK */
+
+.bingo-inline-card-actions
+.bingo-claim-button:not(:disabled):active,
+.bingo-card-actions
+.bingo-claim-button:not(:disabled):active {
+  transform:
+    scale(0.98);
+}
+
+
+/* =========================================================
+   CHECKING / NORMAL DISABLED
+   ========================================================= */
+
+.bingo-inline-card-actions
+.bingo-claim-button:disabled,
+.bingo-card-actions
+.bingo-claim-button:disabled {
+  cursor:
+    not-allowed;
+
+  opacity: 6.65;
+}
+
+
+/* =========================================================
+   FALSE BINGO / BLOCKED
+   ========================================================= */
+
+.bingo-inline-card-actions
+.bingo-claim-button.bingo-button-blocked,
+.bingo-card-actions
+.bingo-claim-button.bingo-button-blocked {
+background: linear-gradient(135deg, #d70505, #e26000);
+
+  border-color:
+    rgba(
+      239,
+      68,
+      68,
+      0.65
+    );
+
+  color:
+    #fecaca;
+
+  opacity:
+    1;
+
+  box-shadow:
+    0 4px 15px
+    rgba(
+      239,
+      68,
+      68,
+      0.18
+    );
+
+  cursor:
+    not-allowed;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (
+  max-width: 700px
+) {
+
+  .bingo-inline-card-actions {
+    position:
+      sticky;
+    bottom:
+      8px;
+    z-index:
+      30;
+    width:
+      100%;
+    padding:
+      7px;
+    border-radius:
+      8px;
+    color: #ffffff;
+    font-family: monospace;
+    backdrop-filter:
+      blur(6px);
+  }
+
+
+  .bingo-inline-card-actions
+  .bingo-claim-button,
+  .bingo-card-actions
+  .bingo-claim-button {
+        min-height: 48px;
+        font-size: 14px;
+        border-radius: 8px;
+        font-family: monospace;
+  }
+
+}
+
+/* =========================================================
+   BINGO PENDING ICON
+========================================================= */
+
+.bingo-pending-icon {
+  flex-shrink: 0;
+}
+
+.bingo-claim-button[aria-busy="true"] {
+  cursor: wait;
+
+  pointer-events: none;
+}
+
+/* =========================================================
+   BINGO WIN CONFIRMATION
+========================================================= */
+
+.bingo-claim-button.bingo-button-confirmed {
+       background: linear-gradient(135deg, #00c047, #00b042);
+      font-family: math;
+  border-color:
+    rgba(
+      74,
+      222,
+      128,
+      0.8
+    );
+
+  color:
+    #ffffff;
+
+  opacity:
+    1;
+
+  cursor:
+    default;
+
+  box-shadow:
+    0 0 0 4px
+      rgba(
+        34,
+        197,
+        94,
+        0.12
+      ),
+    0 8px 28px
+      rgba(
+        34,
+        197,
+        94,
+        0.35
+      );
+
+  animation:
+    bingoWinnerButtonPulse
+    0.55s
+    ease-out;
+}
+
+
+.bingo-confirm-content {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    9px;
+}
+
+
+.bingo-confirm-icon {
+  animation:
+    bingoConfirmPop
+    0.55s
+    cubic-bezier(
+      0.34,
+      1.56,
+      0.64,
+      1
+    );
+}
+
+
+/* CHECK ICON POP */
+
+@keyframes bingoConfirmPop {
+
+  0% {
+    opacity:
+      0;
+
+    transform:
+      scale(0.2)
+      rotate(-25deg);
+  }
+
+  60% {
+    opacity:
+      1;
+
+    transform:
+      scale(1.25)
+      rotate(5deg);
+  }
+
+  100% {
+    opacity:
+      1;
+
+    transform:
+      scale(1)
+      rotate(0);
+  }
+
+}
+
+
+/* BUTTON SUCCESS PULSE */
+
+@keyframes bingoWinnerButtonPulse {
+
+  0% {
+    transform:
+      scale(1);
+  }
+
+  45% {
+    transform:
+      scale(1.025);
+
+    box-shadow:
+      0 0 0 9px
+      rgba(
+        34,
+        197,
+        94,
+        0.16
+      );
+  }
+
+  100% {
+    transform:
+      scale(1);
   }
 
 }

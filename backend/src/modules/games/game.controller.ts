@@ -437,54 +437,192 @@ async (
     });
   }
 };
+export const claimBingoController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const { id } =
+        req.params;
 
-export const claimBingoController = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
+      if (
+        !id ||
+        Array.isArray(id)
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "Invalid game ID",
+          });
+      }
 
-    if (Array.isArray(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid game ID",
-      });
+
+      const playerId =
+        (req as any)
+          .user?.userId;
+
+      if (!playerId) {
+        return res
+          .status(401)
+          .json({
+            success: false,
+            message:
+              "Authentication required",
+          });
+      }
+
+
+      /*
+       * No pattern from frontend anymore.
+       *
+       * claimBingo() automatically
+       * uses game.winningPattern.
+       */
+      const result =
+        await claimBingo(
+          id,
+          playerId
+        );
+
+
+      /*
+       * =========================================
+       * FALSE BINGO
+       * =========================================
+       */
+      if (
+        result.status ===
+        "BLOCKED"
+      ) {
+        return res
+          .status(200)
+          .json({
+            success: true,
+
+            code:
+              "FALSE_BINGO",
+
+            message:
+              result.message,
+
+            data:
+              result,
+          });
+      }
+
+
+      /*
+       * =========================================
+       * PLAYER ALREADY BLOCKED
+       * =========================================
+       */
+      if (
+        result.status ===
+        "BLOCKED_ALREADY"
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+
+            code:
+              "BINGO_BLOCKED",
+
+            message:
+              result.message,
+
+            data:
+              result,
+          });
+      }
+
+
+      /*
+       * =========================================
+       * SOMEBODY ELSE ALREADY WON
+       * =========================================
+       */
+      if (
+        result.status ===
+        "GAME_FINISHED"
+      ) {
+        return res
+          .status(409)
+          .json({
+            success: false,
+
+            code:
+              "GAME_FINISHED",
+
+            message:
+              result.message,
+
+            data:
+              result,
+          });
+      }
+
+
+      /*
+       * =========================================
+       * VALID BINGO
+       * =========================================
+       */
+      if (
+        result.status ===
+        "WINNER"
+      ) {
+        return res
+          .status(200)
+          .json({
+            success: true,
+
+            code:
+              "BINGO_WIN",
+
+            message:
+              "Bingo! Prize collected successfully.",
+
+            data:
+              result,
+          });
+      }
+
+
+      /*
+       * Fallback
+       */
+      return res
+        .status(200)
+        .json({
+          success: true,
+
+          data:
+            result,
+        });
+
+    } catch (error) {
+
+      console.error(
+        "Claim Bingo error:",
+        error
+      );
+
+      return res
+        .status(400)
+        .json({
+          success: false,
+
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to claim Bingo",
+        });
     }
-
-    const playerId =
-      (req as any).user?.userId;
-
-    if (!playerId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
-    }
-
-    const { pattern } = req.body;
-
-    const result = await claimBingo(
-      id,
-      playerId,
-      pattern
-    );
-
-    return res.status(200).json({
-      success: true,
-      message: "Bingo claimed successfully",
-      data: result,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to claim Bingo",
-    });
-  }
-};
+  };
 
 export const getCurrentGameController = async (
   req: Request,

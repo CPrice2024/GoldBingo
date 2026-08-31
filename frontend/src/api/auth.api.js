@@ -41,17 +41,74 @@ export const changePassword = async (
   return response.data;
 };
 
-export const resetPasswordWithFirebase = async (
-  idToken,
-  newPassword
-) => {
-  const response = await api.post(
-    "/auth/reset-password",
-    {
-      idToken,
-      newPassword,
-    }
-  );
 
-  return response.data;
-};
+export const requestPasswordOTP =
+  async (phone) => {
+
+    const response =
+      await api.post(
+        "/otp/request",
+        {
+          phone,
+        }
+      );
+
+    return response.data;
+  };
+
+
+export const verifyPasswordOTP =
+  async (
+    phone,
+    code
+  ) => {
+
+    const response =
+      await api.post(
+        "/otp/verify",
+        {
+          phone,
+          code,
+        }
+      );
+
+    return response.data;
+  };
+
+
+export const resetPasswordWithOTP =
+  async (
+    resetToken,
+    newPassword
+  ) => {
+
+    const response =
+      await api.post(
+        "/auth/reset-password",
+        {
+          resetToken,
+          newPassword,
+        }
+      );
+
+    return response.data;
+  };
+
+export const getPasswordOTPStatus =
+  async (
+    requestId,
+    phone
+  ) => {
+
+    const response =
+      await api.get(
+        `/otp/status/${requestId}`,
+        {
+          params: {
+            phone,
+          },
+        }
+      );
+
+    return response.data;
+  };

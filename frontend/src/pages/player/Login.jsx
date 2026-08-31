@@ -282,7 +282,7 @@ function Login() {
 
 
         navigate(
-          "/player/dashboard",
+          "/player/play",
           {
             replace: true,
           }

@@ -10,14 +10,15 @@ import {
 
 
 export interface IGamePlayerDocument
- extends Omit<
-  IGamePlayer,
-  | "gameId"
-  | "playerId"
-  | "cardId"
-  | "cardIds"
-  | "winningCardId"
->,
+  extends Omit<
+    IGamePlayer,
+    | "gameId"
+    | "playerId"
+    | "cardId"
+    | "cardIds"
+    | "winningCardId"
+    | "blockedCardIds"
+  >,
     Document {
 
   gameId:
@@ -26,17 +27,43 @@ export interface IGamePlayerDocument
   playerId:
     mongoose.Types.ObjectId;
 
-  // Legacy
+  // Legacy card
   cardId?:
-    mongoose.Types.ObjectId;
+    | mongoose.Types.ObjectId
+    | null;
 
-  winningCardId?:
-  | mongoose.Types.ObjectId
-  | null;
-
-  // New
+  // Current multiple cards
   cardIds:
     mongoose.Types.ObjectId[];
+
+  // Winning card
+  winningCardId?:
+    | mongoose.Types.ObjectId
+    | null;
+
+
+  /* =========================
+     BINGO CLAIM
+  ========================= */
+
+  bingoClaimedAt?:
+    | Date
+    | null;
+
+  bingoBlocked:
+    boolean;
+
+  blockedAt?:
+    | Date
+    | null;
+
+  blockedReason?:
+    | string
+    | null;
+
+  blockedCardIds:
+    mongoose.Types.ObjectId[];
+
 
   createdAt: Date;
 
@@ -166,6 +193,40 @@ wonAt: {
   type: Date,
   default: null,
 },
+
+/* =========================
+   BINGO CLAIM / FALSE BINGO
+========================= */
+
+bingoClaimedAt: {
+  type: Date,
+  default: null,
+},
+
+bingoBlocked: {
+  type: Boolean,
+  default: false,
+},
+
+blockedAt: {
+  type: Date,
+  default: null,
+},
+
+blockedReason: {
+  type: String,
+  default: null,
+},
+
+blockedCardIds: {
+  type: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Card",
+    },
+  ],
+  default: [],
+},
     },
     {
       timestamps: true,
@@ -187,14 +248,14 @@ gamePlayerSchema.index(
   }
 );
 
+gamePlayerSchema.index({
+  gameId: 1,
+  status: 1,
+});
 
 gamePlayerSchema.index({
   gameId: 1,
-});
-
-
-gamePlayerSchema.index({
-  status: 1,
+  bingoBlocked: 1,
 });
 
 

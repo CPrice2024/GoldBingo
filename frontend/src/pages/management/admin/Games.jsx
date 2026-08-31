@@ -390,7 +390,7 @@ const [
             type="button"
             onClick={handleRefresh}
             disabled={refreshing}
-            className="admin-secondary-button"
+            class="management-refresh-button"
           >
             <RefreshCw
               size={17}
@@ -411,7 +411,7 @@ const [
     setShowCreate(true)
   }
 
-  className="admin-primary-button"
+  class="management-refresh-button"
 
   disabled={
     automaticGameEnabled ||
@@ -742,7 +742,7 @@ const [
 
                 <button
                   type="button"
-                  className="admin-view-button"
+                  class="management-refresh-button"
                   onClick={() =>
                     window.location.href =
                       `/admin/games/${game._id}`

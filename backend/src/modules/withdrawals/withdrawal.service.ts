@@ -20,8 +20,10 @@ import {
 
 interface CreateWithdrawalInput {
   amount: number;
-  paymentMethod: WithdrawalPaymentMethod;
-  accountNumber: string;
+
+  paymentMethod:
+    WithdrawalPaymentMethod;
+
   note?: string;
 }
 
@@ -40,8 +42,8 @@ export const submitWithdrawal = async (
   data.paymentMethod !== "cbe"
 ) {
   throw new Error(
-    "Only Telebirr and CBE withdrawals are supported"
-  );
+  "Only Telebirr and CBE Birr withdrawals are supported"
+);
 }
 
   const player = await User.findOne({
@@ -53,6 +55,21 @@ export const submitWithdrawal = async (
   if (!player) {
     throw new Error("Player not found");
   }
+  /* =========================
+   PLAYER ACCOUNT PHONE
+========================= */
+
+const playerPhone =
+  String(
+    player.phone || ""
+  ).trim();
+
+
+if (!playerPhone) {
+  throw new Error(
+    "Player account does not have a registered phone number"
+  );
+}
 
   if (!player.referredBy) {
     throw new Error(
@@ -121,7 +138,7 @@ export const submitWithdrawal = async (
           agentId: agent._id,
           amount: data.amount,
           paymentMethod: data.paymentMethod,
-          accountNumber: data.accountNumber,
+          accountNumber:playerPhone,
           note: data.note,
         },
         session

@@ -5,7 +5,11 @@ import {
   registerPlayer,
   login,
 } from "./auth.service";
-import { getAuth } from "firebase-admin/auth";
+import crypto from "crypto";
+import mongoose from "mongoose";
+
+import OTPRequest
+  from "../../otp/otp.model";
 import {
   validateRegisterInput,
   validateLoginInput,
@@ -190,62 +194,146 @@ export const resetPassword = async (
   req: Request,
   res: Response
 ) => {
+
+  const session =
+    await mongoose.startSession();
+
   try {
+
     const {
-      idToken,
+      resetToken,
       newPassword,
     } = req.body;
 
+
+    /* ================================
+       VALIDATE INPUT
+    ================================= */
+
     if (
-      typeof idToken !== "string" ||
-      !idToken
+      typeof resetToken !== "string" ||
+      !resetToken.trim()
     ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Firebase verification token is required",
-      });
+
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message:
+            "Password reset token is required",
+        });
+
     }
+
 
     if (
       typeof newPassword !== "string" ||
       newPassword.length < 6
     ) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "New password must be at least 6 characters",
-      });
+
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message:
+            "New password must be at least 6 characters",
+        });
+
     }
 
-    const decodedToken =
-      await getAuth().verifyIdToken(
-        idToken
-      );
 
-    const firebasePhone =
-      decodedToken.phone_number;
+    /* ================================
+       HASH RESET TOKEN
+    ================================= */
 
-    if (!firebasePhone) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Verified phone number was not found",
-      });
+    const resetTokenHash =
+      crypto
+        .createHash("sha256")
+        .update(
+          resetToken.trim()
+        )
+        .digest("hex");
+
+
+    await session.startTransaction();
+
+
+    /* ================================
+       FIND VERIFIED OTP REQUEST
+    ================================= */
+
+    const otpRequest =
+      await OTPRequest.findOne({
+
+        purpose:
+          "forgot_password",
+
+        status:
+          "verified",
+
+        resetTokenHash,
+
+        resetTokenExpiresAt: {
+          $gt:
+            new Date(),
+        },
+
+      }).session(session);
+
+
+    if (!otpRequest) {
+
+      await session.abortTransaction();
+
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message:
+            "Password reset token is invalid or expired",
+        });
+
     }
 
-    const user = await User.findOne({
-      phone: firebasePhone,
-      role: "player",
-    }).select("+password");
+
+    /* ================================
+       FIND THE PLAYER
+    ================================= */
+
+    const user =
+      await User.findOne({
+
+        _id:
+          otpRequest.playerId,
+
+        role:
+          "player",
+
+      })
+        .select(
+          "+password"
+        )
+        .session(session);
+
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "No player account is associated with this phone number",
-      });
+
+      await session.abortTransaction();
+
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message:
+            "Player account was not found",
+        });
+
     }
+
+
+    /* ================================
+       HASH NEW PASSWORD
+    ================================= */
 
     const hashedPassword =
       await bcrypt.hash(
@@ -253,25 +341,77 @@ export const resetPassword = async (
         12
       );
 
-    user.password = hashedPassword;
 
-    await user.save();
+    user.password =
+      hashedPassword;
 
-    return res.status(200).json({
-      success: true,
-      message:
-        "Password reset successfully",
+
+    await user.save({
+      session,
     });
-  } catch (error) {
+
+
+    /* ================================
+       CONSUME RESET TOKEN
+    ================================= */
+
+    otpRequest.status =
+      "used";
+
+    otpRequest.usedAt =
+      new Date();
+
+    otpRequest.resetTokenHash =
+      null;
+
+    otpRequest.resetTokenExpiresAt =
+      null;
+
+
+    await otpRequest.save({
+      session,
+    });
+
+
+    await session.commitTransaction();
+
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message:
+          "Password reset successfully",
+      });
+
+  } catch (error: any) {
+
+    if (
+      session.inTransaction()
+    ) {
+      await session.abortTransaction();
+    }
+
+
     console.error(
       "[AUTH] Reset password error:",
       error
     );
 
-    return res.status(401).json({
-      success: false,
-      message:
-        "Phone verification failed or expired",
-    });
+
+    return res
+      .status(500)
+      .json({
+        success: false,
+        message:
+          error.message ||
+          "Failed to reset password",
+      });
+
+  } finally {
+
+    await session.endSession();
+
   }
+
 };

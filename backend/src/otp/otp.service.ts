@@ -9,9 +9,11 @@ interface OTPRecord {
 
 const otpStore = new Map<string, OTPRecord>();
 
-const OTP_EXPIRES_MINUTES = Number(
-  process.env.OTP_EXPIRES_MINUTES || 5
-);
+export const OTP_EXPIRES_MINUTES =
+  Number(
+    process.env.OTP_EXPIRES_MINUTES ||
+      5
+  );
 
 const OTP_MAX_ATTEMPTS = Number(
   process.env.OTP_MAX_ATTEMPTS || 5
@@ -21,7 +23,9 @@ const OTP_RESEND_SECONDS = Number(
   process.env.OTP_RESEND_SECONDS || 60
 );
 
-function normalizePhone(phone: string): string {
+export function normalizePhone(
+  phone: string
+): string {
   let value = phone.trim().replace(/\s+/g, "");
 
   if (value.startsWith("09")) {
@@ -43,11 +47,13 @@ function normalizePhone(phone: string): string {
   return value;
 }
 
-function generateOTP(): string {
+export function generateOTP(): string {
   return crypto.randomInt(100000, 1000000).toString();
 }
 
-function hashOTP(code: string): string {
+export function hashOTP(
+  code: string
+): string {
   return crypto
     .createHash("sha256")
     .update(code)
@@ -100,52 +106,78 @@ export function verifyOTP(
   phone: string,
   code: string
 ) {
-  const normalizedPhone = normalizePhone(phone);
+  const normalizedPhone =
+    normalizePhone(phone);
 
-  const record = otpStore.get(normalizedPhone);
+  const record =
+    otpStore.get(
+      normalizedPhone
+    );
 
   if (!record) {
     return {
       success: false,
-      message: "OTP not found or already used",
+      message:
+        "OTP not found or already used",
     };
   }
 
-  if (Date.now() > record.expiresAt) {
-    otpStore.delete(normalizedPhone);
+  if (
+    Date.now() >
+    record.expiresAt
+  ) {
+    otpStore.delete(
+      normalizedPhone
+    );
 
     return {
       success: false,
-      message: "OTP has expired",
+      message:
+        "OTP has expired",
     };
   }
 
-  if (record.attempts >= OTP_MAX_ATTEMPTS) {
-    otpStore.delete(normalizedPhone);
+  if (
+    record.attempts >=
+    OTP_MAX_ATTEMPTS
+  ) {
+    otpStore.delete(
+      normalizedPhone
+    );
 
     return {
       success: false,
-      message: "Too many incorrect attempts",
+      message:
+        "Too many incorrect attempts",
     };
   }
 
   record.attempts++;
 
-  const incomingHash = hashOTP(code);
+  const incomingHash =
+    hashOTP(code);
 
-  if (incomingHash !== record.codeHash) {
+  if (
+    incomingHash !==
+    record.codeHash
+  ) {
     return {
       success: false,
-      message: "Invalid OTP",
+      message:
+        "Invalid OTP",
       attemptsRemaining:
-        OTP_MAX_ATTEMPTS - record.attempts,
+        OTP_MAX_ATTEMPTS -
+        record.attempts,
     };
   }
 
-  otpStore.delete(normalizedPhone);
+  otpStore.delete(
+    normalizedPhone
+  );
 
   return {
     success: true,
-    message: "Phone number verified successfully",
+    message:
+      "Phone number verified successfully",
   };
 }

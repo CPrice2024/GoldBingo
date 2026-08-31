@@ -46,14 +46,14 @@ const RoleRoute = ({
     }
 
     // Player
-    if (user?.role === "player") {
-      return (
-        <Navigate
-          to="/player/dashboard"
-          replace
-        />
-      );
-    }
+if (user?.role === "player") {
+  return (
+    <Navigate
+      to="/player/play"
+      replace
+    />
+  );
+}
 
     return (
       <Navigate

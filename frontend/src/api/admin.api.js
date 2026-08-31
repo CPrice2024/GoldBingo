@@ -122,3 +122,31 @@ export const updateDepositBonusSettings =
 
     return response.data;
   };
+  // =========================
+// ADMIN OTP REQUESTS
+// =========================
+
+export const getPendingOTPRequests =
+  async () => {
+
+    const response =
+      await api.get(
+        "/otp/admin/pending"
+      );
+
+    return response.data;
+  };
+
+
+export const approveOTPRequest =
+  async (
+    requestId
+  ) => {
+
+    const response =
+      await api.patch(
+        `/otp/admin/${requestId}/approve`
+      );
+
+    return response.data;
+  };

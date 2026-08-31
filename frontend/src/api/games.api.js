@@ -1,98 +1,183 @@
 import api from "./axios";
 
-export const getGames = async (status) => {
-  const response = await api.get("/games", {
-    params: status ? { status } : {},
-  });
+/* =========================
+   GAME FUNCTIONS
+========================= */
 
-  return response.data;
-};
-
-export const getCurrentGame = async () => {
-  const response = await api.get("/games/current");
-
-  return response.data;
-};
-export const getGameWinners = async (
-  gameId
+export const getGames = async (
+  status
 ) => {
   const response =
     await api.get(
-      `/games/${gameId}/winners`
+      "/games",
+      {
+        params: status
+          ? { status }
+          : {},
+      }
     );
 
   return response.data;
 };
 
-export const getGameById = async (gameId) => {
-  const response = await api.get(`/games/${gameId}`);
 
-  return response.data;
-};
+export const getCurrentGame =
+  async () => {
+    const response =
+      await api.get(
+        "/games/current"
+      );
 
-export const getGameState = async (gameId) => {
-  const response = await api.get(
-    `/games/${gameId}/state`
-  );
+    return response.data;
+  };
 
-  return response.data;
-};
 
-export const checkBingo = async (
-  gameId,
-  pattern
-) => {
-  const response = await api.post(
-    `/games/${gameId}/check-bingo`,
-    { pattern }
-  );
+export const getGameById =
+  async (
+    gameId
+  ) => {
+    const response =
+      await api.get(
+        `/games/${gameId}`
+      );
 
-  return response.data;
-};
+    return response.data;
+  };
 
-export const claimBingo = async (
-  gameId,
-  pattern
-) => {
-  const response = await api.post(
-    `/games/${gameId}/claim-bingo`,
-    { pattern }
-  );
 
-  return response.data;
-};
+export const getGameState =
+  async (
+    gameId
+  ) => {
+    const response =
+      await api.get(
+        `/games/${gameId}/state`
+      );
 
-// ================================
-// ADMIN
-// ================================
+    return response.data;
+  };
 
-export const createGame = async (data) => {
-  const response = await api.post(
-    "/games",
+
+export const getGameWinners =
+  async (
+    gameId
+  ) => {
+    const response =
+      await api.get(
+        `/games/${gameId}/winners`
+      );
+
+    return response.data;
+  };
+
+
+/* =========================
+   PLAYER BINGO
+========================= */
+
+export const claimBingo =
+  async (
+    gameId
+  ) => {
+    const response =
+      await api.post(
+        `/games/${gameId}/claim-bingo`,
+        {}
+      );
+
+    return response.data;
+  };
+
+
+/* =========================
+   ADMIN GAME FUNCTIONS
+========================= */
+
+export const createGame =
+  async (
     data
-  );
+  ) => {
+    const response =
+      await api.post(
+        "/games",
+        data
+      );
 
-  return response.data;
-};
+    return response.data;
+  };
 
-export const startGame = async (gameId) => {
-  const response = await api.post(
-    `/games/${gameId}/start`
-  );
 
-  return response.data;
-};
+export const updateGame =
+  async (
+    gameId,
+    data
+  ) => {
+    const response =
+      await api.patch(
+        `/games/${gameId}`,
+        data
+      );
 
-export const callGameNumber = async (
-  gameId,
-  number
-) => {
-  const response = await api.post(
-    `/games/${gameId}/call-number`,
-    number !== undefined
-      ? { number }
-      : {}
-  );
+    return response.data;
+  };
 
-  return response.data;
-};
+
+export const startGame =
+  async (
+    gameId
+  ) => {
+    const response =
+      await api.post(
+        `/games/${gameId}/start`
+      );
+
+    return response.data;
+  };
+
+
+export const callGameNumber =
+  async (
+    gameId,
+    number
+  ) => {
+    const response =
+      await api.post(
+        `/games/${gameId}/call-number`,
+        number !== undefined
+          ? { number }
+          : {}
+      );
+
+    return response.data;
+  };
+
+
+/* ================================
+   AUTOMATIC GAME SETTING
+================================ */
+
+export const getAutomaticGameSetting =
+  async () => {
+    const response =
+      await api.get(
+        "/settings/automatic-game"
+      );
+
+    return response.data;
+  };
+
+
+export const updateAutomaticGameSetting =
+  async (
+    enabled
+  ) => {
+    const response =
+      await api.patch(
+        "/settings/automatic-game",
+        {
+          enabled,
+        }
+      );
+
+    return response.data;
+  };

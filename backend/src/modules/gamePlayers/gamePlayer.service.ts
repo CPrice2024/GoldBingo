@@ -133,29 +133,100 @@ export const joinGame =
         );
       }
 
+/* =========================
+   6. TOTAL ENTRY COST
+========================= */
 
-      /* =========================
-         6. TOTAL ENTRY COST
-      ========================= */
-
-      const totalEntryFee =
-        game.entryFee *
-        cardCount;
-
-
-      const availableBalance =
-        wallet.balance -
-        wallet.reservedBalance;
+const totalEntryFee =
+  game.entryFee *
+  cardCount;
 
 
-      if (
-        availableBalance <
-        totalEntryFee
-      ) {
-        throw new Error(
-          `Insufficient available balance. ${cardCount} cards cost ${totalEntryFee} ETB.`
-        );
-      }
+/* =========================
+   WALLET BALANCES
+========================= */
+
+/*
+ * Deposit money.
+ */
+const depositBalanceBefore =
+  Number(
+    wallet.balance || 0
+  );
+
+
+/*
+ * Money won from Bingo.
+ */
+const winningBalanceBefore =
+  Number(
+    wallet.winningBalance || 0
+  );
+
+
+/*
+ * Reserved deposit money.
+ */
+const reservedDepositBalance =
+  Number(
+    wallet.reservedBalance || 0
+  );
+
+
+/*
+ * Winning money currently
+ * reserved for withdrawal.
+ */
+const reservedWinningBalance =
+  Number(
+    wallet.reservedWinningBalance ||
+    0
+  );
+
+
+/* =========================
+   AVAILABLE WINNINGS
+========================= */
+
+const availableWinningBalance =
+  Math.max(
+    0,
+    winningBalanceBefore -
+      reservedWinningBalance
+  );
+
+
+/* =========================
+   AVAILABLE DEPOSIT
+========================= */
+
+const availableDepositBalance =
+  Math.max(
+    0,
+    depositBalanceBefore -
+      reservedDepositBalance
+  );
+
+
+/* =========================
+   TOTAL PLAYABLE BALANCE
+========================= */
+
+const totalPlayableBalance =
+  availableWinningBalance +
+  availableDepositBalance;
+
+
+if (
+  totalPlayableBalance <
+  totalEntryFee
+) {
+  throw new Error(
+    `Insufficient balance. ${cardCount} cards cost ${totalEntryFee} ETB. Available to play: ${totalPlayableBalance.toFixed(
+      2
+    )} ETB.`
+  );
+}
 
 
       /* =========================
@@ -173,7 +244,7 @@ export const joinGame =
         cardCount
       ) {
         throw new Error(
-          "Failed to assign requested Bingo cards"
+          "Failed to assign requested cards"
         );
       }
 
@@ -185,23 +256,115 @@ export const joinGame =
         );
 
 
-      /* =========================
-         8. DEDUCT BALANCE
-      ========================= */
+ /* =========================
+   8. DEDUCT BALANCE
 
-      const balanceBefore =
-        wallet.balance;
+   PRIORITY:
+   1. WINNINGS
+   2. DEPOSIT
+========================= */
 
-      const balanceAfter =
-        balanceBefore -
-        totalEntryFee;
 
-      wallet.balance =
-        balanceAfter;
+/*
+ * First take as much as possible
+ * from withdrawable winnings.
+ */
+const amountFromWinning =
+  Math.min(
+    totalEntryFee,
+    availableWinningBalance
+  );
 
-      await wallet.save({
-        session,
-      });
+
+/*
+ * Whatever remains comes
+ * from deposit balance.
+ */
+const amountFromDeposit =
+  totalEntryFee -
+  amountFromWinning;
+
+
+/* =========================
+   UPDATE WINNING BALANCE
+========================= */
+
+wallet.winningBalance =
+  winningBalanceBefore -
+  amountFromWinning;
+
+
+/* =========================
+   UPDATE DEPOSIT BALANCE
+========================= */
+
+wallet.balance =
+  depositBalanceBefore -
+  amountFromDeposit;
+
+
+await wallet.save({
+  session,
+});
+
+
+/* =========================
+   BALANCE AFTER
+========================= */
+
+const depositBalanceAfter =
+  Number(
+    wallet.balance || 0
+  );
+
+
+const winningBalanceAfter =
+  Number(
+    wallet.winningBalance || 0
+  );
+
+
+const totalBalanceBefore =
+  depositBalanceBefore +
+  winningBalanceBefore;
+
+
+const totalBalanceAfter =
+  depositBalanceAfter +
+  winningBalanceAfter;
+
+
+/*
+ * Remaining winnings that can
+ * still be withdrawn or played.
+ */
+const withdrawableWinningBalanceAfter =
+  Math.max(
+    0,
+    winningBalanceAfter -
+      reservedWinningBalance
+  );
+
+
+/*
+ * Remaining deposit balance
+ * that can be played.
+ */
+const availableDepositBalanceAfter =
+  Math.max(
+    0,
+    depositBalanceAfter -
+      reservedDepositBalance
+  );
+
+
+/*
+ * Total money currently
+ * available for another game.
+ */
+const availableBalanceAfter =
+  withdrawableWinningBalanceAfter +
+  availableDepositBalanceAfter;
 
 
       /* =========================
@@ -269,9 +432,11 @@ export const joinGame =
             amount:
               totalEntryFee,
 
-            balanceBefore,
+            balanceBefore:
+              totalBalanceBefore,
 
-            balanceAfter,
+            balanceAfter:
+              totalBalanceAfter,
 
             currency:
               "ETB",
@@ -283,7 +448,11 @@ export const joinGame =
               gamePlayer._id,
 
             description:
-              `Bingo entry fee for ${cardCount} card(s) in ${game.name}`,
+  `Entry fee for ${cardCount} card(s) in ${game.name}. Used ${amountFromWinning.toFixed(
+    2
+  )} ETB winnings and ${amountFromDeposit.toFixed(
+    2
+  )} ETB deposit.`,
           },
         ],
         {
@@ -333,15 +502,48 @@ export const joinGame =
 
         totalEntryFee,
 
-        balance:
-          balanceAfter,
 
-        reservedBalance:
-          wallet.reservedBalance,
+/* DEPOSIT */
 
-        availableBalance:
-          balanceAfter -
-          wallet.reservedBalance,
+balance:
+  depositBalanceAfter,
+
+depositBalance:
+  depositBalanceAfter,
+
+reservedBalance:
+  reservedDepositBalance,
+
+availableDepositBalance:
+  availableDepositBalanceAfter,
+
+
+/* WINNINGS */
+
+winningBalance:
+  winningBalanceAfter,
+
+reservedWinningBalance:
+  reservedWinningBalance,
+
+withdrawableWinningBalance:
+  withdrawableWinningBalanceAfter,
+
+
+/* TOTAL */
+
+totalBalance:
+  totalBalanceAfter,
+
+availableBalance:
+  availableBalanceAfter,
+
+
+/* ENTRY SOURCE */
+
+amountFromWinning,
+
+amountFromDeposit,
       };
 
     } catch (error) {

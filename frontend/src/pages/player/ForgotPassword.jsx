@@ -1,415 +1,968 @@
-import { useEffect, useRef, useState } from "react";
+import {
+  useState,
+} from "react";
+
 import {
   ArrowLeft,
   KeyRound,
   Loader2,
   Phone,
   ShieldCheck,
+  CheckCircle,
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Lock,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
 
 import {
-  RecaptchaVerifier,
-  signInWithPhoneNumber,
-} from "firebase/auth";
+  useNavigate,
+} from "react-router-dom";
 
-import { firebaseAuth } from "../../firebase";
-import { resetPasswordWithFirebase } from "../../api/auth.api";
+import {
+  requestPasswordOTP,
+  verifyPasswordOTP,
+  resetPasswordWithOTP,
+} from "../../api/auth.api";
+
 
 export default function ForgotPassword() {
-  const navigate = useNavigate();
 
-  const [step, setStep] = useState("phone");
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState("");
+  const navigate =
+    useNavigate();
 
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] =
-    useState("");
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+  /* ===============================
+     STEP
+  =============================== */
 
-  const confirmationResultRef = useRef(null);
-  const recaptchaVerifierRef = useRef(null);
+  const [
+    step,
+    setStep,
+  ] = useState("phone");
 
-  const setupRecaptcha = () => {
-    if (recaptchaVerifierRef.current) {
-      return recaptchaVerifierRef.current;
-    }
 
-    const verifier = new RecaptchaVerifier(
-      firebaseAuth,
-      "forgot-password-recaptcha",
-      {
-        size: "normal",
-      }
-    );
+  /* ===============================
+     FORM STATE
+  =============================== */
 
-    recaptchaVerifierRef.current = verifier;
+  const [
+    phone,
+    setPhone,
+  ] = useState("");
 
-    return verifier;
-  };
 
-  useEffect(() => {
-    return () => {
-      if (recaptchaVerifierRef.current) {
-        recaptchaVerifierRef.current.clear();
-      }
-    };
-  }, []);
+  const [
+    otp,
+    setOtp,
+  ] = useState("");
 
-  const sendOtp = async (e) => {
-    e.preventDefault();
 
-    setError("");
-    setMessage("");
+  const [
+    resetToken,
+    setResetToken,
+  ] = useState("");
 
-    if (!phone.trim()) {
-      setError("Phone number is required");
-      return;
-    }
 
-    try {
-      setLoading(true);
+  const [
+    newPassword,
+    setNewPassword,
+  ] = useState("");
 
-      const verifier = setupRecaptcha();
 
-      const confirmationResult =
-        await signInWithPhoneNumber(
-          firebaseAuth,
-          phone.trim(),
-          verifier
+  const [
+    confirmPassword,
+    setConfirmPassword,
+  ] = useState("");
+
+
+  const [
+    showNewPassword,
+    setShowNewPassword,
+  ] = useState(false);
+
+
+  const [
+    showConfirmPassword,
+    setShowConfirmPassword,
+  ] = useState(false);
+
+
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+
+
+  const [
+    error,
+    setError,
+  ] = useState("");
+
+
+  const [
+    message,
+    setMessage,
+  ] = useState("");
+
+
+  /* ===============================
+     REQUEST + SEND OTP
+  =============================== */
+
+  const sendOtp =
+    async (e) => {
+
+      e.preventDefault();
+
+      setError("");
+      setMessage("");
+
+
+      const cleanPhone =
+        phone.trim();
+
+
+      if (!cleanPhone) {
+
+        setError(
+          "Phone number is required."
         );
 
-      confirmationResultRef.current =
-        confirmationResult;
+        return;
+      }
 
-      setStep("otp");
 
-      setMessage(
-        "A verification code has been sent to your phone."
-      );
-    } catch (err) {
-      console.error(
-        "Failed to send password reset OTP:",
-        err
-      );
+      try {
 
-      if (recaptchaVerifierRef.current) {
-        try {
-          recaptchaVerifierRef.current.clear();
-        } catch {
-          // ignore
+        setLoading(true);
+
+
+        /*
+         * Backend now:
+         *
+         * 1. Finds registered player
+         * 2. Generates OTP
+         * 3. Saves OTP hash
+         * 4. Sends SMS automatically
+         */
+
+        const result =
+          await requestPasswordOTP(
+            cleanPhone
+          );
+
+
+        setStep(
+          "otp"
+        );
+
+
+        setMessage(
+          result?.message ||
+          "OTP sent successfully. Check your phone."
+        );
+
+
+      } catch (err) {
+
+        console.error(
+          "Failed to send OTP:",
+          err
+        );
+
+
+        setError(
+          err?.response?.data
+            ?.message ||
+          err?.message ||
+          "Failed to send OTP"
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+
+  /* ===============================
+     VERIFY OTP
+  =============================== */
+
+  const verifyOtp =
+    async (e) => {
+
+      e.preventDefault();
+
+      setError("");
+      setMessage("");
+
+
+      const cleanOtp =
+        otp.trim();
+
+
+      if (
+        !/^\d{6}$/.test(
+          cleanOtp
+        )
+      ) {
+
+        setError(
+          "Enter a valid 6-digit OTP."
+        );
+
+        return;
+      }
+
+
+      try {
+
+        setLoading(true);
+
+
+        const result =
+          await verifyPasswordOTP(
+            phone.trim(),
+            cleanOtp
+          );
+
+
+        const token =
+          result?.data?.resetToken;
+
+
+        if (!token) {
+
+          throw new Error(
+            "Password reset token was not returned"
+          );
+
         }
 
-        recaptchaVerifierRef.current = null;
-      }
 
-      setError(
-        err?.message ||
-          "Failed to send verification code"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const verifyOtp = async (e) => {
-    e.preventDefault();
-
-    setError("");
-    setMessage("");
-
-    if (!otp.trim()) {
-      setError("Verification code is required");
-      return;
-    }
-
-    if (!confirmationResultRef.current) {
-      setError(
-        "Verification session expired. Please request a new code."
-      );
-      setStep("phone");
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      const result =
-        await confirmationResultRef.current.confirm(
-          otp.trim()
+        setResetToken(
+          token
         );
 
-      const idToken =
-        await result.user.getIdToken();
 
-      // Keep the Firebase identity temporarily in memory.
-      confirmationResultRef.current = {
-        ...confirmationResultRef.current,
-        idToken,
-      };
+        setStep(
+          "password"
+        );
 
-      setStep("password");
 
-      setMessage(
-        "Phone number verified. Create a new password."
-      );
-    } catch (err) {
-      console.error(
-        "OTP verification failed:",
-        err
-      );
+        setMessage(
+          "Phone verified successfully. Create your new password."
+        );
 
-      setError(
-        err?.message ||
-          "Invalid verification code"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  const handleResetPassword = async (e) => {
-    e.preventDefault();
+      } catch (err) {
 
-    setError("");
-    setMessage("");
+        console.error(
+          "OTP verification failed:",
+          err
+        );
 
-    if (newPassword.length < 6) {
-      setError(
-        "Password must be at least 6 characters"
-      );
-      return;
-    }
 
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match");
-      return;
-    }
+        setError(
+          err?.response?.data
+            ?.message ||
+          err?.message ||
+          "Invalid or expired OTP"
+        );
 
-    const idToken =
-      confirmationResultRef.current?.idToken;
+      } finally {
 
-    if (!idToken) {
-      setError(
-        "Verification session expired. Please start again."
-      );
-      setStep("phone");
-      return;
-    }
+        setLoading(false);
 
-    try {
-      setLoading(true);
+      }
 
-      await resetPasswordWithFirebase(
-        idToken,
-        newPassword
-      );
+    };
 
-      await firebaseAuth.signOut();
 
-      setMessage(
-        "Password reset successfully. You can now sign in."
-      );
+  /* ===============================
+     RESET PASSWORD
+  =============================== */
 
-      setTimeout(() => {
-        navigate("/player/login", {
-          replace: true,
-        });
-      }, 1500);
-    } catch (err) {
-      console.error(
-        "Password reset failed:",
-        err
-      );
+  const handleResetPassword =
+    async (e) => {
 
-      setError(
-        err?.response?.data?.message ||
+      e.preventDefault();
+
+      setError("");
+      setMessage("");
+
+
+      if (
+        !newPassword ||
+        !confirmPassword
+      ) {
+
+        setError(
+          "Please fill in all password fields."
+        );
+
+        return;
+      }
+
+
+      if (
+        newPassword.length <
+        6
+      ) {
+
+        setError(
+          "New password must be at least 6 characters."
+        );
+
+        return;
+      }
+
+
+      if (
+        newPassword !==
+        confirmPassword
+      ) {
+
+        setError(
+          "New password and confirmation do not match."
+        );
+
+        return;
+      }
+
+
+      if (!resetToken) {
+
+        setError(
+          "Password reset session expired. Please start again."
+        );
+
+        handleStartAgain();
+
+        return;
+      }
+
+
+      try {
+
+        setLoading(true);
+
+
+        const result =
+          await resetPasswordWithOTP(
+            resetToken,
+            newPassword
+          );
+
+
+        setMessage(
+          result?.message ||
+          "Password reset successfully."
+        );
+
+
+        /*
+         * Clear sensitive data.
+         */
+
+        setResetToken("");
+        setOtp("");
+        setNewPassword("");
+        setConfirmPassword("");
+
+
+        setTimeout(
+          () => {
+
+            navigate(
+              "/player/login",
+              {
+                replace: true,
+              }
+            );
+
+          },
+          1500
+        );
+
+
+      } catch (err) {
+
+        console.error(
+          "Password reset failed:",
+          err
+        );
+
+
+        setError(
+          err?.response?.data
+            ?.message ||
           err?.message ||
           "Failed to reset password"
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
+
+
+  /* ===============================
+     START AGAIN
+  =============================== */
+
+  const handleStartAgain =
+    () => {
+
+      setStep(
+        "phone"
       );
-    } finally {
-      setLoading(false);
-    }
-  };
+
+      setOtp("");
+      setResetToken("");
+      setNewPassword("");
+      setConfirmPassword("");
+
+      setError("");
+      setMessage("");
+
+    };
+
 
   return (
-    <div className="player-auth-page">
-      <div className="player-auth-card">
+
+    <div className="change-password-page">
+
+
+      {/* ============================
+          HEADER
+      ============================ */}
+
+      <div className="change-password-header">
+
         <button
           type="button"
-          className="player-auth-back"
+          className="back-profile-btn"
           onClick={() =>
-            navigate("/player/login")
+            navigate(
+              "/player/login"
+            )
           }
         >
-          <ArrowLeft size={18} />
-          Back to login
+
+          <ArrowLeft
+            size={17}
+          />
+
+          Back to Login
+
         </button>
 
-        <div className="player-auth-icon">
-          <KeyRound size={28} />
+
+        <h1>
+          Forgot Password
+        </h1>
+
+
+        
+
+      </div>
+
+
+      {/* ============================
+          CARD
+      ============================ */}
+
+      <div className="change-password-card">
+
+
+        {/* ICON */}
+
+        <div className="change-password-icon">
+
+          {step === "phone" && (
+            <Phone
+              size={24}
+            />
+          )}
+
+          {step === "otp" && (
+            <ShieldCheck
+              size={24}
+            />
+          )}
+
+          {step === "password" && (
+            <Lock
+              size={24}
+            />
+          )}
+
         </div>
 
-        <h1>Forgot Password?</h1>
 
-        <p>
-          Reset your GoldBingo password
-          using your phone number.
-        </p>
+        {/* TITLE */}
+
+        <div className="change-password-title">
+
+          <h2>
+
+            {step === "phone" &&
+              "Recover Your Account"}
+
+            {step === "otp" &&
+              "Verify OTP"}
+
+            {step === "password" &&
+              "Create New Password"}
+
+          </h2>
+
+
+          <p>
+
+            {step === "phone" &&
+              "Enter your registered phone number to receive a password reset OTP."}
+
+            {step === "otp" &&
+              "Enter the 6-digit verification code sent to your phone."}
+
+            {step === "password" &&
+              "Choose a secure new password for your account."}
+
+          </p>
+
+        </div>
+
+
+        {/* ============================
+            ERROR
+        ============================ */}
 
         {error && (
-          <div className="player-auth-error">
-            {error}
+
+          <div className="password-alert password-error">
+
+            <AlertCircle
+              size={17}
+            />
+
+            <span>
+              {error}
+            </span>
+
           </div>
+
         )}
+
+
+        {/* ============================
+            SUCCESS
+        ============================ */}
 
         {message && (
-          <div className="player-auth-success">
-            {message}
+
+          <div className="password-alert password-success">
+
+            <CheckCircle
+              size={17}
+            />
+
+            <span>
+              {message}
+            </span>
+
           </div>
+
         )}
+
+
+        {/* ============================
+            STEP 1 - PHONE
+        ============================ */}
 
         {step === "phone" && (
-          <form onSubmit={sendOtp}>
-            <label>Phone Number</label>
 
-            <div className="player-auth-input">
-              <Phone size={18} />
+          <form
+            onSubmit={sendOtp}
+            className="change-password-form"
+          >
 
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) =>
-                  setPhone(e.target.value)
-                }
-                placeholder="+2519XXXXXXXX"
-              />
+            <div className="password-field">
+
+              <label>
+                Phone Number
+              </label>
+
+
+              <div className="change-password-input">
+
+               
+
+
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) =>
+                    setPhone(
+                      e.target.value
+                    )
+                  }
+                  placeholder="09XXXXXXXX"
+                  autoComplete="tel"
+                />
+
+              </div>
+
             </div>
 
-            <div
-              id="forgot-password-recaptcha"
-              style={{
-                marginTop: 16,
-              }}
-            />
 
             <button
               type="submit"
+              className="change-password-submit"
               disabled={loading}
-              className="player-auth-button"
             >
+
               {loading ? (
                 <>
+
                   <Loader2
                     size={18}
                     className="player-spin"
                   />
+
                   Sending OTP...
+
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={18} />
+
+                  <ShieldCheck
+                    size={18}
+                  />
+
                   Send OTP
+
                 </>
               )}
+
             </button>
+
           </form>
+
         )}
+
+
+        {/* ============================
+            STEP 2 - OTP
+        ============================ */}
 
         {step === "otp" && (
-          <form onSubmit={verifyOtp}>
-            <label>Verification Code</label>
 
-            <input
-              type="text"
-              inputMode="numeric"
-              maxLength={6}
-              value={otp}
-              onChange={(e) =>
-                setOtp(e.target.value)
-              }
-              placeholder="Enter 6-digit OTP"
-            />
+          <form
+            onSubmit={verifyOtp}
+            className="change-password-form"
+          >
+
+            <div className="password-field">
+
+              <label>
+                Verification Code
+              </label>
+
+
+              <div className="change-password-input">
+
+                <ShieldCheck
+                  size={18}
+                />
+
+
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otp}
+                  onChange={(e) => {
+
+                    const value =
+                      e.target.value
+                        .replace(
+                          /\D/g,
+                          ""
+                        )
+                        .slice(
+                          0,
+                          6
+                        );
+
+
+                    setOtp(
+                      value
+                    );
+
+                  }}
+                  placeholder="Enter 6-digit OTP"
+                  autoComplete="one-time-code"
+                />
+
+              </div>
+
+
+              <span className="password-hint">
+                The OTP expires in 5 minutes.
+              </span>
+
+            </div>
+
 
             <button
               type="submit"
-              disabled={loading}
-              className="player-auth-button"
+              className="change-password-submit"
+              disabled={
+                loading ||
+                otp.length !== 6
+              }
             >
+
               {loading ? (
                 <>
+
                   <Loader2
                     size={18}
                     className="player-spin"
                   />
-                  Verifying...
+
+                  Verifying OTP...
+
                 </>
               ) : (
                 <>
-                  <ShieldCheck size={18} />
+
+                  <ShieldCheck
+                    size={18}
+                  />
+
                   Verify OTP
+
                 </>
               )}
+
             </button>
+
+
+            <button
+              type="button"
+              className="forgot-secondary-btn"
+              onClick={
+                handleStartAgain
+              }
+              disabled={loading}
+            >
+
+              <ArrowLeft
+                size={17}
+              />
+
+              Change Phone Number
+
+            </button>
+
           </form>
+
         )}
+
+
+        {/* ============================
+            STEP 3 - PASSWORD
+        ============================ */}
 
         {step === "password" && (
-          <form onSubmit={handleResetPassword}>
-            <label>New Password</label>
 
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(e) =>
-                setNewPassword(
-                  e.target.value
-                )
-              }
-              placeholder="Enter new password"
-            />
+          <form
+            onSubmit={
+              handleResetPassword
+            }
+            className="change-password-form"
+          >
 
-            <label>Confirm New Password</label>
 
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) =>
-                setConfirmPassword(
-                  e.target.value
-                )
-              }
-              placeholder="Confirm new password"
-            />
+            {/* NEW PASSWORD */}
+
+            <div className="password-field">
+
+              <label>
+                New Password
+              </label>
+
+
+              <div className="change-password-input">
+
+                <KeyRound
+                  size={18}
+                />
+
+
+                <input
+                  type={
+                    showNewPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    newPassword
+                  }
+                  onChange={(e) =>
+                    setNewPassword(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Enter new password"
+                  autoComplete="new-password"
+                />
+
+
+                <button
+                  type="button"
+                  className="password-visibility-btn"
+                  onClick={() =>
+                    setShowNewPassword(
+                      (prev) =>
+                        !prev
+                    )
+                  }
+                >
+
+                  {showNewPassword ? (
+                    <EyeOff
+                      size={18}
+                    />
+                  ) : (
+                    <Eye
+                      size={18}
+                    />
+                  )}
+
+                </button>
+
+              </div>
+
+
+              <span className="password-hint">
+                Minimum 6 characters.
+              </span>
+
+            </div>
+
+
+            {/* CONFIRM PASSWORD */}
+
+            <div className="password-field">
+
+              <label>
+                Confirm New Password
+              </label>
+
+
+              <div className="change-password-input">
+
+                <KeyRound
+                  size={18}
+                />
+
+
+                <input
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
+                  value={
+                    confirmPassword
+                  }
+                  onChange={(e) =>
+                    setConfirmPassword(
+                      e.target.value
+                    )
+                  }
+                  placeholder="Confirm new password"
+                  autoComplete="new-password"
+                />
+
+
+                <button
+                  type="button"
+                  className="password-visibility-btn"
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      (prev) =>
+                        !prev
+                    )
+                  }
+                >
+
+                  {showConfirmPassword ? (
+                    <EyeOff
+                      size={18}
+                    />
+                  ) : (
+                    <Eye
+                      size={18}
+                    />
+                  )}
+
+                </button>
+
+              </div>
+
+            </div>
+
 
             <button
               type="submit"
+              className="change-password-submit"
               disabled={loading}
-              className="player-auth-button"
             >
+
               {loading ? (
                 <>
+
                   <Loader2
                     size={18}
                     className="player-spin"
                   />
-                  Resetting...
+
+                  Resetting Password...
+
                 </>
               ) : (
                 <>
-                  <KeyRound size={18} />
+
+                  <Lock
+                    size={18}
+                  />
+
                   Reset Password
+
                 </>
               )}
+
             </button>
+
           </form>
+
         )}
+
       </div>
+
     </div>
+
   );
 }

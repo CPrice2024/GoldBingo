@@ -142,20 +142,15 @@ function BingoCard({
           "O",
         ].map(
           (letter) => (
-
             <div
               key={letter}
               className="bingo-column"
             >
               {letter}
             </div>
-
           )
         )}
-
       </div>
-
-
       {/* CARD */}
 
       <div className="bingo-grid">

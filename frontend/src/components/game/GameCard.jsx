@@ -3,6 +3,7 @@ import {
   Users,
   Trophy,
   ArrowRight,
+  AlignCenter,
 } from "lucide-react";
 
 import GameStatus from "./GameStatus";
@@ -67,6 +68,7 @@ const getBingoBall = (
   ) {
     return {
       letter: "N",
+      Align: "center",
       image:
         bingoBallGreen,
     };

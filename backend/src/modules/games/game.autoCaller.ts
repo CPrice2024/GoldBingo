@@ -237,13 +237,13 @@ if (
     );
 
     console.log(
-      `[BINGO] ${game.name} waiting for scheduled start at ${game.scheduledStartAt}`
+      `[ID] ${game.name} waiting for scheduled start at ${game.scheduledStartAt}`
     );
 
   } else {
 
     console.log(
-      `[BINGO] ${game.name} waiting for admin to press Start`
+      `[ID] ${game.name} waiting for admin to press Start`
     );
 
   }
@@ -489,7 +489,7 @@ export const startAutomaticCaller =
       );
 
     console.log(
-      `[BINGO] ${game.name} next number in ${Math.ceil(
+      `[ID] ${game.name} next number in ${Math.ceil(
         remainingMs / 1000
       )} seconds`
     );
@@ -612,7 +612,7 @@ const finishGame = async (gameId: string) => {
     }
 
     console.log(
-      `[BINGO] ${game.name} finished after 75 numbers`
+      `[ID] ${game.name} finished after 75 numbers`
     );
 
     // Schedule the next waiting game
@@ -620,7 +620,7 @@ const finishGame = async (gameId: string) => {
 
   } catch (error) {
     console.error(
-      `[BINGO] Failed to finish game ${gameId}:`,
+      `[ID] Failed to finish game ${gameId}:`,
       error
     );
   }
@@ -683,7 +683,7 @@ const generateRandomGameName =
 
 
       const name =
-        `Bingo #${randomNumber}`;
+        `ID #${randomNumber}`;
 
 
       const alreadyExists =
@@ -699,7 +699,7 @@ const generateRandomGameName =
     }
 
 
-    return `Bingo #${Date.now()
+    return `ID #${Date.now()
       .toString()
       .slice(-6)}`;
 

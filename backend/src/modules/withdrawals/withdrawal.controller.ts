@@ -29,7 +29,6 @@ export const createWithdrawal =
       const {
         amount,
         paymentMethod,
-        accountNumber,
         note,
       } = req.body;
 
@@ -39,7 +38,6 @@ export const createWithdrawal =
           {
             amount,
             paymentMethod,
-            accountNumber,
             note,
           }
         );

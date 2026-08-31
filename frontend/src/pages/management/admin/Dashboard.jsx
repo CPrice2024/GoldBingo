@@ -15,7 +15,9 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-import { getAdminDashboardStats } from "../../../api/admin.api";
+import {
+  getAdminDashboardStats,
+} from "../../../api/admin.api";
 import "../../../layouts/ManagementLayout.css";
 
 export default function AdminDashboard() {
@@ -30,44 +32,57 @@ export default function AdminDashboard() {
   const [error, setError] =
     useState("");
 
-  const loadDashboard = async (
-    isRefresh = false
-  ) => {
-    try {
-      setError("");
+const loadDashboard = async (
+  isRefresh = false
+) => {
+  try {
 
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
+    setError("");
 
-      const response =
-        await getAdminDashboardStats();
-
-      setStats(
-        response?.data || null
-      );
-    } catch (err) {
-      console.error(
-        "Failed to load admin dashboard:",
-        err
-      );
-
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Failed to load dashboard"
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (isRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
     }
-  };
+
+
+    const response =
+      await getAdminDashboardStats();
+
+
+    setStats(
+      response?.data ||
+      null
+    );
+
+  } catch (err) {
+
+    console.error(
+      "Failed to load admin dashboard:",
+      err
+    );
+
+
+    setError(
+      err?.response?.data
+        ?.message ||
+      err?.message ||
+      "Failed to load dashboard"
+    );
+
+  } finally {
+
+    setLoading(false);
+    setRefreshing(false);
+
+  }
+};
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
+
+  loadDashboard();
+
+}, []);
 
   if (loading) {
     return (
@@ -114,8 +129,8 @@ export default function AdminDashboard() {
           type="button"
           className="management-refresh-button"
           onClick={() =>
-            loadDashboard(true)
-          }
+  loadDashboard(true)
+}
           disabled={refreshing}
         >
           <RefreshCw
@@ -143,8 +158,10 @@ export default function AdminDashboard() {
       )}
 
       {stats && (
-        <>
-          {/* User Statistics */}
+  <>
+
+
+    {/* User Statistics */}
 
           <div className="management-section-title">
             <h2>

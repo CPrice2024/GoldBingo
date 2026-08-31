@@ -13,6 +13,7 @@
   "dependencies": {
     "@capacitor/android": "^8.5.0",
     "@capacitor/core": "^8.5.0",
+    "@capacitor/push-notifications": "^8.1.2",
     "@dicebear/core": "^10.6.0",
     "@dicebear/styles": "^10.5.0",
     "axios": "^1.19.0",

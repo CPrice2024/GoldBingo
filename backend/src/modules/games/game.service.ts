@@ -695,7 +695,7 @@ export const completeGame = async (
   await game.save();
 
   console.log(
-    `[BINGO] Game ${game.name} completed`
+    `[ID] Game ${game.name} completed`
   );
 
   return game;
@@ -716,7 +716,80 @@ export const getGameState = async (
   const players =
     await getGamePlayers(gameId);
 
- return {
+  /* =========================================
+   BLOCKED / FALSE BINGO PLAYERS
+========================================= */
+
+const blockedRows =
+  await GamePlayer.find({
+    gameId:
+      game._id,
+
+    bingoBlocked:
+      true,
+  })
+    .populate({
+      path:
+        "playerId",
+
+      select:
+        "fullName",
+    })
+    .populate({
+      path:
+        "blockedCardIds",
+
+      select:
+        "cardNumber numbers",
+    })
+    .sort({
+      blockedAt: -1,
+    });
+
+    const blockedPlayers =
+  blockedRows.map(
+    (row: any) => ({
+      gamePlayerId:
+        row._id,
+
+      player: {
+        id:
+          row.playerId?._id ??
+          null,
+
+        fullName:
+          row.playerId?.fullName ??
+          "Player",
+      },
+
+      blockedAt:
+        row.blockedAt,
+
+      blockedReason:
+        row.blockedReason ??
+        "False Bingo",
+
+      cards:
+        Array.isArray(
+          row.blockedCardIds
+        )
+          ? row.blockedCardIds.map(
+              (card: any) => ({
+                id:
+                  card._id,
+
+                cardNumber:
+                  card.cardNumber,
+
+                numbers:
+                  card.numbers,
+              })
+            )
+          : [],
+    })
+  );
+
+return {
   game: {
     id:
       game._id,
@@ -752,8 +825,8 @@ export const getGameState = async (
     scheduledStartAt:
       game.scheduledStartAt,
 
-status:
-  game.status,
+    status:
+      game.status,
 
     calledNumbers:
       game.calledNumbers,
@@ -778,6 +851,8 @@ status:
   },
 
   players,
+
+  blockedPlayers,
 };
 };
 
@@ -840,19 +915,23 @@ export const checkBingo = async (
   }
 
   if (
-    gamePlayer.status !==
-    "active"
-  ) {
-    throw new Error(
-      "Player is not active in this game"
-    );
-  }
+  gamePlayer.status !==
+  "active"
+) {
+  throw new Error(
+    "Player is not active in this game"
+  );
+}
 
-  // 5. Get all player card IDs
-  const assignedCardIds =
-    getParticipationCardIds(
-      gamePlayer
-    );
+
+
+
+
+// 4. Get all player's cards
+const assignedCardIds =
+  getParticipationCardIds(
+    gamePlayer
+  );
 
   if (
     assignedCardIds.length ===
@@ -925,7 +1004,40 @@ export const checkBingo = async (
       game.calledNumbers,
   };
 };
+/* =========================================
+   MONGODB TRANSACTION RETRY
+========================================= */
 
+const isRetryableTransactionError = (
+  error: any
+): boolean => {
+
+  return (
+    error?.code === 112 ||
+    error?.codeName ===
+      "WriteConflict" ||
+    error?.hasErrorLabel?.(
+      "TransientTransactionError"
+    ) === true ||
+    String(
+      error?.message || ""
+    ).includes(
+      "Write conflict"
+    )
+  );
+};
+
+
+const wait = (
+  ms: number
+) =>
+  new Promise<void>(
+    (resolve) =>
+      setTimeout(
+        resolve,
+        ms
+      )
+  );
 
 /* =========================================
    CLAIM BINGO
@@ -934,8 +1046,8 @@ export const checkBingo = async (
 export const claimBingo = async (
   gameId: string,
   playerId: string,
-  pattern: BingoPattern
-) => {
+  retryAttempt = 0
+): Promise<any> => {
   const session =
     await mongoose.startSession();
 
@@ -954,27 +1066,31 @@ export const claimBingo = async (
         "Game not found or is no longer active"
       );
     }
+    /* =========================================
+   GAME WINNING PATTERN
+========================================= */
 
-    // 2. Validate pattern
-    const validPatterns:
-      BingoPattern[] = [
-        "row",
-        "column",
-        "diagonal",
-        "four_corners",
-        "x",
-        "blackout",
-      ];
+const pattern:
+  WinningPattern =
+  (
+    game.winningPattern ??
+    "3_lines"
+  ) as WinningPattern;
 
-    if (
-      !validPatterns.includes(
-        pattern
-      )
-    ) {
-      throw new Error(
-        "Invalid Bingo pattern"
-      );
-    }
+
+/*
+ * Pattern is controlled by
+ * the game/admin, not frontend.
+ */
+if (
+  !isValidWinningPattern(
+    pattern
+  )
+) {
+  throw new Error(
+    "Game has an invalid winning pattern"
+  );
+}
 
     // 3. Find participation
     const gamePlayer =
@@ -991,19 +1107,54 @@ export const claimBingo = async (
     }
 
     if (
-      gamePlayer.status !==
-      "active"
-    ) {
-      throw new Error(
-        "Player is not active in this game"
-      );
-    }
+  gamePlayer.status !==
+  "active"
+) {
+  throw new Error(
+    "Player is not active in this game"
+  );
+}
 
-    // 4. Get all player's cards
-    const assignedCardIds =
-      getParticipationCardIds(
-        gamePlayer
-      );
+
+/* =========================================
+   BLOCK REPEATED BINGO CLICK
+========================================= */
+
+if (
+  gamePlayer.bingoBlocked ===
+  true
+) {
+  await session.abortTransaction();
+
+  return {
+    status:
+      "BLOCKED_ALREADY",
+
+    message:
+      "Your Bingo button is blocked for this game.",
+
+    playerId,
+
+    gamePlayerId:
+      gamePlayer._id,
+
+    blockedAt:
+      gamePlayer.blockedAt,
+
+    blockedReason:
+      gamePlayer.blockedReason,
+  };
+}
+
+
+/* =========================================
+   GET ALL PLAYER CARDS
+========================================= */
+
+const assignedCardIds =
+  getParticipationCardIds(
+    gamePlayer
+  );
 
     if (
       assignedCardIds.length ===
@@ -1033,28 +1184,179 @@ export const claimBingo = async (
       );
     }
 
-    // 5. Find winning card
-    const card =
-      cards.find(
-        (candidate) =>
-          isPatternMatched(
-            candidate.numbers,
-            game.calledNumbers,
-            pattern
-          )
-      );
+   /* =========================================
+   CHECK EVERY CARD INDEPENDENTLY
+========================================= */
 
-    if (!card) {
-      throw new Error(
-        "Bingo pattern has not been completed on any of your cards"
-      );
+const cardResults =
+  cards.map(
+    (candidate) => {
+
+      const matched =
+        isPatternMatched(
+          candidate.numbers,
+          game.calledNumbers,
+          pattern
+        );
+
+
+      return {
+        card:
+          candidate,
+
+        matched,
+      };
+
     }
+  );
+
+
+/* =========================================
+   FIND ALL WINNING CARDS
+========================================= */
+
+const winningCards =
+  cardResults
+    .filter(
+      (result) =>
+        result.matched
+    )
+    .map(
+      (result) =>
+        result.card
+    );
+
+
+/*
+ * One winning card is enough.
+ */
+const card =
+  winningCards.length > 0
+    ? winningCards[0]
+    : null;
+
+
+/* =========================================
+   FALSE BINGO
+
+   Block ONLY when NONE
+   of the player's cards wins.
+========================================= */
+
+if (!card) {
+  const now =
+    new Date();
+
+  gamePlayer.bingoBlocked =
+    true;
+
+  gamePlayer.bingoClaimedAt =
+    now;
+
+  gamePlayer.blockedAt =
+    now;
+
+  gamePlayer.blockedReason =
+    "False Bingo";
+
+  gamePlayer.blockedCardIds =
+    assignedCardIds;
+
+  await gamePlayer.save({
+    session,
+  });
+
+  await session.commitTransaction();
+
+  return {
+    status: "BLOCKED",
+
+    message:
+      "False Bingo. Your Bingo button has been blocked for this game.",
+
+    blockedAt:
+      gamePlayer.blockedAt,
+
+    playerId,
+
+    gamePlayerId:
+      gamePlayer._id,
+
+    cardIds:
+      assignedCardIds,
+
+    cards:
+      cards.map(
+        (item) => ({
+          id:
+            item._id,
+
+          cardNumber:
+            item.cardNumber,
+
+          numbers:
+            item.numbers,
+        })
+      ),
+  };
+}
+
+/* =========================================
+   LOCK GAME FOR FIRST VALID BINGO
+========================================= */
+
+const winTime =
+  new Date();
+
+const claimedGame =
+  await Game.findOneAndUpdate(
+    {
+      _id: gameId,
+
+      // Game must still be running
+      status: "active",
+
+      // No previous completion
+      completedAt: null,
+    },
+    {
+      $set: {
+        status: "completed",
+
+        completedAt:
+          winTime,
+      },
+    },
+    {
+      new: true,
+
+      session,
+    }
+  );
+
+
+/*
+ * If null is returned,
+ * another player already
+ * completed/claimed the game.
+ */
+if (!claimedGame) {
+  await session.abortTransaction();
+
+  return {
+    status:
+      "GAME_FINISHED",
+
+    message:
+      "Another player already won this game.",
+  };
+}
 
     // 6. Prize
     const prizeAmount =
   Number(
-    game.prizeAmount ??
-    game.prizePool
+    claimedGame.prizeAmount ??
+    claimedGame.prizePool
   );
 
     if (
@@ -1124,8 +1426,11 @@ gamePlayer.winningPattern =
   );
 
 
+gamePlayer.bingoClaimedAt =
+  winTime;
+
 gamePlayer.wonAt =
-  new Date();
+  winTime;
 
 
 await gamePlayer.save({
@@ -1241,16 +1546,7 @@ await gamePlayer.save({
       );
     }
 
-    // 13. Complete game
-    game.status =
-      "completed";
 
-    game.completedAt =
-      new Date();
-
-    await game.save({
-      session,
-    });
 
     // 14. Winner transaction
     await Transaction.create(
@@ -1283,7 +1579,7 @@ await gamePlayer.save({
             gamePlayer._id,
 
           description:
-            `Bingo prize for ${game.name} - ${pattern}`,
+           `Prize for ${claimedGame.name} - ${pattern}`,
         },
       ],
       {
@@ -1301,26 +1597,29 @@ await gamePlayer.save({
     );
 
     await scheduleNextGame(
-      game
-    );
+  claimedGame
+);
 
     return {
-      game: {
-        id:
-          game._id,
+  status:
+    "WINNER",
 
-        name:
-          game.name,
+  game: {
+    id:
+      claimedGame._id,
 
-        status:
-          game.status,
+    name:
+      claimedGame.name,
 
-        prizePool:
-          game.prizePool,
+    status:
+      claimedGame.status,
 
-        completedAt:
-          game.completedAt,
-      },
+    prizePool:
+      claimedGame.prizePool,
+
+    completedAt:
+      claimedGame.completedAt,
+  },
 
       winner: {
         playerId,
@@ -1345,18 +1644,65 @@ await gamePlayer.save({
       },
     };
 
-  } catch (error) {
-    if (
-      session.inTransaction()
-    ) {
-      await session.abortTransaction();
-    }
+ } catch (error: any) {
 
-    throw error;
-
-  } finally {
-    await session.endSession();
+  if (
+    session.inTransaction()
+  ) {
+    await session.abortTransaction();
   }
+
+
+  /* =========================================
+     RETRY MONGODB WRITE CONFLICT
+  ========================================= */
+
+  if (
+    isRetryableTransactionError(
+      error
+    ) &&
+    retryAttempt < 5
+  ) {
+
+    console.warn(
+      `[BINGO] Write conflict. Retrying claim ${
+        retryAttempt + 1
+      }/5`
+    );
+
+
+    /*
+     * Short increasing delay:
+     *
+     * 50ms
+     * 100ms
+     * 150ms
+     * ...
+     */
+    await wait(
+      50 *
+        (
+          retryAttempt +
+          1
+        )
+    );
+
+
+    return claimBingo(
+      gameId,
+      playerId,
+      retryAttempt + 1
+    );
+  }
+
+
+  throw error;
+
+} finally {
+
+  await session.endSession();
+
+}
 };
 
 export const getCurrentGame = async () => {

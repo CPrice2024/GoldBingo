@@ -1,4 +1,8 @@
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import {
   ArrowDownToLine,
   Wallet,
@@ -15,28 +19,56 @@ import {
   getMyWithdrawals,
 } from "../../api/withdrawals.api";
 
-import { useLanguage } from "../../context/LanguageContext";
+import {
+  useLanguage,
+} from "../../context/LanguageContext";
 
-import api from "../../api/axios";
-import telebirrLogo from "../../assets/payment/telebirr.png";
-import cbeLogo from "../../assets/payment/cbe.png";
+import api
+  from "../../api/axios";
+
+import telebirrLogo
+  from "../../assets/payment/telebirr.png";
+
+import cbeLogo
+  from "../../assets/payment/cbe birr.png";
+
+
+/* =========================================
+   PAYMENT METHODS
+========================================= */
 
 const PAYMENT_METHOD_META = {
+
   telebirr: {
-    value: "telebirr",
-    label: "Telebirr",
-    descriptionKey: "withdraw.telebirrDescription",
-    icon: telebirrLogo,
+    value:
+      "telebirr",
+
+    label:
+      "Telebirr",
+
+    descriptionKey:
+      "withdraw.telebirrDescription",
+
+    icon:
+      telebirrLogo,
   },
+
 
   cbe: {
-    value: "cbe",
-    label: "CBE",
-    descriptionKey: "withdraw.cbeDescription",
-    icon: cbeLogo,
-  },
-};
+    value:
+      "cbe Birr",
 
+    label:
+      "CBE Birr",
+
+    descriptionKey:
+      "withdraw.cbeDescription",
+
+    icon:
+      cbeLogo,
+  },
+
+};
 export default function Withdraw() {
   const { t } = useLanguage();
   const [wallet, setWallet] = useState(null);
@@ -49,8 +81,6 @@ export default function Withdraw() {
   const MIN_WITHDRAWAL = 100;
 const MAX_WITHDRAWAL = 100000;
 
-  const [accountNumber, setAccountNumber] =
-    useState("");
 
   const [note, setNote] = useState("");
 
@@ -176,24 +206,20 @@ if (numericAmount > withdrawableWinningBalance) {
   return;
 }
 
-    if (!accountNumber.trim()) {
-      setError(
-       t("withdraw.accountRequired")
-      );
-      return;
-    }
-
     try {
       setSubmitting(true);
 
       const response =
-        await createWithdrawal({
-          amount: numericAmount,
-          paymentMethod,
-          accountNumber:
-            accountNumber.trim(),
-          note: note.trim() || undefined,
-        });
+  await createWithdrawal({
+    amount:
+      numericAmount,
+
+    paymentMethod,
+
+    note:
+      note.trim() ||
+      undefined,
+  });
 
       if (!response?.success) {
         throw new Error(
@@ -207,7 +233,6 @@ if (numericAmount > withdrawableWinningBalance) {
       );
 
       setAmount("");
-      setAccountNumber("");
       setNote("");
 
       await loadData();
@@ -435,29 +460,6 @@ if (numericAmount > withdrawableWinningBalance) {
   </div>
 </div>
 
-            {/* Account */}
-            <div className="form-group">
-              <label>
-                {t("withdraw.accountOrPhone")}{" "}
-                <span>*</span>
-              </label>
-
-              <input
-                type="text"
-                value={accountNumber}
-                onChange={(e) =>
-                  setAccountNumber(
-                    e.target.value
-                  )
-                }
-                placeholder={
-  paymentMethod === "cbe"
-   ? t("withdraw.enterCbeAccount")
-    : t("withdraw.enterTelebirrPhone")
-}
-                disabled={submitting}
-              />
-            </div>
 
             {/* Note */}
             <div className="form-group">
@@ -632,9 +634,12 @@ if (numericAmount > withdrawableWinningBalance) {
 </div>
 
                   <div className="withdrawal-main">
-                    <strong>
-                      {withdrawal.paymentMethod}
-                    </strong>
+                   <strong>
+  {PAYMENT_METHOD_META[
+    withdrawal.paymentMethod
+  ]?.label ||
+    withdrawal.paymentMethod}
+</strong>
 
                     <span>
                       {
