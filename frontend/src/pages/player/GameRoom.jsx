@@ -501,6 +501,50 @@ const calledNumbers =
   gameState?.calledNumbers ??
   game?.calledNumbers ??
   EMPTY_NUMBERS;
+
+  /* =========================================
+   AUTO COMPLETE / AUTO MARK
+========================================= */
+
+useEffect(() => {
+
+  // Manual marking ON:
+  // do not auto mark.
+  if (manualMarkingEnabled) {
+    return;
+  }
+
+  const autoMarkedNumbers =
+    calledNumbers
+      .map((number) =>
+        Number(number)
+      )
+      .filter((number) =>
+        Number.isFinite(number)
+      );
+
+ setMarkedNumbers(
+  (currentNumbers) => {
+
+    const same =
+      currentNumbers.length ===
+        autoMarkedNumbers.length &&
+      currentNumbers.every(
+        (number, index) =>
+          number ===
+          autoMarkedNumbers[index]
+      );
+
+    return same
+      ? currentNumbers
+      : autoMarkedNumbers;
+
+  }
+);
+}, [
+  calledNumbers,
+  manualMarkingEnabled,
+]);
 /* =========================================
    LIVE COUNTDOWN
 ========================================= */
@@ -1802,7 +1846,7 @@ const handleClaimBingo =
           .reverse()
           .slice(
             0,
-            15
+            8
           )
           .map(
             (
@@ -1875,9 +1919,9 @@ const handleClaimBingo =
 
   <section className="bingo-game-info">
     {/* CURRENT WINNING PATTERN */}
-      <div className="bingo-current-pattern">
+      <div className="bingo-info-stats">
 
-  <span className="bingo-current-pattern-label">
+  <span className="bingo-current-pattern-span">
     {t("game.gameType")}
   </span>
 
@@ -2296,7 +2340,9 @@ const handleClaimBingo =
 
 
           {/* ADD CARD */}
-
+<div 
+className="bingo-inline-card-grid"
+>
           {!previewCardsLoading &&
             selectedPreviewCards.length <
               10 && (
@@ -2326,7 +2372,7 @@ const handleClaimBingo =
 
             <button
               type="button"
-              className="bingo-inline-join-button"
+              className="bingo-inline-add-card"
               onClick={
                 handleJoinGame
               }
@@ -2340,26 +2386,20 @@ const handleClaimBingo =
                 ? t(
                     "game.joining"
                   )
-                : `Join with ${
+                : `Join ${
                     selectedPreviewCards.length
-                  } ${
-                    selectedPreviewCards.length ===
-                    1
-                      ? t(
-                          "game.card"
-                        )
-                      : t(
-                          "game.cards"
-                        )
+                  
                   }`}
 
             </button>
 
           )}
+          </div>
 
         </section>
 
       )}
+
 
 
 
@@ -2619,12 +2659,6 @@ const handleClaimBingo =
             <div className="bingo-inline-player-card-header">
 
               <div>
-
-                <span>
-                  {t("game.card")}
-                  {" "}
-                  {index + 1}
-                </span>
 
                 <strong>
                   {card.cardNumber}

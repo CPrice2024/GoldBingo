@@ -329,62 +329,7 @@ const handleManualMarkingToggle =
     </button>
 
   </div>
-  {/* Manual Card Marking */}
 
-<div className="profile-sound-setting profile-manual-marking-setting">
-
-  <div className="profile-sound-info">
-
-    <div className="profile-info-icon">
-
-      <MousePointerClick
-        size={20}
-      />
-
-    </div>
-
-    <div>
-
-      <strong>
-        Manual Card Marking
-      </strong>
-
-      <span>
-        {manualMarkingEnabled
-          ? "Click called numbers on your card."
-          : "Called numbers are marked automatically."}
-      </span>
-
-    </div>
-
-  </div>
-
-
-  <button
-    type="button"
-    className={`profile-sound-toggle ${
-      manualMarkingEnabled
-        ? "enabled"
-        : ""
-    }`}
-    onClick={
-      handleManualMarkingToggle
-    }
-    aria-pressed={
-      manualMarkingEnabled
-    }
-    aria-label={
-      manualMarkingEnabled
-        ? "Turn manual card marking off"
-        : "Turn manual card marking on"
-    }
-  >
-
-    <span className="profile-sound-toggle-knob" />
-
-  </button>
-
-</div>
   <div className="profile-theme-setting">
 
   <div className="profile-theme-info">

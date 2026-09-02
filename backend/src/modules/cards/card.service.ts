@@ -6,6 +6,9 @@ import {
   countCards,
   updateCardStatus,
 } from "./card.repository";
+import {
+  CardCounter,
+} from "./card-counter.model";
 
 import { CardStatus } from "./card.types";
 
@@ -195,45 +198,47 @@ export const createNewCard = async (
     numbers: data.numbers,
   });
 };
-/* =========================================================
-   RANDOM CARD NUMBER
-========================================================= */
 
-const generateRandomCardNumber =
-  async () => {
+/* =========================================
+   NEXT CARD NUMBER
+========================================= */
 
-    for (
-      let attempt = 0;
-      attempt < 10;
-      attempt++
-    ) {
+const getNextCardNumber =
+  async (): Promise<string> => {
 
-      const randomNumber =
-        Math.floor(
-          100000 +
-            Math.random() * 900000
-        );
-
-      const cardNumber =
-        `GB-${randomNumber}`;
-
-
-      const existingCard =
-        await findCardByNumber(
-          cardNumber
-        );
+    const counter =
+      await CardCounter.findOneAndUpdate(
+        {
+          name: "bingo_card",
+        },
+        {
+          $inc: {
+            sequence: 1,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+          setDefaultsOnInsert: true,
+        }
+      );
 
 
-      if (!existingCard) {
-        return cardNumber;
-      }
-
+    if (!counter) {
+      throw new Error(
+        "Failed to generate card number"
+      );
     }
 
 
-    return `GB-${Date.now()
-      .toString()
-      .slice(-6)}`;
+    const cardNumber =
+      9999 +
+      counter.sequence;
+
+
+    return String(
+      cardNumber
+    );
 
   };
 /**
@@ -242,12 +247,30 @@ const generateRandomCardNumber =
 export const generateNewCard =
   async () => {
 
-    const numbers =
-      generateBingoNumbers();
-
+    /*
+     * Get sequential visible
+     * card ID.
+     *
+     * First:
+     * 10000
+     *
+     * Next:
+     * 10001
+     * 10002
+     * ...
+     */
 
     const cardNumber =
-      await generateRandomCardNumber();
+      await getNextCardNumber();
+
+
+    /*
+     * Keep existing random
+     * Bingo number generation.
+     */
+
+    const numbers =
+      generateBingoNumbers();
 
 
     return createNewCard({

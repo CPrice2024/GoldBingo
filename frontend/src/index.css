@@ -65,8 +65,8 @@ a {
 }
 
 .player-logo {
-  width: 54px;
-  height: 54px;
+  width: 70px;
+  height: 70px;
 
   display: flex;
   align-items: center;
@@ -84,14 +84,14 @@ a {
       margin: 0;
     font-size: 23px;
     font-family: monospace;
-    color: #ffa200;
+    color: #000756;
     font-weight: 800;
 }
 
 .player-auth-brand p {
   margin: 7px 0 0;
 
-  color: #8b93a7;
+  color: #01164b;
   font-size: 14px;
 }
 
@@ -1906,7 +1906,7 @@ html[data-theme="day"]
   }
 
   .player-topbar h1 {
-    font-size: 13px;
+    font-size: 12px;
   }
 
   .player-topbar p {
@@ -1918,7 +1918,7 @@ html[data-theme="day"]
   }
 
   .player-content {
-    padding: 20px 15px;
+    padding: 2px 6px;
   }
 
   .dashboard-heading h2 {
@@ -6465,7 +6465,7 @@ html[data-theme="night"]
 }
 
 .notification-button svg {
-  width: 17px;
+  width: 20px;
   height: 20px;
 }
 
@@ -13074,18 +13074,7 @@ form > input:-webkit-autofill:focus {
 
   overflow: hidden;
 
-  background:
-    radial-gradient(
-      circle at 50% 42%,
-      rgba(212, 167, 44, 0.12),
-      transparent 32%
-    ),
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(35, 43, 58, 0.55),
-      transparent 60%
-    ),
-    #080a0f;
+  background:#ffffff;
 
   animation:
     goldLoaderFadeIn
@@ -13188,17 +13177,13 @@ form > input:-webkit-autofill:focus {
         0.2
       );
 
-  animation:
-    goldLogoPulse
-    1.7s
-    ease-in-out
-    infinite;
+
 }
 
 
 .gold-loader-logo img {
-  width: 66px;
-  height: 66px;
+  width: 80px;
+  height: 80px;
 
   object-fit: contain;
 }
@@ -13274,7 +13259,7 @@ form > input:-webkit-autofill:focus {
 ================================== */
 
 .gold-loader-brand {
-  color: #f8f8fb;
+  color: #334155;
 
   font-size: 18px;
 
@@ -13291,7 +13276,7 @@ form > input:-webkit-autofill:focus {
   margin-left: 7px;
   font-family: monospace;
 
-  color: #ffffff;
+  color: #334155;
 }
 
 
@@ -13299,7 +13284,7 @@ form > input:-webkit-autofill:focus {
   margin:
     10px 0 15px;
 
-  color: #fff0f0;
+  color: #334155;
   font-family: monospace;
 
   font-size: 12px;
@@ -14779,4 +14764,1998 @@ form > input:-webkit-autofill:focus {
 .forgot-secondary-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* =========================================
+   PROFILE REFRESH BUTTON
+========================================= */
+
+.player-profile-header-card {
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.player-profile-refresh {
+  min-width: 92px;
+  height: 38px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  border: 1px solid #d9dee7;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #4b5563;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.player-profile-refresh:hover {
+  border-color: #d4a72c;
+  color: #d4a72c;
+  background: #fffaf0;
+}
+
+.player-profile-refresh:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.player-profile-refresh-spin {
+  animation:
+    playerProfileRefreshSpin
+    0.8s linear infinite;
+}
+
+@keyframes playerProfileRefreshSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* NIGHT MODE */
+
+html[data-theme="night"]
+.player-profile-refresh {
+  background: #11151d;
+  border-color: #2a303c;
+  color: #d7dce5;
+}
+
+html[data-theme="night"]
+.player-profile-refresh:hover {
+  color: #d4a72c;
+  border-color: #d4a72c;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+  .player-profile-refresh {
+    min-width: 38px;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+  }
+
+  .player-profile-refresh span {
+    display: none;
+  }
+
+}
+
+/* =====================================================
+   GAME SETTINGS TOPBAR BUTTON
+===================================================== */
+
+.player-game-settings-trigger {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: transparent;
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.player-game-settings-trigger:hover,
+.player-game-settings-trigger.active {
+  background: rgba(
+    212,
+    167,
+    44,
+    0.12
+  );
+
+  color: #d4a72c;
+}
+
+.player-game-settings-trigger:active {
+  transform: scale(0.94);
+}
+
+
+/* =====================================================
+   SETTINGS BACKDROP
+===================================================== */
+
+.player-game-settings-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding:
+    20px;
+
+  background:
+    rgba(
+      0,
+      0,
+      0,
+      0.64
+    );
+
+  backdrop-filter:
+    blur(5px);
+}
+
+
+/* =====================================================
+   SETTINGS MODAL
+===================================================== */
+
+.player-game-settings-modal {
+  width: min(
+    520px,
+    100%
+  );
+
+  max-height:
+    min(
+      780px,
+      calc(100vh - 40px)
+    );
+
+  overflow-y: auto;
+
+  padding:
+    22px;
+
+  border:
+    1px solid
+    #32343a;
+
+  border-radius:
+    8px;
+
+  background:
+    #1b1b1c;
+
+  color:
+    #f5f5f5;
+
+  box-shadow:
+    0 24px 70px
+    rgba(
+      0,
+      0,
+      0,
+      0.48
+    );
+}
+
+
+/* HEADER */
+
+.player-game-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  margin-bottom:
+    22px;
+}
+
+.player-game-settings-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color:
+    #d4a72c;
+}
+
+.player-game-settings-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.player-game-settings-heading strong {
+  color:
+    #ffffff;
+
+  font-size:
+    16px;
+
+  font-weight:
+    600;
+}
+
+.player-game-settings-heading span {
+  color:
+    #888d97;
+
+  font-size:
+    11px;
+}
+
+.player-game-settings-close {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color:
+    #d7d7d7;
+
+  cursor: pointer;
+}
+
+.player-game-settings-close:hover {
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  color:
+    #ffffff;
+}
+
+
+/* =====================================================
+   SECTIONS
+===================================================== */
+
+.player-game-settings-section {
+  margin-bottom:
+    16px;
+
+  padding:
+    16px;
+
+  border:
+    1px solid
+    #313238;
+
+  border-radius:
+    16px;
+
+  background:
+    #1e1e1f;
+}
+
+.player-game-settings-section-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin-bottom:
+    14px;
+
+  color:
+    #d4a72c;
+}
+
+.player-game-settings-section-title > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.player-game-settings-section-title strong {
+  color:
+    #e7e7e7;
+
+  font-size:
+    14px;
+}
+
+.player-game-settings-section-title span {
+  color:
+    #7f8289;
+
+  font-size:
+    11px;
+}
+
+
+/* RESET */
+
+.player-game-settings-action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+
+  padding:
+    13px;
+
+  border-radius:
+    12px;
+
+  background:
+    #181819;
+}
+
+.player-game-settings-action-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-width: 0;
+
+  color:
+    #ef5350;
+}
+
+.player-game-settings-action-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.player-game-settings-action-info strong {
+  color:
+    #e7e7e7;
+
+  font-size:
+    13px;
+}
+
+.player-game-settings-action-info span {
+  color:
+    #797c84;
+
+  font-size:
+    10px;
+}
+
+.player-game-settings-reset {
+  min-width:
+    74px;
+
+  height:
+    38px;
+
+  border:
+    1px solid
+    rgba(
+      239,
+      68,
+      68,
+      0.48
+    );
+
+  border-radius:
+    10px;
+
+  background:
+    rgba(
+      239,
+      68,
+      68,
+      0.08
+    );
+
+  color:
+    #ef5350;
+
+  font-size:
+    13px;
+
+  font-weight:
+    800;
+
+  cursor: pointer;
+}
+
+.player-game-settings-reset:hover {
+  background:
+    rgba(
+      239,
+      68,
+      68,
+      0.16
+    );
+}
+
+
+/* =====================================================
+   SORT OPTIONS
+===================================================== */
+
+.player-game-sort-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.player-game-sort-option {
+  width: 100%;
+
+  min-height:
+    48px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding:
+    0 13px;
+
+  border:
+    1px solid
+    transparent;
+
+  border-radius:
+    10px;
+
+  background:
+    transparent;
+
+  color:
+    #cfd1d5;
+
+  text-align:
+    left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease;
+}
+
+.player-game-sort-option:hover {
+  background:
+    #252527;
+}
+
+.player-game-sort-option.selected {
+  border-color:
+    rgba(
+      212,
+      167,
+      44,
+      0.4
+    );
+
+  background:
+    rgba(
+      212,
+      167,
+      44,
+      0.1
+    );
+
+  color:
+    #f3d477;
+}
+
+.player-game-sort-radio {
+  width: 22px;
+  height: 22px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border:
+    2px solid
+    #565961;
+
+  border-radius:
+    50%;
+}
+
+.player-game-sort-option.selected
+.player-game-sort-radio {
+  border-color:
+    #d4a72c;
+
+  background:
+    #d4a72c;
+
+  color:
+    #111111;
+}
+
+.player-game-sort-label {
+  font-size:
+    14px;
+
+  font-weight:
+    600;
+}
+
+
+/* DONE */
+
+.player-game-settings-done {
+  width: 100%;
+
+  min-height:
+    46px;
+
+  border:
+    0;
+
+  border-radius:
+    12px;
+
+  background:
+    #d4a72c;
+
+  color:
+    #151515;
+
+  font-size:
+    14px;
+
+  font-weight:
+    900;
+
+  cursor: pointer;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 700px) {
+
+  .player-game-settings-backdrop {
+    align-items:
+      flex-end;
+
+    padding:
+      10px;
+  }
+
+
+  .player-game-settings-modal {
+    width: 100%;
+
+    max-height:
+      86vh;
+
+    padding:
+      18px 15px
+      calc(
+        18px +
+        env(
+          safe-area-inset-bottom
+        )
+      );
+
+    border-radius:
+      23px 23px
+      12px 12px;
+  }
+
+
+  .player-game-settings-heading strong {
+    font-size:
+      18px;
+  }
+
+
+  .player-game-settings-section {
+    padding:
+      13px;
+  }
+
+
+  .player-game-sort-option {
+    min-height:
+      46px;
+  }
+
+}
+/* =====================================================
+   GAME SETTINGS
+===================================================== */
+
+.player-game-settings-backdrop {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+
+  background: rgba(0, 0, 0, 0.72);
+
+  backdrop-filter: blur(4px);
+}
+
+
+.player-game-settings-modal {
+  width: min(520px, 100%);
+
+  max-height: 88vh;
+
+  overflow-y: auto;
+
+  padding: 24px;
+
+  border: 1px solid #313237;
+  border-radius: 8px;
+
+  background: #0808087d;
+  color: #ffffff;
+
+  box-shadow:
+    0 24px 70px
+    rgba(0, 0, 0, 0.55);
+}
+
+
+/* HEADER */
+
+.player-game-settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  margin-bottom: 28px;
+}
+
+
+.player-game-settings-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  color: #3981f1;
+}
+
+
+.player-game-settings-heading strong {
+  color: #f2f2f2;
+
+  font-size: 16px;
+  font-weight: 600;
+}
+
+
+.player-game-settings-close {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+
+  background: transparent;
+  color: #eeeeee;
+
+  cursor: pointer;
+}
+
+
+/* CARDS */
+
+.player-settings-card {
+  margin-bottom: 18px;
+
+  padding: 17px;
+
+  border: 1px solid #35363a;
+  border-radius: 8px;
+
+  background: #020202c7;
+}
+
+
+.player-settings-card-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-bottom: 10px;
+
+  color: #3981f1;
+}
+
+
+.player-settings-card-title strong {
+  color: #bebebe;
+
+  font-size: 15px;
+}
+
+
+/* ROW */
+
+.player-settings-row {
+  min-height: 74px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 15px;
+
+  padding: 10px 4px;
+}
+
+
+.player-settings-row + .player-settings-row {
+  border-top: 1px solid
+    rgba(255, 255, 255, 0.04);
+}
+
+
+.player-settings-row-left {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  color: #bbbbbb;
+}
+
+
+.player-settings-row-left strong {
+  color: #3d495e;
+
+  font-size: 15px;
+  font-weight: 600;
+}
+
+
+/* RESET */
+
+.settings-reset-icon {
+  color: #ef5350;
+}
+
+
+.player-settings-reset-btn {
+  min-width: 84px;
+  height: 35px;
+  border: 1px solid #8a3434;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef5350;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+
+/* SELECT MULTIPLE */
+
+.player-settings-checkbox {
+  width: 25px;
+  height: 25px;
+
+  border: 2px solid #b3b3b3;
+  border-radius: 3px;
+}
+
+
+.player-settings-select-btn {
+  min-width: 84px;
+  height: 42px;
+
+  border: 1px solid #3981f1;
+  border-radius: 11px;
+
+  background: rgba(57, 129, 241, 0.13);
+
+  color: #64a6ff;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+/* SELECT */
+
+.player-settings-select-wrap {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+
+  color: #c7c7c7;
+}
+
+
+.player-settings-select-wrap select {
+  min-width: 130px;
+  height: 40px;
+
+  padding:
+    0 32px
+    0 12px;
+
+  border: 0;
+
+  outline: 0;
+
+  appearance: none;
+
+  background: transparent;
+
+  color: #dedede;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+
+.player-settings-select-wrap svg {
+  position: absolute;
+
+  right: 8px;
+
+  pointer-events: none;
+}
+
+
+.player-settings-select-wrap option {
+  background: #242425;
+  color: #ffffff;
+}
+
+
+.player-grid-column-select select {
+  min-width: 65px;
+}
+
+
+/* TOGGLE */
+
+.player-settings-toggle {
+  position: relative;
+
+  width: 60px;
+  height: 30px;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 30px;
+
+  background: #44474c;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease;
+}
+
+
+.player-settings-toggle span {
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #d7d7d7;
+    transition: transform 0.2s ease;
+}
+
+
+.player-settings-toggle.active {
+  background: #367eb2;
+}
+
+
+.player-settings-toggle.active span {
+  transform:
+    translateX(24px);
+
+  background: #62b6f5;
+}
+
+
+/* COLOR */
+
+.player-settings-palette-icon {
+  width: 25px;
+
+  color: #aaa;
+
+  font-size: 26px;
+  line-height: 1;
+}
+
+
+.player-settings-color-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+
+.player-settings-color-preview {
+  width: 20px;
+  height: 20px;
+
+  flex-shrink: 0;
+
+  border: 2px solid
+    rgba(255, 255, 255, 0.65);
+
+  border-radius: 50%;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+  .player-game-settings-backdrop {
+    align-items: center;
+
+    padding: 14px;
+  }
+
+
+  .player-game-settings-modal {
+    width: 100%;
+
+    max-height: 85vh;
+
+    padding: 20px 16px;
+
+    border-radius: 8px;
+  }
+
+
+  .player-settings-card {
+    padding: 14px;
+  }
+
+
+  .player-settings-row-left strong {
+    font-size: 13px;
+  }
+
+
+  .player-settings-select-wrap select {
+    min-width: 115px;
+  }
+
+}
+
+/* =========================================================
+   GAME SETTINGS - DAY MODE
+========================================================= */
+
+html[data-theme="day"]
+.player-game-settings-backdrop {
+  background:
+    rgba(15, 23, 42, 0.38);
+
+  backdrop-filter:
+    blur(4px);
+}
+
+
+/* MODAL */
+
+html[data-theme="day"]
+.player-game-settings-modal {
+  background:
+    #ffffff8c;
+
+  border-color:
+    #e2e8f0;
+
+  color:
+    #0f172a;
+
+  box-shadow:
+    0 24px 70px
+    rgba(15, 23, 42, 0.18);
+}
+
+
+/* HEADER */
+
+html[data-theme="day"]
+.player-game-settings-heading {
+  color:
+    #2563eb;
+}
+
+
+html[data-theme="day"]
+.player-game-settings-heading strong {
+  color:
+    #0f172a;
+}
+
+
+html[data-theme="day"]
+.player-game-settings-close {
+  color:
+    #475569;
+}
+
+
+html[data-theme="day"]
+.player-game-settings-close:hover {
+  background:
+    #f1f5f9;
+
+  color:
+    #0f172a;
+}
+
+
+/* =========================================================
+   SETTINGS CARDS
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-card {
+  background:
+    #f8fafc;
+
+  border-color:
+    #e2e8f0;
+}
+
+
+html[data-theme="day"]
+.player-settings-card-title {
+  color:
+    #2563eb;
+}
+
+
+html[data-theme="day"]
+.player-settings-card-title strong {
+  color:
+    #475569;
+}
+
+
+/* ROW DIVIDER */
+
+html[data-theme="day"]
+.player-settings-row +
+.player-settings-row {
+  border-top:
+    1px solid
+    #e2e8f0;
+}
+
+
+/* ROW TEXT */
+
+html[data-theme="day"]
+.player-settings-row-left {
+  color:
+    #64748b;
+}
+
+
+html[data-theme="day"]
+.player-settings-row-left strong {
+  color:
+    #1e293b;
+}
+
+
+/* =========================================================
+   RESET BUTTON
+========================================================= */
+
+html[data-theme="day"]
+.settings-reset-icon {
+  color:
+    #ef4444;
+}
+
+
+html[data-theme="day"]
+.player-settings-reset-btn {
+  background:
+    #fff5f5;
+
+  border-color:
+    #fecaca;
+
+  color:
+    #dc2626;
+}
+
+
+html[data-theme="day"]
+.player-settings-reset-btn:hover {
+  background:
+    #fee2e2;
+
+  border-color:
+    #fca5a5;
+}
+
+
+/* =========================================================
+   SELECT MULTIPLE
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-checkbox {
+  background:
+    #ffffff;
+
+  border-color:
+    #94a3b8;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-btn {
+  background:
+    #eff6ff;
+
+  border-color:
+    #93c5fd;
+
+  color:
+    #2563eb;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-btn:hover {
+  background:
+    #dbeafe;
+}
+
+
+/* =========================================================
+   SELECT / DROPDOWN
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-select-wrap {
+  color:
+    #475569;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap select {
+  color:
+    #334155;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap svg {
+  color:
+    #64748b;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap option {
+  background:
+    #ffffff;
+
+  color:
+    #0f172a;
+}
+
+
+/* =========================================================
+   AUTO COMPLETE TOGGLE
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-toggle {
+  background:
+    #cbd5e1;
+}
+
+
+html[data-theme="day"]
+.player-settings-toggle span {
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 1px 4px
+    rgba(15, 23, 42, 0.22);
+}
+
+
+html[data-theme="day"]
+.player-settings-toggle.active {
+  background:
+    #2563eb;
+}
+
+
+html[data-theme="day"]
+.player-settings-toggle.active span {
+  background:
+    #ffffff;
+}
+
+
+/* =========================================================
+   SELECTION COLOR
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-palette-icon {
+  color:
+    #64748b;
+}
+
+
+html[data-theme="day"]
+.player-settings-color-preview {
+  border-color:
+    #cbd5e1;
+
+  box-shadow:
+    0 0 0 1px
+    rgba(15, 23, 42, 0.06);
+}
+
+
+/* =========================================================
+   GAME SETTINGS TOP BAR BUTTON
+========================================================= */
+
+html[data-theme="day"]
+.player-game-settings-trigger {
+  background:
+    #ffffff;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  color:
+    #475569;
+}
+
+
+html[data-theme="day"]
+.player-game-settings-trigger:hover,
+html[data-theme="day"]
+.player-game-settings-trigger.active {
+  background:
+    #fffaf0;
+
+  border-color:
+    rgba(
+      212,
+      167,
+      44,
+      0.45
+    );
+
+  color:
+    #b58000;
+}
+
+/* =========================================================
+   GAME SETTINGS DROPDOWN
+========================================================= */
+
+.player-settings-select-wrap {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+
+  min-width: 125px;
+}
+
+
+/* SELECT */
+
+.player-settings-select-wrap select {
+  width: 100%;
+  min-width: 125px;
+  height: 36px;
+
+  padding:
+    0 32px
+    0 12px;
+
+  border: 1px solid
+    #343942;
+
+  border-radius: 8px;
+
+  outline: none;
+
+  appearance: none;
+  -webkit-appearance: none;
+
+  background:
+    #25272b;
+
+  color:
+    #e5e7eb;
+
+  font-size: 12px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+/* HOVER */
+
+.player-settings-select-wrap
+select:hover {
+  background:
+    #2c2f34;
+
+  border-color:
+    #4b5563;
+}
+
+
+/* FOCUS */
+
+.player-settings-select-wrap
+select:focus {
+  border-color:
+    #3981f1;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      57,
+      129,
+      241,
+      0.12
+    );
+}
+
+
+/* CHEVRON */
+
+.player-settings-select-wrap
+svg {
+  position: absolute;
+
+  right: 10px;
+
+  color:
+    #9ca3af;
+
+  pointer-events: none;
+}
+
+
+/* OPTIONS */
+
+.player-settings-select-wrap
+select option {
+  background:
+    #25272b;
+
+  color:
+    #f3f4f6;
+
+  font-size: 13px;
+
+  padding: 10px;
+}
+
+
+/* GRID COLUMN SMALL SELECT */
+
+.player-grid-column-select {
+  min-width: 72px;
+}
+
+
+.player-grid-column-select
+select {
+  min-width: 72px;
+
+  text-align: center;
+
+  padding-left: 12px;
+}
+
+
+/* =========================================================
+   DAY MODE
+========================================================= */
+
+html[data-theme="day"]
+.player-settings-select-wrap
+select {
+  background:
+    #ffffff;
+
+  border-color:
+    #dbe2ea;
+
+  color:
+    #334155;
+
+  box-shadow:
+    0 1px 2px
+    rgba(
+      15,
+      23,
+      42,
+      0.03
+    );
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap
+select:hover {
+  background:
+    #f8fafc;
+
+  border-color:
+    #cbd5e1;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap
+select:focus {
+  background:
+    #ffffff;
+
+  border-color:
+    #3981f1;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      57,
+      129,
+      241,
+      0.12
+    );
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap
+svg {
+  color:
+    #64748b;
+}
+
+
+html[data-theme="day"]
+.player-settings-select-wrap
+select option {
+  background:
+    #ffffff;
+
+  color:
+    #1e293b;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .player-settings-select-wrap {
+    min-width:
+      112px;
+  }
+
+
+  .player-settings-select-wrap
+  select {
+    min-width:
+      112px;
+
+    height:
+      34px;
+
+    font-size:
+      11px;
+  }
+
+
+  .player-grid-column-select {
+    min-width:
+      65px;
+  }
+
+
+  .player-grid-column-select
+  select {
+    min-width:
+      65px;
+  }
+
+}
+/* =========================================================
+   CUSTOM GAME SETTINGS DROPDOWN
+========================================================= */
+
+.player-custom-select {
+  position: relative;
+
+  width: 155px;
+
+  flex-shrink: 0;
+
+  z-index: 50;
+}
+
+
+/* TRIGGER */
+
+.player-custom-select-trigger {
+  width: 100%;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 8px;
+
+  padding:
+    0 11px;
+
+  border:
+    1px solid
+    #3b414b;
+
+  border-radius:
+    8px;
+
+  background:
+    #27292e;
+
+  color:
+    #e5e7eb;
+
+  font-size:
+    12px;
+  font-weight:
+    600;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.player-custom-select-trigger:hover {
+  background:
+    #303238;
+
+  border-color:
+    #505662;
+}
+
+
+.player-custom-select-trigger.open {
+  border-color:
+    #3981f1;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(57, 129, 241, 0.12);
+}
+
+
+.player-custom-select-trigger svg {
+  flex-shrink: 0;
+
+  transition:
+    transform 0.2s ease;
+}
+
+
+.player-custom-select-trigger
+svg.open {
+  transform:
+    rotate(180deg);
+}
+
+
+/* =========================================================
+   DROPDOWN MENU
+========================================================= */
+
+.player-custom-select-menu {
+  position: absolute;
+
+  top:
+    calc(100% + 6px);
+
+  right: 0;
+
+  width: 190px;
+
+  max-height: 285px;
+
+  overflow-y: auto;
+
+  padding: 6px;
+
+  border:
+    1px solid
+    #393d46;
+
+  border-radius:
+    10px;
+
+  background:
+    #222429;
+
+  box-shadow:
+    0 14px 35px
+    rgba(0, 0, 0, 0.42);
+
+  z-index: 10000;
+}
+
+
+/* OPTIONS */
+
+.player-custom-select-option {
+  width: 100%;
+
+  min-height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  padding:
+    8px 10px;
+
+  border: 0;
+
+  border-radius:
+    7px;
+
+  background:
+    transparent;
+
+  color:
+    #d7d9de;
+
+  text-align:
+    left;
+
+  font-size:
+    12px;
+  font-weight:
+    600;
+
+  cursor: pointer;
+}
+
+
+.player-custom-select-option:hover {
+  background:
+    #30333a;
+
+  color:
+    #ffffff;
+}
+
+
+.player-custom-select-option.selected {
+  background:
+    rgba(
+      57,
+      129,
+      241,
+      0.16
+    );
+
+  color:
+    #69a7ff;
+}
+
+
+.player-custom-select-option.selected svg {
+  color:
+    #3981f1;
+}
+
+
+/* =========================================================
+   DAY THEME
+========================================================= */
+
+html[data-theme="day"]
+.player-custom-select-trigger {
+  background:
+    #ffffff;
+
+  border-color:
+    #d7dee8;
+
+  color:
+    #334155;
+}
+
+
+html[data-theme="day"]
+.player-custom-select-trigger:hover {
+  background:
+    #f8fafc;
+
+  border-color:
+    #b9c5d4;
+}
+
+
+html[data-theme="day"]
+.player-custom-select-trigger.open {
+  background:
+    #ffffff;
+
+  border-color:
+    #3981f1;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(57, 129, 241, 0.12);
+}
+
+
+html[data-theme="day"]
+.player-custom-select-menu {
+  background:
+    #ffffff;
+
+  border-color:
+    #dbe2ea;
+
+  box-shadow:
+    0 14px 35px
+    rgba(15, 23, 42, 0.16);
+}
+
+
+html[data-theme="day"]
+.player-custom-select-option {
+  color:
+    #334155;
+}
+
+
+html[data-theme="day"]
+.player-custom-select-option:hover {
+  background:
+    #f1f5f9;
+
+  color:
+    #0f172a;
+}
+
+
+html[data-theme="day"]
+.player-custom-select-option.selected {
+  background:
+    #eaf2ff;
+
+  color:
+    #2563eb;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  .player-custom-select {
+    width: 125px;
+  }
+
+
+  .player-custom-select-trigger {
+    height: 35px;
+
+    font-size: 11px;
+  }
+
+
+  .player-custom-select-menu {
+    width: 175px;
+
+    right: 0;
+  }
+
+
+  .player-custom-select-option {
+    min-height: 36px;
+
+    font-size: 11px;
+  }
+
+}
+/* =========================================================
+   GRID CUSTOM DROPDOWN
+========================================================= */
+
+.player-grid-custom-select {
+  width: 72px;
+}
+
+
+.player-grid-custom-menu {
+  width: 90px;
+}
+
+
+.player-grid-custom-select
+.player-custom-select-trigger {
+  justify-content:
+    space-between;
+}
+
+
+/* =========================================================
+   COLOR CUSTOM DROPDOWN
+========================================================= */
+
+.player-color-custom-select {
+  width: 120px;
+}
+
+
+.player-color-option-left {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+}
+
+
+.player-color-option-dot {
+  width: 13px;
+  height: 13px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.45
+    );
+}
+
+
+html[data-theme="day"]
+.player-color-option-dot {
+  border-color:
+    rgba(
+      15,
+      23,
+      42,
+      0.18
+    );
+}
+
+
+/* MOBILE */
+
+@media (max-width: 700px) {
+
+  .player-grid-custom-select {
+    width: 67px;
+  }
+
+
+  .player-color-custom-select {
+    width: 105px;
+  }
+
 }

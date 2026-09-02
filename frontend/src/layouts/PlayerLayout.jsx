@@ -25,6 +25,7 @@ import {
   FileText,
   Settings,
   ChevronRight,
+  RefreshCw,
   Volume2,
   VolumeX,
   Sun,
@@ -32,7 +33,7 @@ import {
 } from "lucide-react";
 import PlayerSidebarSlider from "../components/player/PlayerSidebarSlider";
 import { useLanguage } from "../context/LanguageContext";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/useAuth";
 import { useNotifications } from "../context/NotificationContext";
 import PlayerAvatar from "../components/PlayerAvatar";
@@ -47,10 +48,130 @@ const PlayerLayout = () => {
     t,
   } = useLanguage();
 
+  const navigate =
+  useNavigate();
+
   const { unreadCount } =
   useNotifications();
 
+/* =========================================
+   GAME SETTINGS
+========================================= */
 
+const [
+  gameSettingsOpen,
+  setGameSettingsOpen,
+] = useState(false);
+const [
+  sortDropdownOpen,
+  setSortDropdownOpen,
+] = useState(false);
+const [
+  gridDropdownOpen,
+  setGridDropdownOpen,
+] = useState(false);
+
+
+const [
+  colorDropdownOpen,
+  setColorDropdownOpen,
+] = useState(false);
+
+
+const [
+  cardSortMode,
+  setCardSortMode,
+] = useState(
+  () =>
+    localStorage.getItem(
+      "bingoCardSortMode"
+    ) || "off"
+);
+
+
+const [
+  gridColumns,
+  setGridColumns,
+] = useState(
+  () =>
+    Number(
+      localStorage.getItem(
+        "bingoGridColumns"
+      ) || 2
+    )
+);
+
+
+const [
+  autoComplete,
+  setAutoComplete,
+] = useState(
+  () =>
+    localStorage.getItem(
+      "bingoManualMarkingEnabled"
+    ) === "true"
+);
+
+
+const [
+  selectionColor,
+  setSelectionColor,
+] = useState(
+  () =>
+    localStorage.getItem(
+      "bingoSelectionColor"
+    ) || "green"
+);
+
+
+const GAME_SORT_OPTIONS = [
+  {
+    id: "off",
+    label: "Off",
+  },
+  {
+    id: "lines",
+    label: "By Lines",
+  },
+  {
+    id: "most_called",
+    label: "By Most Called",
+  },
+  {
+    id: "squares",
+    label: "By Squares",
+  },
+  {
+    id: "rectangles",
+    label:
+      "By Rectangles",
+  },
+  {
+    id: "cross",
+    label: "By + Cross",
+  },
+  {
+    id: "t_shape",
+    label: "By T-shape",
+  },
+  {
+    id: "x_shape",
+    label: "By X-shape",
+  },
+  {
+    id: "four_corners",
+    label: "By 4 Corners",
+  },
+];
+
+
+const SELECTION_COLORS = {
+  green: "#43c765",
+  blue: "#3981f1",
+  gold: "#d4a72c",
+  red: "#ef4444",
+  pink: "#ec4899",
+};
 
   const [
   profileDrawerOpen,
@@ -198,6 +319,182 @@ const loadWallet =
 
   };
 
+  const handleProfileRefresh =
+  async () => {
+
+    await loadWallet();
+
+    setProfileDrawerOpen(
+      false
+    );
+
+    navigate(
+      "/player/play"
+    );
+
+  };
+/* =========================================
+   GAME SETTINGS HANDLERS
+========================================= */
+
+const handleCardSortModeChange =
+  (mode) => {
+
+    setCardSortMode(
+      mode
+    );
+
+
+    localStorage.setItem(
+      "bingoCardSortMode",
+      mode
+    );
+
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "bingoCardSortChanged",
+        {
+          detail: {
+            mode,
+          },
+        }
+      )
+    );
+
+  };
+
+
+const handleResetMarkedNumbers =
+  () => {
+
+    window.dispatchEvent(
+      new Event(
+        "bingoResetMarkedNumbers"
+      )
+    );
+
+  };
+
+const handleSelectMultipleCards =
+  () => {
+
+    setGameSettingsOpen(
+      false
+    );
+
+
+    window.dispatchEvent(
+      new Event(
+        "bingoOpenMultiCardSelect"
+      )
+    );
+
+  };
+
+
+const handleGridColumnsChange =
+  (columns) => {
+
+    const value =
+      Number(columns);
+
+
+    setGridColumns(
+      value
+    );
+
+
+    localStorage.setItem(
+      "bingoGridColumns",
+      String(value)
+    );
+
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "bingoGridColumnsChanged",
+        {
+          detail: {
+            columns:
+              value,
+          },
+        }
+      )
+    );
+
+  };
+
+
+const handleAutoCompleteToggle =
+  () => {
+
+    const next =
+      !autoComplete;
+
+
+    setAutoComplete(
+      next
+    );
+
+
+    /*
+     * Auto Complete ON
+     * means manual marking OFF.
+     */
+
+    localStorage.setItem(
+      "bingoManualMarkingEnabled",
+      String(!next)
+    );
+
+
+    window.dispatchEvent(
+      new Event(
+        "bingoManualMarkingChanged"
+      )
+    );
+
+  };
+
+
+const handleSelectionColorChange =
+  (color) => {
+
+    setSelectionColor(
+      color
+    );
+
+
+    localStorage.setItem(
+      "bingoSelectionColor",
+      color
+    );
+
+
+    document.documentElement
+      .style
+      .setProperty(
+        "--bingo-selection-color",
+        SELECTION_COLORS[
+          color
+        ] ||
+          SELECTION_COLORS.green
+      );
+
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "bingoSelectionColorChanged",
+        {
+          detail: {
+            color,
+          },
+        }
+      )
+    );
+
+  };
   /* =========================================
    REFRESH WALLET WHEN DRAWER OPENS
 ========================================= */
@@ -225,6 +522,23 @@ useEffect(() => {
 
 }, [
   user?._id,
+]);
+
+
+useEffect(() => {
+
+  document.documentElement
+    .style
+    .setProperty(
+      "--bingo-selection-color",
+      SELECTION_COLORS[
+        selectionColor
+      ] ||
+        SELECTION_COLORS.green
+    );
+
+}, [
+  selectionColor,
 ]);
 
 /* =========================================
@@ -541,19 +855,26 @@ const formatMoney =
   )}
 </NavLink>
 
-            <button
+          <button
   type="button"
-  className="player-user"
+  className={`player-game-settings-trigger ${
+    gameSettingsOpen
+      ? "active"
+      : ""
+  }`}
   onClick={() =>
-    setProfileDrawerOpen(
+    setGameSettingsOpen(
       true
     )
   }
+  title="Game Settings"
+  aria-label="Game Settings"
 >
-  <PlayerAvatar
-    avatarId={1}
-    size={37}
+
+  <Settings
+    size={24}
   />
+
 </button>
             <div className="player-mobile-header">
 
@@ -579,6 +900,596 @@ const formatMoney =
         <main className="player-content">
   <Outlet />
 </main>
+{/* =====================================
+    GAME SETTINGS MINI PAGE
+===================================== */}
+
+{gameSettingsOpen && (
+
+  <div
+    className="player-game-settings-backdrop"
+    onClick={() =>
+      setGameSettingsOpen(
+        false
+      )
+    }
+  >
+
+    <section
+      className="player-game-settings-modal"
+      onClick={(event) =>
+        event.stopPropagation()
+      }
+    >
+
+      {/* HEADER */}
+
+      <div className="player-game-settings-header">
+
+        <div className="player-game-settings-heading">
+
+          <Settings
+            size={26}
+          />
+
+          <strong>
+            Game Settings
+          </strong>
+
+        </div>
+
+
+        <button
+          type="button"
+          className="player-game-settings-close"
+          onClick={() =>
+            setGameSettingsOpen(
+              false
+            )
+          }
+        >
+
+          <X
+            size={26}
+          />
+
+        </button>
+
+      </div>
+
+
+      {/* =============================
+          ACTIONS
+      ============================== */}
+
+      <section className="player-settings-card">
+
+        <div className="player-settings-card-title">
+
+          <Settings
+            size={19}
+          />
+
+          <strong>
+            Actions
+          </strong>
+
+        </div>
+
+
+        {/* RESET */}
+
+        <div className="player-settings-row">
+
+          <div className="player-settings-row-left">
+
+            <RefreshCw
+              size={22}
+              className="settings-reset-icon"
+            />
+
+            <strong>
+              Reset/Clear Marked Numbers
+            </strong>
+
+          </div>
+
+
+          <button
+            type="button"
+            className="player-settings-reset-btn"
+            onClick={
+              handleResetMarkedNumbers
+            }
+          >
+            Reset
+          </button>
+
+        </div>
+
+      </section>
+
+
+      {/* =============================
+          SETTINGS
+      ============================== */}
+
+      <section className="player-settings-card">
+
+        <div className="player-settings-card-title">
+
+          <Settings
+            size={19}
+          />
+
+          <strong>
+            Settings
+          </strong>
+
+        </div>
+
+
+        {/* SORT */}
+
+        <div className="player-settings-row">
+
+          <div className="player-settings-row-left">
+
+            <ReceiptText
+              size={21}
+            />
+
+            <strong>
+              Sort Cards
+            </strong>
+
+          </div>
+
+
+          <div className="player-custom-select">
+
+  <button
+    type="button"
+    className={`player-custom-select-trigger ${
+      sortDropdownOpen
+        ? "open"
+        : ""
+    }`}
+    onClick={() =>
+      setSortDropdownOpen(
+        (current) =>
+          !current
+      )
+    }
+  >
+
+    <span>
+      {
+        GAME_SORT_OPTIONS.find(
+          (option) =>
+            option.id ===
+            cardSortMode
+        )?.label || "Off"
+      }
+    </span>
+
+
+    <ChevronDown
+      size={16}
+      className={
+        sortDropdownOpen
+          ? "open"
+          : ""
+      }
+    />
+
+  </button>
+
+
+  {sortDropdownOpen && (
+
+    <div className="player-custom-select-menu">
+
+      {GAME_SORT_OPTIONS.map(
+        (option) => {
+
+          const selected =
+            option.id ===
+            cardSortMode;
+
+
+          return (
+
+            <button
+              key={
+                option.id
+              }
+              type="button"
+              className={`player-custom-select-option ${
+                selected
+                  ? "selected"
+                  : ""
+              }`}
+              onClick={() => {
+
+                handleCardSortModeChange(
+                  option.id
+                );
+
+                setSortDropdownOpen(
+                  false
+                );
+
+              }}
+            >
+
+              <span>
+                {option.label}
+              </span>
+
+
+              {selected && (
+
+                <Check
+                  size={15}
+                />
+
+              )}
+
+            </button>
+
+          );
+
+        }
+      )}
+
+    </div>
+
+  )}
+
+</div>
+
+        </div>
+
+
+   {/* GRID COLUMNS */}
+
+<div className="player-settings-row">
+
+  <div className="player-settings-row-left">
+
+    <Gamepad2
+      size={21}
+    />
+
+    <strong>
+      Grid Columns
+    </strong>
+
+  </div>
+
+
+  <div className="player-custom-select player-grid-custom-select">
+
+    <button
+      type="button"
+      className={`player-custom-select-trigger ${
+        gridDropdownOpen
+          ? "open"
+          : ""
+      }`}
+      onClick={() => {
+
+        setGridDropdownOpen(
+          (current) =>
+            !current
+        );
+
+        setSortDropdownOpen(
+          false
+        );
+
+        setColorDropdownOpen(
+          false
+        );
+
+      }}
+    >
+
+      <span>
+        {gridColumns}
+      </span>
+
+
+      <ChevronDown
+        size={16}
+        className={
+          gridDropdownOpen
+            ? "open"
+            : ""
+        }
+      />
+
+    </button>
+
+
+    {gridDropdownOpen && (
+
+      <div className="player-custom-select-menu player-grid-custom-menu">
+
+        {[1, 2, 3].map(
+          (columns) => {
+
+            const selected =
+              Number(
+                gridColumns
+              ) === columns;
+
+
+            return (
+
+              <button
+                key={
+                  columns
+                }
+                type="button"
+                className={`player-custom-select-option ${
+                  selected
+                    ? "selected"
+                    : ""
+                }`}
+                onClick={() => {
+
+                  handleGridColumnsChange(
+                    columns
+                  );
+
+                  setGridDropdownOpen(
+                    false
+                  );
+
+                }}
+              >
+
+                <span>
+                  {columns}
+                </span>
+
+
+                {selected && (
+
+                  <Check
+                    size={15}
+                  />
+
+                )}
+
+              </button>
+
+            );
+
+          }
+        )}
+
+      </div>
+
+    )}
+
+  </div>
+
+</div>
+
+
+        {/* AUTO COMPLETE */}
+
+        <div className="player-settings-row">
+
+          <div className="player-settings-row-left">
+
+            <Settings
+              size={21}
+            />
+
+            <strong>
+              Auto Complete
+            </strong>
+
+          </div>
+
+
+          <button
+            type="button"
+            className={`player-settings-toggle ${
+              autoComplete
+                ? "active"
+                : ""
+            }`}
+            onClick={
+              handleAutoCompleteToggle
+            }
+            aria-pressed={
+              autoComplete
+            }
+          >
+
+            <span />
+
+          </button>
+
+        </div>
+
+
+       {/* SELECTION COLOR */}
+
+<div className="player-settings-row">
+
+  <div className="player-settings-row-left">
+
+    <span className="player-settings-palette-icon">
+      ●
+    </span>
+
+    <strong>
+      Selection Color
+    </strong>
+
+  </div>
+
+
+  <div className="player-settings-color-control">
+
+    <span
+      className="player-settings-color-preview"
+      style={{
+        background:
+          SELECTION_COLORS[
+            selectionColor
+          ],
+      }}
+    />
+
+
+    <div className="player-custom-select player-color-custom-select">
+
+      <button
+        type="button"
+        className={`player-custom-select-trigger ${
+          colorDropdownOpen
+            ? "open"
+            : ""
+        }`}
+        onClick={() => {
+
+          setColorDropdownOpen(
+            (current) =>
+              !current
+          );
+
+          setSortDropdownOpen(
+            false
+          );
+
+          setGridDropdownOpen(
+            false
+          );
+
+        }}
+      >
+
+        <span>
+          {selectionColor
+            .charAt(0)
+            .toUpperCase() +
+            selectionColor.slice(1)}
+        </span>
+
+
+        <ChevronDown
+          size={16}
+          className={
+            colorDropdownOpen
+              ? "open"
+              : ""
+          }
+        />
+
+      </button>
+
+
+      {colorDropdownOpen && (
+
+        <div className="player-custom-select-menu">
+
+          {Object.entries(
+            SELECTION_COLORS
+          ).map(
+            ([
+              colorName,
+              colorValue,
+            ]) => {
+
+              const selected =
+                selectionColor ===
+                colorName;
+
+
+              return (
+
+                <button
+                  key={
+                    colorName
+                  }
+                  type="button"
+                  className={`player-custom-select-option player-color-option ${
+                    selected
+                      ? "selected"
+                      : ""
+                  }`}
+                  onClick={() => {
+
+                    handleSelectionColorChange(
+                      colorName
+                    );
+
+                    setColorDropdownOpen(
+                      false
+                    );
+
+                  }}
+                >
+
+                  <span className="player-color-option-left">
+
+                    <span
+                      className="player-color-option-dot"
+                      style={{
+                        background:
+                          colorValue,
+                      }}
+                    />
+
+                    <span>
+                      {colorName
+                        .charAt(0)
+                        .toUpperCase() +
+                        colorName.slice(1)}
+                    </span>
+
+                  </span>
+
+
+                  {selected && (
+
+                    <Check
+                      size={15}
+                    />
+
+                  )}
+
+                </button>
+
+              );
+
+            }
+          )}
+
+        </div>
+
+      )}
+
+    </div>
+
+  </div>
+
+</div>
+
+      </section>
+
+    </section>
+
+  </div>
+
+)}
 
 </div>
 
@@ -641,57 +1552,87 @@ const formatMoney =
 
     <section className="player-profile-menu-card player-profile-header-card">
 
-      <div className="player-profile-card-title">
+  <div className="player-profile-card-title">
 
-        <User size={23} />
+    <User size={23} />
 
-        <strong>
-          Profile
-        </strong>
+    <strong>
+      Profile
+    </strong>
 
-      </div>
-
-    </section>
+  </div>
 
 
-    {/* ACCOUNT */}
+<button
+  type="button"
+  className="player-profile-refresh"
+  onClick={
+    handleProfileRefresh
+  }
+  disabled={
+    walletLoading
+  }
+  title="Refresh and go to game"
+>
 
-    <section className="player-profile-menu-card">
+    <RefreshCw
+      size={18}
+      className={
+        walletLoading
+          ? "player-profile-refresh-spin"
+          : ""
+      }
+    />
 
-      <div className="player-profile-section-title">
+    <span>
+      {walletLoading
+        ? "Refreshing..."
+        : "Refresh"}
+    </span>
 
-        <User size={19} />
+  </button>
 
-        <span>
-          Account
-        </span>
-
-      </div>
+</section>
 
 
-      <NavLink
-        to="/player/profile"
-        className="player-profile-detail-row"
-        onClick={() =>
-          setProfileDrawerOpen(
-            false
-          )
-        }
-      >
+ {/* ACCOUNT */}
 
-        <span>
-          Phone:
-        </span>
+<section className="player-profile-menu-card">
 
-        <strong>
-          {user?.phone ||
-            user?.phoneNumber ||
-            "-"}
-        </strong>
+  <div className="player-profile-section-title">
 
-      </NavLink>
+    <User size={19} />
 
-    </section>
+    <span>
+      Account
+    </span>
+
+  </div>
+
+
+  <NavLink
+    to="/player/profile"
+    className="player-profile-detail-row"
+    onClick={() =>
+      setProfileDrawerOpen(
+        false
+      )
+    }
+  >
+
+    <span>
+      Phone:
+    </span>
+
+    <strong>
+      {user?.phone ||
+        user?.phoneNumber ||
+        "-"}
+    </strong>
+
+  </NavLink>
+
+</section>
 
     {/* =====================================
     BALANCE
@@ -943,7 +1884,7 @@ const formatMoney =
 
     {/* SETTINGS */}
 
-
+ <section className="player-profile-menu-card">
       <div className="player-profile-section-title">
 
         <Settings size={20} />
@@ -953,6 +1894,7 @@ const formatMoney =
         </span>
 
       </div>
+      
 
 
       {/* THEME */}
@@ -1252,7 +2194,7 @@ const formatMoney =
   </div>
 
 </div>
-
+</section>
 
     {/* CONTACT */}
 

@@ -12,12 +12,154 @@ function BingoCard({
 }) {
 
   /*
-   * Normalize values because API values
-   * may sometimes arrive as strings.
+   * =========================================
+   * NORMALIZE CARD ORIENTATION
+   * =========================================
    *
-   * Example:
-   * "25" becomes 25
+   * Some cards are stored as:
+   *
+   * [
+   *   [B,B,B,B,B],
+   *   [I,I,I,I,I],
+   *   [N,N,N,N,N],
+   *   [G,G,G,G,G],
+   *   [O,O,O,O,O],
+   * ]
+   *
+   * We convert them for display to:
+   *
+   * [
+   *   [B,I,N,G,O],
+   *   [B,I,N,G,O],
+   *   ...
+   * ]
    */
+
+  const displayNumbers = (() => {
+
+    if (
+      !Array.isArray(numbers) ||
+      numbers.length !== 5 ||
+      !numbers.every(
+        (row) =>
+          Array.isArray(row) &&
+          row.length === 5
+      )
+    ) {
+      return numbers;
+    }
+
+
+    const ranges = [
+      [1, 15],
+      [16, 30],
+      [31, 45],
+      [46, 60],
+      [61, 75],
+    ];
+
+
+    /*
+     * Detect whether outer arrays
+     * represent B / I / N / G / O.
+     */
+
+    const columnOriented =
+      numbers.every(
+        (
+          group,
+          groupIndex
+        ) => {
+
+          const [
+            min,
+            max,
+          ] = ranges[
+            groupIndex
+          ];
+
+
+          return group.every(
+            (
+              value,
+              valueIndex
+            ) => {
+
+              const numericValue =
+                Number(value);
+
+
+              /*
+               * FREE CENTER
+               */
+
+              if (
+                groupIndex === 2 &&
+                valueIndex === 2 &&
+                numericValue === 0
+              ) {
+                return true;
+              }
+
+
+              return (
+                numericValue >= min &&
+                numericValue <= max
+              );
+
+            }
+          );
+
+        }
+      );
+
+
+    /*
+     * Already in correct display format.
+     */
+
+    if (!columnOriented) {
+      return numbers;
+    }
+
+
+    /*
+     * TRANSPOSE CARD
+     */
+
+    return Array.from(
+      {
+        length: 5,
+      },
+      (
+        _,
+        rowIndex
+      ) =>
+        Array.from(
+          {
+            length: 5,
+          },
+          (
+            _,
+            columnIndex
+          ) =>
+            numbers[
+              columnIndex
+            ][
+              rowIndex
+            ]
+        )
+    );
+
+  })();
+
+
+  /*
+   * =========================================
+   * NORMALIZE CALLED NUMBERS
+   * =========================================
+   */
+
   const normalizedCalledNumbers =
     calledNumbers.map(
       (number) =>
@@ -31,6 +173,12 @@ function BingoCard({
         Number(number)
     );
 
+
+  /*
+   * =========================================
+   * SERVER CALLED
+   * =========================================
+   */
 
   const isServerCalled = (
     number
@@ -50,8 +198,15 @@ function BingoCard({
     return normalizedCalledNumbers.includes(
       numericNumber
     );
+
   };
 
+
+  /*
+   * =========================================
+   * MARKED
+   * =========================================
+   */
 
   const isMarked = (
     number
@@ -70,30 +225,35 @@ function BingoCard({
 
     /*
      * MANUAL MODE
-     *
-     * Only player-clicked numbers
-     * become marked.
      */
+
     if (
       manualMarkingEnabled
     ) {
+
       return normalizedMarkedNumbers.includes(
         numericNumber
       );
+
     }
 
 
     /*
      * AUTO MODE
-     *
-     * Every called number
-     * becomes marked automatically.
      */
+
     return isServerCalled(
       numericNumber
     );
+
   };
 
+
+  /*
+   * =========================================
+   * CELL CLICK
+   * =========================================
+   */
 
   const handleCellClick = (
     number,
@@ -101,13 +261,7 @@ function BingoCard({
   ) => {
 
     if (
-      freeSpace
-    ) {
-      return;
-    }
-
-
-    if (
+      freeSpace ||
       !manualMarkingEnabled
     ) {
       return;
@@ -118,16 +272,15 @@ function BingoCard({
       Number(number);
 
 
-  
-
-
     onNumberClick?.(
       numericNumber
     );
+
   };
 
 
   return (
+
     <div className="bingo-card-wrapper">
 
       {/* B I N G O */}
@@ -142,20 +295,25 @@ function BingoCard({
           "O",
         ].map(
           (letter) => (
+
             <div
               key={letter}
               className="bingo-column"
             >
               {letter}
             </div>
+
           )
         )}
+
       </div>
+
+
       {/* CARD */}
 
       <div className="bingo-grid">
 
-        {numbers.map(
+        {displayNumbers.map(
           (
             row,
             rowIndex
@@ -168,12 +326,15 @@ function BingoCard({
               ) => {
 
                 const numericNumber =
-                  Number(number);
+                  Number(
+                    number
+                  );
 
 
                 const freeSpace =
                   rowIndex === 2 &&
                   columnIndex === 2;
+
 
                 const marked =
                   freeSpace ||
@@ -182,9 +343,9 @@ function BingoCard({
                   );
 
 
-               const availableToMark =
-  !freeSpace &&
-  manualMarkingEnabled;
+                const availableToMark =
+                  !freeSpace &&
+                  manualMarkingEnabled;
 
 
                 return (
@@ -203,15 +364,6 @@ function BingoCard({
                       )
                     }
 
-                    /*
-                     * IMPORTANT:
-                     *
-                     * Do NOT disable normal cells.
-                     *
-                     * The click handler decides
-                     * whether the number can
-                     * actually be marked.
-                     */
                     disabled={
                       freeSpace
                     }
@@ -240,7 +392,9 @@ function BingoCard({
                         ? "manual-mode"
                         : "auto-mode",
                     ]
-                      .filter(Boolean)
+                      .filter(
+                        Boolean
+                      )
                       .join(" ")}
                   >
 
@@ -260,6 +414,7 @@ function BingoCard({
                   </button>
 
                 );
+
               }
             )
         )}
@@ -267,7 +422,9 @@ function BingoCard({
       </div>
 
     </div>
+
   );
+
 }
 
 

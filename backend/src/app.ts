@@ -20,6 +20,7 @@ import notificationRoutes from "./modules/notifications/notification.routes";
 import profileRoutes from "./modules/profile/profile.routes";
 import promotionRoutes from "./modules/promotions/promotion.routes";
 import otpRoutes from "./otp/otp.routes";
+import paymentSmsRoutes from "./modules/paymentSms/paymentSms.routes";
 
 const app = express();
 
@@ -91,6 +92,8 @@ app.get("/", (_req, res) => {
 ========================= */
 
 app.use("/api/v1/otp", otpRoutes);
+
+app.use("/api/v1/payment-sms", paymentSmsRoutes);
 
 /* =========================
    AUTH
