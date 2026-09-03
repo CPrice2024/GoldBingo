@@ -2072,21 +2072,6 @@ const handleClaimBingo =
 {!cardFocusMode && (
       <section className="bingo-board-card">
 
-        <div className="bingo-board-title">
-          <strong>
-            BINGO
-          </strong>
-
-          <span>
-  {calledNumbers.length === 0
-    ? t("game.waiting")
-    : `${calledNumbers.length} ${t(
-        "game.numbersCalled"
-      )}`}
-</span>
-        </div>
-
-
         <div className="bingo-board">
 
           {bingoRows.map(
