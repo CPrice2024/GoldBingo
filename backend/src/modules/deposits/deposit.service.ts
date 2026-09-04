@@ -8,6 +8,9 @@ import {
   AppSettings,
 } from "../settings/appSettings.model";
 import {
+  PaymentSms,
+} from "../paymentSms/paymentSms.model";
+import {
   createDeposit,
   findPlayerDeposits,
   findAgentPendingDeposits,
@@ -29,6 +32,54 @@ interface CreateDepositInput {
   reference?: string;
   note?: string;
 }
+
+/* =========================================
+   PAYMENT SMS MATCH WINDOW
+========================================= */
+
+const PAYMENT_SMS_MATCH_WINDOW_MS =
+  24 * 60 * 60 * 1000;
+
+
+/* =========================================
+   AUTO APPROVAL SWITCH
+========================================= */
+
+const isAutoApprovalEnabled = () =>
+  String(
+    process.env.PAYMENT_SMS_AUTO_APPROVE ??
+      "false"
+  )
+    .trim()
+    .toLowerCase() === "true";
+
+
+/* =========================================
+   EXTRACT RECEIVED SMS AMOUNT
+========================================= */
+
+const extractReceivedSmsAmount = (
+  text: string
+): number | null => {
+
+  const match =
+    String(text || "").match(
+      /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const value =
+    Number(
+      match[1].replace(/,/g, "")
+    );
+
+  return Number.isFinite(value)
+    ? value
+    : null;
+};
 export const submitDeposit = async (
   playerId: string,
   data: CreateDepositInput
@@ -200,6 +251,118 @@ const deposit = await createDeposit({
 
     note: data.note,
   });
+
+  /* =========================================
+   MATCH SMS THAT ARRIVED BEFORE DEPOSIT
+========================================= */
+
+if (
+  reference &&
+  (
+    data.paymentMethod === "telebirr" ||
+    data.paymentMethod === "cbe"
+  )
+) {
+
+  const since =
+    new Date(
+      Date.now() -
+        PAYMENT_SMS_MATCH_WINDOW_MS
+    );
+
+  const previousSms =
+    await PaymentSms.findOne({
+      agentId:
+        agent._id,
+
+      reference,
+
+      paymentMethod:
+        data.paymentMethod,
+
+      status:
+        "ignored",
+
+      createdAt: {
+        $gte: since,
+      },
+    }).sort({
+      createdAt: -1,
+    });
+
+
+  if (previousSms) {
+
+    const storedSmsAmount =
+      Number(
+        previousSms.amount
+      );
+
+    const parsedSmsAmount =
+      extractReceivedSmsAmount(
+        previousSms.text || ""
+      );
+
+    const smsAmount =
+      Number.isFinite(
+        storedSmsAmount
+      )
+        ? storedSmsAmount
+        : parsedSmsAmount;
+
+
+    const amountMatches =
+      smsAmount !== null &&
+      Number.isFinite(
+        Number(smsAmount)
+      ) &&
+      Math.abs(
+        Number(smsAmount) -
+          Number(data.amount)
+      ) < 0.01;
+
+
+    if (amountMatches) {
+
+      previousSms.status =
+        "matched";
+
+      previousSms.amount =
+        Number(data.amount);
+
+      previousSms.depositId =
+        deposit._id;
+
+      previousSms.error =
+        undefined;
+
+      await previousSms.save();
+
+
+      /* =====================================
+         AUTOMATIC APPROVAL
+      ===================================== */
+
+      if (
+        isAutoApprovalEnabled()
+      ) {
+
+        const approval =
+          await approveDeposit(
+            deposit._id.toString(),
+            agent._id.toString()
+          );
+
+        previousSms.status =
+          "approved";
+
+        await previousSms.save();
+
+        return approval.deposit;
+      }
+    }
+  }
+}
 
   // ------------------------------------------
   // NOTIFY AGENT

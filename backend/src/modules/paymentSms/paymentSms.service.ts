@@ -200,6 +200,30 @@ const extractAmounts = (
 
 };
 
+/* =========================================
+   EXTRACT RECEIVED PAYMENT AMOUNT
+========================================= */
+
+const extractReceivedAmount = (
+  text: string
+): number | null => {
+
+  const match = text.match(
+    /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const amount = Number(
+    match[1].replace(/,/g, "")
+  );
+
+  return Number.isFinite(amount)
+    ? amount
+    : null;
+};
 
 /* =========================================
    SMS FINGERPRINT
@@ -368,6 +392,14 @@ export const processPaymentSms =
        * Find a PENDING request with
        * this exact transaction ID.
        */
+
+      const receivedAmount =
+  extractReceivedAmount(text);
+
+if (receivedAmount !== null) {
+  sms.amount =
+    receivedAmount;
+}
 
       const deposit =
         await Deposit.findOne({
