@@ -23,6 +23,21 @@ interface IncomingSms {
   sim?: string;
 }
 
+/* =========================================
+   AUTO APPROVAL SAFETY SWITCH
+========================================= */
+
+const isAutoApprovalEnabled = () => {
+  return (
+    String(
+      process.env.PAYMENT_SMS_AUTO_APPROVE ??
+        "false"
+    )
+      .trim()
+      .toLowerCase() === "true"
+  );
+};
+
 
 /* =========================================
    NORMALIZE REFERENCE
@@ -475,30 +490,50 @@ export const processPaymentSms =
 
 
       sms.status =
-        "matched";
+  "matched";
 
-      sms.amount =
-        requestedAmount;
+sms.amount =
+  requestedAmount;
 
-      sms.depositId =
-        deposit._id;
+sms.depositId =
+  deposit._id;
 
-      await sms.save();
+await sms.save();
 
 
-      /*
-       * IMPORTANT:
-       *
-       * Reuse existing transactional
-       * deposit approval.
-       */
+/* =========================================
+   SAFE TEST MODE
+========================================= */
 
-      const result =
-        await approveDeposit(
-          deposit._id.toString(),
-          data.agentId
-        );
+if (!isAutoApprovalEnabled()) {
+  return {
+    matched: true,
+    approved: false,
 
+    reason:
+      "Automatic SMS approval is disabled",
+
+    depositId:
+      deposit._id,
+
+    reference:
+      parsed.reference,
+
+    amount:
+      requestedAmount,
+  };
+}
+
+
+/* =========================================
+   AUTOMATIC APPROVAL
+========================================= */
+
+const result =
+  await approveDeposit(
+    deposit._id.toString(),
+    data.agentId
+  );
 
       sms.status =
         "approved";

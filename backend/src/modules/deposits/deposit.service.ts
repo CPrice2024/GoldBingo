@@ -163,7 +163,12 @@ export const submitDeposit = async (
 // ------------------------------------------
 
 const reference =
-  data.reference?.trim();
+  data.reference
+    ? data.reference
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "")
+    : undefined;
 
 if (reference) {
   const existingDeposit =
