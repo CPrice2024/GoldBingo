@@ -2220,11 +2220,8 @@ strong {
 
 
   .bingo-inline-card-top {
-    min-height:
-      30px;
-
-    padding:
-      4px 5px 4px 7px;
+            min-height: 32px;
+        padding: 0px 5px 4px 7px;
   }
 
 
@@ -5545,7 +5542,6 @@ html[data-theme="day"]
     grid-template-columns: repeat(2, 1fr);
     gap: 6px;
     margin-top: 0px;
-    margin-left: 160px;
     justify-content: stretch;
 }
 

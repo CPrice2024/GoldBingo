@@ -3985,7 +3985,7 @@ const handleClaimBingo =
     cardClaiming ? (
 
       <LoaderCircle
-        size={21}
+        size={14}
         className="spin bingo-pending-icon"
       />
 
