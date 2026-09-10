@@ -14,6 +14,7 @@ import {
   getGames,
   createGame,
   startGame,
+  cancelGame,
   getAutomaticGameSetting,
   updateAutomaticGameSetting,
 } from "../../../api/game.api";
@@ -52,17 +53,29 @@ const [
   setAutomaticGameSaving,
 ] = useState(false);
 
- const [form, setForm] =
+const [form, setForm] =
   useState({
 
     name: "",
 
+    /*
+     * 1  = Normal
+     * -1 = Bonus
+     */
+    gameType: 1,
+
     entryFee: "",
+
+    callIntervalSeconds:
+  "15",
 
     maxPlayers: "",
 
     winningPattern:
       "3_lines",
+
+    callMode:
+  "automatic",
 
     scheduledStartAt:
       "",
@@ -245,16 +258,70 @@ const [
       return;
     }
 
-    if (
-      form.entryFee === "" ||
-      Number(form.entryFee) < 0
-    ) {
-      setError(
-        "Entry fee must be a valid number"
-      );
-      return;
-    }
+    /*
+ * NORMAL GAME
+ * requires a valid entry fee.
+ *
+ * BONUS GAME
+ * entry fee is always 0.
+ */
+if (
+  Number(form.gameType) !== -1 &&
+  (
+    form.entryFee === "" ||
+    Number(form.entryFee) < 0
+  )
+) {
+  setError(
+    "Entry fee must be a valid number"
+  );
 
+  return;
+}
+
+
+/*
+ * Bonus games are funded by
+ * the configured Prize Amount.
+ */
+if (
+  Number(form.gameType) === -1 &&
+  (
+    form.prizeAmount === "" ||
+    !Number.isFinite(
+      Number(
+        form.prizeAmount
+      )
+    ) ||
+    Number(
+      form.prizeAmount
+    ) <= 0
+  )
+) {
+  setError(
+    "Bonus games require a prize amount greater than zero"
+  );
+
+  return;
+}
+if (
+  form.callIntervalSeconds === "" ||
+  !Number.isFinite(
+    Number(
+      form.callIntervalSeconds
+    )
+  ) ||
+  Number(
+    form.callIntervalSeconds
+  ) < 1
+) {
+
+  setError(
+    "Call interval must be at least 1 second"
+  );
+
+  return;
+}
     if (
       form.maxPlayers === "" ||
       Number(form.maxPlayers) <= 0
@@ -272,11 +339,26 @@ const [
   name:
     form.name.trim(),
 
+  gameType:
+    Number(
+      form.gameType
+    ) === -1
+      ? -1
+      : 1,
+
   entryFee:
-    Number(form.entryFee),
+    Number(
+      form.gameType
+    ) === -1
+      ? 0
+      : Number(
+          form.entryFee
+        ),
 
   maxPlayers:
-    Number(form.maxPlayers),
+    Number(
+      form.maxPlayers
+    ),
 
   winningPattern:
     form.winningPattern,
@@ -288,16 +370,27 @@ const [
           form.prizeAmount
         ),
 
+  callIntervalSeconds:
+  Number(
+    form.callIntervalSeconds
+  ),
+
   scheduledStartAt:
     form.scheduledStartAt
       ? new Date(
           form.scheduledStartAt
         ).toISOString()
       : null,
+
+  callMode:
+  form.callMode,
 });
 
       setForm({
   name: "",
+
+  gameType: 1,
+
   entryFee: "",
   maxPlayers: "",
   winningPattern:
@@ -306,6 +399,11 @@ const [
   prizeAmount: "",
 
   scheduledStartAt: "",
+  callMode:
+  "automatic",
+
+  callIntervalSeconds:
+  "15",
 });
 
       setShowCreate(false);
@@ -350,6 +448,46 @@ const [
           "Failed to start game"
       );
     }
+  };
+
+const handleCancelGame =
+  async (gameId) => {
+
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to cancel this game?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+
+      setError("");
+
+      await cancelGame(
+        gameId
+      );
+
+      await loadGames();
+
+    } catch (err) {
+
+      console.error(
+        "Failed to cancel game:",
+        err
+      );
+
+      setError(
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Failed to cancel game"
+      );
+
+    }
+
   };
 
   const getStatusClass = (gameStatus) => {
@@ -598,19 +736,39 @@ const [
               {/* Card header */}
               <div className="admin-game-card-header">
 
-                <div className="admin-game-icon">
-                  <Gamepad2 size={20} />
-                </div>
+  <div className="admin-game-icon">
+    <Gamepad2 size={20} />
+  </div>
 
-                <span
-                  className={getStatusClass(
-                    game.status
-                  )}
-                >
-                  {game.status}
-                </span>
+  <div className="admin-game-card-badges">
 
-              </div>
+    <span
+      className={`admin-game-type-badge ${
+        Number(
+          game.gameType ?? 1
+        ) === -1
+          ? "bonus"
+          : "normal"
+      }`}
+    >
+      {Number(
+        game.gameType ?? 1
+      ) === -1
+        ? "BONUS"
+        : "NORMAL"}
+    </span>
+
+    <span
+      className={getStatusClass(
+        game.status
+      )}
+    >
+      {game.status}
+    </span>
+
+  </div>
+
+</div>
 
 
               {/* Game name */}
@@ -728,6 +886,42 @@ const [
   <span>
     Numbers Called
   </span>
+  <div>
+  <Gamepad2 size={16} />
+
+  <span>
+    Number Calling
+  </span>
+
+  <strong>
+    {game.callMode === "manual"
+      ? "Manual"
+      : "Automatic"}
+  </strong>
+</div>
+
+<div>
+
+  <Clock size={18} />
+
+  <span>
+    Call Interval
+  </span>
+
+  <strong>
+    {Number(
+      game.callIntervalSeconds ??
+        15
+    )}{" "}
+    {Number(
+      game.callIntervalSeconds ??
+        15
+    ) === 1
+      ? "Second"
+      : "Seconds"}
+  </strong>
+
+</div>
 
   <strong>
     {game.calledNumbers?.length || 0}
@@ -754,20 +948,45 @@ const [
 
 
                 {game.status === "waiting" && (
-                  <button
-                    type="button"
-                    className="admin-start-button"
-                    onClick={() =>
-                      handleStart(game._id)
-                    }
-                    disabled={
-                      game.currentPlayers <= 0
-                    }
-                  >
-                    <Play size={16} />
-                    Start
-                  </button>
-                )}
+  <>
+    <button
+      type="button"
+      className="management-refresh-button"
+      onClick={() =>
+        handleStart(
+          game._id
+        )
+      }
+      disabled={
+        game.currentPlayers <= 0
+      }
+      title={
+        game.currentPlayers <= 0
+          ? "At least one player must join before the game can start."
+          : "Start game"
+      }
+    >
+      <Play size={16} />
+      Start
+    </button>
+
+    {Number(
+      game.currentPlayers || 0
+    ) === 0 && (
+      <button
+        type="button"
+        className="management-refresh-button"
+        onClick={() =>
+          handleCancelGame(
+            game._id
+          )
+        }
+      >
+        Cancel Game
+      </button>
+    )}
+  </>
+)}
 
               </div>
 
@@ -843,7 +1062,60 @@ const [
                 />
 
               </div>
+              <div className="admin-form-group">
 
+  <label>
+    Game Type
+  </label>
+
+  <select
+    className="admin-winning-pattern-select"
+    value={
+      form.gameType
+    }
+    onChange={(e) => {
+
+      const nextGameType =
+        Number(
+          e.target.value
+        );
+
+      setForm({
+        ...form,
+
+        gameType:
+          nextGameType,
+
+        /*
+         * Bonus cards are free.
+         */
+        entryFee:
+          nextGameType === -1
+            ? "0"
+            : form.entryFee === "0"
+            ? ""
+            : form.entryFee,
+      });
+
+    }}
+  >
+
+    <option value={1}>
+      Normal Game
+    </option>
+
+    <option value={-1}>
+      Bonus Game
+    </option>
+
+  </select>
+
+  <small>
+    Bonus games allow only
+    2 free cards per player.
+  </small>
+
+</div>
 
               <div className="admin-form-group">
 
@@ -852,22 +1124,42 @@ const [
                 </label>
 
                 <input
-                  type="number"
-                  min="0"
-                  value={form.entryFee}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      entryFee:
-                        e.target.value,
-                    })
-                  }
-                  placeholder="20"
-                />
+  type="number"
+  min="0"
+
+  value={
+    Number(
+      form.gameType
+    ) === -1
+      ? 0
+      : form.entryFee
+  }
+
+  disabled={
+    Number(
+      form.gameType
+    ) === -1
+  }
+
+  onChange={(e) =>
+    setForm({
+      ...form,
+
+      entryFee:
+        e.target.value,
+    })
+  }
+
+  placeholder="20"
+/>
 
                 <small>
-                  Amount in ETB
-                </small>
+  {Number(
+    form.gameType
+  ) === -1
+    ? "Bonus game cards are free."
+    : "Amount in ETB"}
+</small>
 
               </div>
 
@@ -893,6 +1185,103 @@ const [
                 />
 
               </div>
+              <div className="admin-form-group">
+
+  <label>
+    Call Number Interval
+  </label>
+
+  <input
+    type="number"
+    min="1"
+    step="1"
+
+    value={
+      form.callIntervalSeconds
+    }
+
+    onChange={(e) =>
+      setForm({
+        ...form,
+
+        callIntervalSeconds:
+          e.target.value,
+      })
+    }
+
+    placeholder="5"
+  />
+
+  <small>
+    Seconds between each
+    Bingo number.
+  </small>
+
+</div>
+              <div className="admin-form-group">
+
+  <label>
+    Number Call Mode
+  </label>
+
+
+  <div className="admin-auto-game-control">
+
+    <div>
+      <strong>
+        {form.callMode ===
+        "manual"
+          ? "Manual Call"
+          : "Automatic Call"}
+      </strong>
+
+      <small
+        style={{
+          display: "block",
+          marginTop: "4px",
+        }}
+      >
+        {form.callMode ===
+        "manual"
+          ? "Admin chooses each Bingo number."
+          : "System automatically chooses each Bingo number."}
+      </small>
+    </div>
+
+
+    <button
+      type="button"
+
+      className={`admin-auto-game-switch ${
+        form.callMode ===
+        "manual"
+          ? "active"
+          : ""
+      }`}
+
+      onClick={() =>
+        setForm(
+          (current) => ({
+            ...current,
+
+            callMode:
+              current.callMode ===
+              "manual"
+                ? "automatic"
+                : "manual",
+          })
+        )
+      }
+
+      aria-label="Toggle manual number calling"
+    >
+      <span />
+    </button>
+
+  </div>
+
+</div>
+
               <div className="admin-form-group">
 
               <div className="admin-form-group">

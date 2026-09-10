@@ -324,7 +324,8 @@ function GameCard({
           <div>
 
             <span>
-  {t("game.entryFee")}
+  {game.entryFee}{" "}
+{t("game.birr")}
 </span>
 
             <strong>
@@ -348,9 +349,8 @@ function GameCard({
 </span>
 
             <strong>
-              {game.prizePool}
-              {" "}
-              Birr
+              {game.prizePool}{" "}
+{t("game.birr")}
             </strong>
 
           </div>

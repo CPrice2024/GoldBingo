@@ -19,6 +19,16 @@ export interface IDeposit {
 
   reference?: string;
 
+  approvedAmount?: number;
+
+smsAmount?: number;
+
+matchedTransactionId?: string;
+
+smsReceivedAt?: Date;
+
+autoApproved?: boolean;
+
   status: DepositStatus;
 
   note?: string;

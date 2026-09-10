@@ -77,12 +77,28 @@ export const getGameWinners =
 
 export const claimBingo =
   async (
-    gameId
+    gameId,
+    cardId
   ) => {
+
+    if (!gameId) {
+      throw new Error(
+        "Game ID is required"
+      );
+    }
+
+    if (!cardId) {
+      throw new Error(
+        "Card ID is required"
+      );
+    }
+
     const response =
       await api.post(
         `/games/${gameId}/claim-bingo`,
-        {}
+        {
+          cardId,
+        }
       );
 
     return response.data;

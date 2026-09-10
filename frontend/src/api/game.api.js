@@ -56,6 +56,22 @@ export const startGame = async (gameId) => {
   return response.data;
 };
 
+export const cancelGame = async (
+  gameId
+) => {
+  if (!gameId) {
+    throw new Error(
+      "Game ID is required"
+    );
+  }
+
+  const response =
+    await api.post(
+      `/games/${gameId}/cancel`
+    );
+
+  return response.data;
+};
 
 export const updateGame = async (
   gameId,
@@ -116,30 +132,30 @@ export const updateAutomaticGameSetting =
 // PLAYER GAME FUNCTIONS
 // =========================
 
-export const checkBingo = async (
-  gameId,
-  pattern
-) => {
-  const response = await api.post(
-    `/games/${gameId}/check-bingo`,
-    {
-      pattern,
-    }
-  );
-
-  return response.data;
-};
-
 export const claimBingo = async (
   gameId,
-  pattern
+  cardId
 ) => {
-  const response = await api.post(
-    `/games/${gameId}/claim-bingo`,
-    {
-      pattern,
-    }
-  );
+
+  if (!gameId) {
+    throw new Error(
+      "Game ID is required"
+    );
+  }
+
+  if (!cardId) {
+    throw new Error(
+      "Card ID is required"
+    );
+  }
+
+  const response =
+    await api.post(
+      `/games/${gameId}/claim-bingo`,
+      {
+        cardId,
+      }
+    );
 
   return response.data;
 };

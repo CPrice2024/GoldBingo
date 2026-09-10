@@ -368,6 +368,22 @@ function BingoCard({
                       freeSpace
                     }
 
+                    style={
+  marked &&
+  !freeSpace
+    ? {
+        background:
+          "var(--bingo-selection-color, #43c765)",
+
+        borderColor:
+          "var(--bingo-selection-color, #43c765)",
+
+        color:
+          "#ffffff",
+      }
+    : undefined
+}
+
                     className={[
                       "bingo-cell",
 

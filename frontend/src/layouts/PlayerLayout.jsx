@@ -93,12 +93,21 @@ const [
   gridColumns,
   setGridColumns,
 ] = useState(
-  () =>
-    Number(
-      localStorage.getItem(
-        "bingoGridColumns"
-      ) || 2
+  () => {
+
+    const saved =
+      Number(
+        localStorage.getItem(
+          "bingoGridColumns"
+        ) || 2
+      );
+
+    return [2, 3, 4].includes(
+      saved
     )
+      ? saved
+      : 2;
+  }
 );
 
 
@@ -109,7 +118,7 @@ const [
   () =>
     localStorage.getItem(
       "bingoManualMarkingEnabled"
-    ) === "true"
+    ) === "false"
 );
 
 
@@ -368,6 +377,40 @@ const handleCardSortModeChange =
 const handleResetMarkedNumbers =
   () => {
 
+    /*
+     * RESET means:
+     * 1. Turn Auto Complete OFF
+     * 2. Return to manual marking
+     * 3. Clear all marked card numbers
+     */
+
+    setAutoComplete(
+      false
+    );
+
+
+    localStorage.setItem(
+      "bingoManualMarkingEnabled",
+      "true"
+    );
+
+
+    /*
+     * Tell GameRoom that
+     * manual mode is now enabled.
+     */
+
+    window.dispatchEvent(
+      new Event(
+        "bingoManualMarkingChanged"
+      )
+    );
+
+
+    /*
+     * Clear all player marks.
+     */
+
     window.dispatchEvent(
       new Event(
         "bingoResetMarkedNumbers"
@@ -437,17 +480,10 @@ const handleAutoCompleteToggle =
       next
     );
 
-
-    /*
-     * Auto Complete ON
-     * means manual marking OFF.
-     */
-
     localStorage.setItem(
       "bingoManualMarkingEnabled",
       String(!next)
     );
-
 
     window.dispatchEvent(
       new Event(
@@ -456,7 +492,6 @@ const handleAutoCompleteToggle =
     );
 
   };
-
 
 const handleSelectionColorChange =
   (color) => {
@@ -1212,12 +1247,11 @@ const formatMoney =
 
     </button>
 
-
     {gridDropdownOpen && (
 
       <div className="player-custom-select-menu player-grid-custom-menu">
 
-        {[1, 2, 3].map(
+        {[2, 3, 4].map(
           (columns) => {
 
             const selected =

@@ -15,78 +15,112 @@ export const joinGameController =
     req: Request,
     res: Response
   ) => {
+
     try {
+
+      /* =========================
+         PLAYER
+      ========================= */
+
       const playerId =
         req.user?.userId;
 
+
       if (!playerId) {
+
         return res.status(401).json({
           success: false,
+
           message:
             "Authentication required",
         });
       }
 
+
+      /* =========================
+         REQUEST BODY
+      ========================= */
+
       const {
-  gameId,
-  cardCount = 1,
-} = req.body;
-const parsedCardCount =
-  Number(cardCount);
+        gameId,
+        cardId,
+      } = req.body;
 
-const allowedCardCounts = [
-  1,
-  2,
-  3,
-  5,
-  10,
-];
 
-if (
-  !allowedCardCounts.includes(
-    parsedCardCount
-  )
-) {
-  return res.status(400).json({
-    success: false,
-    message:
-      "Card count must be 1, 2, 3, 5, or 10",
-  });
-}
+      /* =========================
+         GAME ID
+      ========================= */
 
       if (
-        typeof gameId !== "string" ||
+        typeof gameId !==
+          "string" ||
         !gameId.trim()
       ) {
+
         return res.status(400).json({
           success: false,
+
           message:
             "Game ID is required",
         });
       }
 
+
+      /* =========================
+         CARD ID
+      ========================= */
+
+      if (
+        typeof cardId !==
+          "string" ||
+        !cardId.trim()
+      ) {
+
+        return res.status(400).json({
+          success: false,
+
+          message:
+            "Card ID is required",
+        });
+      }
+
+
+      /* =========================
+         JOIN ONE EXACT CARD
+      ========================= */
+
       const result =
-  await joinGame(
-    playerId,
-    gameId,
-    parsedCardCount
-  );
+        await joinGame(
+          playerId,
+          gameId.trim(),
+          cardId.trim()
+        );
+
 
       return res.status(201).json({
         success: true,
+
         message:
-          "Joined game successfully",
-        data: result,
+          "Card joined successfully",
+
+        data:
+          result,
       });
+
+
     } catch (error) {
+
       return res.status(400).json({
         success: false,
+
         message:
           error instanceof Error
             ? error.message
-            : "Failed to join game",
+            : "Failed to join card",
       });
+
     }
+
   };
 
 export const listGamePlayers =

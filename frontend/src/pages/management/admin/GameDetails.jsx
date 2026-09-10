@@ -23,6 +23,7 @@ import {
 import {
   getGameById,
   updateGame,
+  callNumber,
 } from "../../../api/game.api";
 
 import {
@@ -30,6 +31,48 @@ import {
   getWinningPatternLabel,
 } from "../../../constants/winningPatterns";
 
+
+const BINGO_NUMBER_ROWS = [
+  {
+    letter: "B",
+    numbers: Array.from(
+      { length: 15 },
+      (_, index) => index + 1
+    ),
+  },
+
+  {
+    letter: "I",
+    numbers: Array.from(
+      { length: 15 },
+      (_, index) => index + 16
+    ),
+  },
+
+  {
+    letter: "N",
+    numbers: Array.from(
+      { length: 15 },
+      (_, index) => index + 31
+    ),
+  },
+
+  {
+    letter: "G",
+    numbers: Array.from(
+      { length: 15 },
+      (_, index) => index + 46
+    ),
+  },
+
+  {
+    letter: "O",
+    numbers: Array.from(
+      { length: 15 },
+      (_, index) => index + 61
+    ),
+  },
+];
 
 export default function GameDetails() {
   const { gameId } =
@@ -55,6 +98,18 @@ export default function GameDetails() {
 
   const [message, setMessage] =
     useState("");
+
+  const [
+  callingNumber,
+  setCallingNumber,
+] = useState(null);
+
+const [
+  currentTime,
+  setCurrentTime,
+] = useState(
+  Date.now()
+);
 
  const [form, setForm] =
   useState({
@@ -102,9 +157,14 @@ const toDateTimeLocal = (
     .slice(0, 16);
 };
 
-  const loadGame = async () => {
-    try {
+ const loadGame = async (
+  silent = false
+) => {
+  try {
+
+    if (!silent) {
       setLoading(true);
+    }
       setError("");
 
       const response =
@@ -159,15 +219,77 @@ setForm({
           err.message ||
           "Failed to load game"
       );
-    } finally {
-      setLoading(false);
-    }
+   } finally {
+
+  if (!silent) {
+    setLoading(false);
+  }
+
+}
   };
 
 
   useEffect(() => {
     loadGame();
   }, [gameId]);
+
+  /* =========================================
+   LIVE CLOCK
+========================================= */
+
+useEffect(() => {
+
+  const timer =
+    setInterval(
+      () => {
+        setCurrentTime(
+          Date.now()
+        );
+      },
+      250
+    );
+
+
+  return () => {
+    clearInterval(
+      timer
+    );
+  };
+
+}, []);
+
+
+/* =========================================
+   LIVE GAME REFRESH
+========================================= */
+
+useEffect(() => {
+
+  const timer =
+    setInterval(
+      () => {
+
+        if (!editing) {
+          void loadGame(
+            true
+          );
+        }
+
+      },
+      2000
+    );
+
+
+  return () => {
+    clearInterval(
+      timer
+    );
+  };
+
+}, [
+  gameId,
+  editing,
+]);
 
 
   const handleCancelEdit =
@@ -342,7 +464,134 @@ if (
         setSaving(false);
       }
     };
+    /* =========================================
+   MANUAL NUMBER CALL
+========================================= */
 
+const handleManualCall =
+  async (number) => {
+
+    if (!game) {
+      return;
+    }
+
+
+    if (
+      game.callMode !==
+      "manual"
+    ) {
+      return;
+    }
+
+
+    if (
+      game.status !==
+      "active"
+    ) {
+      return;
+    }
+
+
+    if (
+      game.firstWinnerAt
+    ) {
+      return;
+    }
+
+
+    const alreadyCalled =
+      Array.isArray(
+        game.calledNumbers
+      ) &&
+      game.calledNumbers.includes(
+        number
+      );
+
+
+    if (alreadyCalled) {
+      return;
+    }
+
+
+    const nextCallTime =
+      game.nextCallAt
+        ? new Date(
+            game.nextCallAt
+          ).getTime()
+        : 0;
+
+
+    if (
+      nextCallTime >
+      Date.now()
+    ) {
+      return;
+    }
+
+
+    try {
+
+      setCallingNumber(
+        number
+      );
+
+      setError("");
+      setMessage("");
+
+
+      const response =
+        await callNumber(
+          gameId,
+          number
+        );
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to call number"
+        );
+      }
+
+
+      setMessage(
+        `Number ${number} called successfully.`
+      );
+
+
+      await loadGame(
+        true
+      );
+
+    } catch (err) {
+
+      console.error(
+        "Manual number call failed:",
+        err
+      );
+
+
+      setError(
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Failed to call number"
+      );
+
+
+      await loadGame(
+        true
+      );
+
+    } finally {
+
+      setCallingNumber(
+        null
+      );
+
+    }
+
+  };
 
   if (loading) {
     return (
@@ -386,6 +635,55 @@ if (
   const canEdit =
     game.status ===
     "waiting";
+
+  const calledNumbers =
+  Array.isArray(
+    game.calledNumbers
+  )
+    ? game.calledNumbers
+    : [];
+
+
+const calledNumberSet =
+  new Set(
+    calledNumbers
+  );
+
+
+const nextCallTime =
+  game.nextCallAt
+    ? new Date(
+        game.nextCallAt
+      ).getTime()
+    : 0;
+
+
+const manualCountdown =
+  nextCallTime
+    ? Math.max(
+        0,
+        Math.ceil(
+          (
+            nextCallTime -
+            currentTime
+          ) / 1000
+        )
+      )
+    : 0;
+
+
+const manualCallReady =
+  game.callMode ===
+    "manual" &&
+  game.status ===
+    "active" &&
+  !game.firstWinnerAt &&
+  manualCountdown ===
+    0 &&
+  calledNumbers.length <
+    75 &&
+  callingNumber ===
+    null;
 
 
   return (
@@ -626,6 +924,22 @@ if (
                 {" / 75"}
               </strong>
             </div>
+            <div>
+
+  <Gamepad2 size={18} />
+
+  <span>
+    Number Calling
+  </span>
+
+  <strong>
+    {game.callMode ===
+    "manual"
+      ? "Manual"
+      : "Automatic"}
+  </strong>
+
+</div>
 
           </div>
 
@@ -939,7 +1253,212 @@ if (
         )}
 
       </div>
+    {/* =====================================
+    MANUAL NUMBER CALL BOARD
+===================================== */}
 
+{game.callMode ===
+  "manual" && (
+
+  <div className="admin-game-detail-card admin-manual-call-card">
+
+    <div className="admin-game-detail-card-header admin-manual-call-header">
+
+      <Gamepad2
+        size={20}
+      />
+
+      <div>
+
+        <strong>
+          Manual Number Call
+        </strong>
+
+        <span>
+          Admin controlled Bingo numbers
+        </span>
+
+      </div>
+
+    </div>
+
+
+    {/* COUNTDOWN */}
+
+    <div className="admin-manual-countdown">
+
+      <div className="admin-manual-countdown-label">
+  NEXT CALL
+</div>
+
+
+      <strong
+  className={`admin-manual-countdown-value ${
+  manualCallReady
+    ? "ready"
+    : ""
+}`}
+>
+  {String(
+    manualCountdown
+  ).padStart(
+    2,
+    "0"
+  )}
+</strong>
+
+
+      <div className="admin-manual-countdown-status">
+
+        {game.status ===
+        "waiting"
+          ? "Start the game to activate manual calling."
+
+          : game.status !==
+            "active"
+          ? "Game is not active."
+
+          : game.firstWinnerAt
+          ? "Winner window open. Number calling is frozen."
+
+          : manualCountdown >
+            0
+          ? "Wait for the countdown."
+
+          : calledNumbers.length >=
+            75
+          ? "All 75 numbers have been called."
+
+          : "Choose the next number."}
+
+      </div>
+
+    </div>
+
+
+    {/* BINGO BOARD */}
+
+    <div className="admin-manual-board-scroll">
+
+      <div className="admin-manual-board">
+
+        {BINGO_NUMBER_ROWS.map(
+          (row) => (
+
+            <div
+  key={row.letter}
+  className="admin-manual-board-row"
+>
+
+              {/* LETTER */}
+
+              <div
+  className={`admin-manual-letter letter-${row.letter.toLowerCase()}`}
+>
+  {row.letter}
+</div>
+
+
+              {/* NUMBERS */}
+
+              {row.numbers.map(
+                (number) => {
+
+                  const isCalled =
+                    calledNumberSet.has(
+                      number
+                    );
+
+
+                  const isCalling =
+                    callingNumber ===
+                    number;
+
+
+                  return (
+
+                    <button
+                      key={
+                        number
+                      }
+
+                      type="button"
+
+                      onClick={() =>
+                        handleManualCall(
+                          number
+                        )
+                      }
+
+                      disabled={
+                        isCalled ||
+                        isCalling ||
+                        !manualCallReady
+                      }
+
+                      title={
+                        isCalled
+                          ? `Number ${number} already called`
+
+                          : manualCallReady
+                          ? `Call number ${number}`
+
+                          : `Wait ${manualCountdown} second${
+                              manualCountdown ===
+                              1
+                                ? ""
+                                : "s"
+                            }`
+                      }
+
+                      className={`admin-manual-number ${
+  isCalled
+    ? "called"
+    : ""
+} ${
+  isCalling
+    ? "calling"
+    : ""
+} ${
+  manualCallReady &&
+  !isCalled
+    ? "ready"
+    : ""
+}`}
+                    >
+
+                      {isCalling
+                        ? "..."
+                        : number}
+
+                    </button>
+
+                  );
+
+                }
+              )}
+
+            </div>
+
+          )
+        )}
+
+      </div>
+
+    </div>
+
+
+    <div className="admin-manual-called-count">
+      Called:{" "}
+      <strong>
+        {calledNumbers.length}
+        {" / 75"}
+      </strong>
+    </div>
+
+  </div>
+
+)}
     </div>
   );
 }

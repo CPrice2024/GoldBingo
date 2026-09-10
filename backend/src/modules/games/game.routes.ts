@@ -10,9 +10,9 @@ import {
   listGames,
   getGameById,
   startGameController,
+  cancelGameController,
   callNumber,
   getGameStateController,
-  checkBingoController,
   claimBingoController,
   getGameWinnersController,
   getCurrentGameController,
@@ -64,8 +64,12 @@ router.post(
   authorize("admin"),
   startGameController
 );
-
-// Admin: call Bingo number
+router.post(
+  "/:id/cancel",
+  authenticate,
+  authorize("admin"),
+  cancelGameController
+);
 router.post(
   "/:id/call-number",
   authenticate,
@@ -73,13 +77,6 @@ router.post(
   callNumber
 );
 
-// Player: check Bingo
-router.post(
-  "/:id/check-bingo",
-  authenticate,
-  authorize("player"),
-  checkBingoController
-);
 
 // Player: claim Bingo
 router.post(

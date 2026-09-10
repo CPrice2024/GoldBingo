@@ -202,58 +202,121 @@ const isValidReference = (
 
   return false;
 };
-const extractTransactionDate = (text) => {
-  if (!text) return null;
+const extractTransactionDate = (
+  text
+) => {
 
-  // ------------------------------------------
-  // Format:
-  // 2026/07/24 13:49:52
-  // 2026-07-24 13:49:52
-  // 2026/07/24
-  // ------------------------------------------
+  if (!text) {
+    return null;
+  }
 
-  let match = text.match(
-    /\b(20\d{2})[\/-](\d{1,2})[\/-](\d{1,2})(?:\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?\b/
-  );
+  /*
+   * FORMAT 1
+   *
+   * 2026/09/04
+   * 2026-09-04
+   * 2026/09/04 19:00:43
+   */
 
-  if (match) {
-    const year = Number(match[1]);
-    const month = Number(match[2]);
-    const day = Number(match[3]);
-
-    const hour = Number(match[4] ?? 0);
-    const minute = Number(match[5] ?? 0);
-    const second = Number(match[6] ?? 0);
-
-    const date = new Date(
-      year,
-      month - 1,
-      day,
-      hour,
-      minute,
-      second
+  let match =
+    text.match(
+      /\b(20\d{2})[\/-](\d{1,2})[\/-](\d{1,2})(?:\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?\b/
     );
 
-    if (!Number.isNaN(date.getTime())) {
+  if (match) {
+
+    const date =
+      new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        Number(match[4] || 0),
+        Number(match[5] || 0),
+        Number(match[6] || 0)
+      );
+
+    if (
+      !Number.isNaN(
+        date.getTime()
+      )
+    ) {
       return date;
     }
   }
 
-  // ------------------------------------------
-  // Format:
-  // 07-Aug-2025
-  // 07 Aug 2025
-  // 07/Aug/2025
-  // ------------------------------------------
 
-  match = text.match(
-    /\b(\d{1,2})[\s\/-](JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\s\/-](20\d{2})\b/i
-  );
+  /*
+   * FORMAT 2
+   *
+   * 04/09/2026
+   * 04-09-2026
+   * 04/09/2026 19:00:43
+   *
+   * DD/MM/YYYY
+   */
+
+  match =
+    text.match(
+      /\b(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})(?:\s+(\d{1,2})[:.](\d{2})(?:[:.](\d{2}))?)?\b/
+    );
 
   if (match) {
-    const day = Number(match[1]);
-    const monthName = match[2].toUpperCase();
-    const year = Number(match[3]);
+
+    const day =
+      Number(match[1]);
+
+    const month =
+      Number(match[2]);
+
+    const year =
+      Number(match[3]);
+
+    const hour =
+      Number(match[4] || 0);
+
+    const minute =
+      Number(match[5] || 0);
+
+    const second =
+      Number(match[6] || 0);
+
+
+    const date =
+      new Date(
+        year,
+        month - 1,
+        day,
+        hour,
+        minute,
+        second
+      );
+
+
+    if (
+      !Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return date;
+    }
+  }
+
+
+  /*
+   * FORMAT 3
+   *
+   * 07-Aug-2025
+   * 07 Aug 2025
+   * 07/Aug/2025
+   */
+
+  match =
+    text.match(
+      /\b(\d{1,2})[\s\/-](JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[\s\/-](20\d{2})\b/i
+    );
+
+
+  if (match) {
 
     const months = {
       JAN: 0,
@@ -270,19 +333,87 @@ const extractTransactionDate = (text) => {
       DEC: 11,
     };
 
-    const date = new Date(
-      year,
-      months[monthName],
-      day
-    );
 
-    if (!Number.isNaN(date.getTime())) {
+    const date =
+      new Date(
+        Number(match[3]),
+        months[
+          match[2].toUpperCase()
+        ],
+        Number(match[1])
+      );
+
+
+    if (
+      !Number.isNaN(
+        date.getTime()
+      )
+    ) {
       return date;
     }
   }
 
+
   return null;
 };
+
+const extractAmountFromScreenshot =
+  (
+    text
+  ) => {
+
+    if (!text) {
+      return null;
+    }
+
+
+    const patterns = [
+
+  // Best match:
+  // "You have received ETB 22.00"
+  /YOU\s+HAVE\s+RECEIVED\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
+
+  // Fallback
+  /(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
+
+  // Fallback: "22.00 ETB"
+  /([0-9][0-9,]*(?:\.\d{1,2})?)\s*(?:ETB|BIRR)/i,
+
+];
+
+
+    for (
+      const pattern of patterns
+    ) {
+
+      const match =
+        text.match(pattern);
+
+
+      if (match?.[1]) {
+
+        const amount =
+          Number(
+            match[1].replace(
+              /,/g,
+              ""
+            )
+          );
+
+
+        if (
+          Number.isFinite(
+            amount
+          )
+        ) {
+          return amount;
+        }
+      }
+    }
+
+
+    return null;
+  };
 
 const extractReferenceFromScreenshot = async (file) => {
   if (!file) return;
@@ -326,6 +457,16 @@ if (!file.type.startsWith("image/")) {
     const normalizedText = text
       .toUpperCase()
       .replace(/\r/g, "\n");
+
+      const detectedAmount =
+  extractAmountFromScreenshot(
+    normalizedText
+  );
+
+console.log(
+  "OCR detected amount:",
+  detectedAmount
+);
       const transactionDate =
   extractTransactionDate(normalizedText);
 
@@ -402,68 +543,79 @@ console.log(
       "OCR detected transaction reference:",
       reference
     );
-// ==========================================
-// TRANSACTION DATE VALIDATION
-// ==========================================
+/* ==========================================
+   TRANSACTION DATE VALIDATION
+========================================== */
 
-if (!transactionDate) {
-  await worker.terminate();
-  worker = null;
+if (transactionDate) {
 
-  setOcrError(
-  t("deposit.tryAnotherDeposit")
-);
+  const now =
+    new Date();
 
-  return;
+
+  const today =
+    new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate()
+    );
+
+
+  const transactionDay =
+    new Date(
+      transactionDate.getFullYear(),
+      transactionDate.getMonth(),
+      transactionDate.getDate()
+    );
+
+
+  const ageInDays =
+    Math.floor(
+      (
+        today.getTime() -
+        transactionDay.getTime()
+      ) /
+      (
+        24 *
+        60 *
+        60 *
+        1000
+      )
+    );
+
+
+  if (ageInDays < 0) {
+
+    await worker.terminate();
+
+    worker = null;
+
+    setOcrError(
+      t(
+        "deposit.tryAnotherDeposit"
+      )
+    );
+
+    return;
+  }
+
+
+  if (ageInDays >= 5) {
+
+    await worker.terminate();
+
+    worker = null;
+
+    setOcrError(
+      t(
+        "deposit.tryAnotherDeposit"
+      )
+    );
+
+    return;
+  }
 }
 
-const now = new Date();
-
-// Compare calendar dates instead of exact timestamps.
-// This prevents screenshots without a time from being
-// incorrectly accepted/rejected because of the current hour.
-
-const today = new Date(
-  now.getFullYear(),
-  now.getMonth(),
-  now.getDate()
-);
-
-const transactionDay = new Date(
-  transactionDate.getFullYear(),
-  transactionDate.getMonth(),
-  transactionDate.getDate()
-);
-
-const ageInDays =
-  Math.floor(
-    (today.getTime() - transactionDay.getTime()) /
-      (24 * 60 * 60 * 1000)
-  );
-
-// Future transaction dates are invalid.
-if (ageInDays < 0) {
-  await worker.terminate();
-  worker = null;
-
-  setOcrError(
-  t("deposit.tryAnotherDeposit")
-);
-
-  return;
-}
-
-// 5 days or older = blocked
-if (ageInDays >= 5) {
-  await worker.terminate();
-  worker = null;
-
-  setOcrError(
-  t("deposit.tryAnotherDeposit")
-);
-
-  return;
-}
 
     await worker.terminate();
     worker = null;
@@ -486,13 +638,18 @@ if (ageInDays >= 5) {
       return;
     }
 
-    // ==========================================
-    // PUT RESULT DIRECTLY INTO INPUT
-    // ==========================================
-    setForm((current) => ({
-      ...current,
-      reference,
-    }));
+ setForm((current) => ({
+  ...current,
+
+  reference,
+
+  amount:
+    detectedAmount !== null
+      ? String(
+          detectedAmount
+        )
+      : current.amount,
+}));
 
     setSuccess(
   `${t("deposit.transactionIdFound")}: ${reference}`

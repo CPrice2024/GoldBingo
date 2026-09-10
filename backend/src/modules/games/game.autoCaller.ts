@@ -1,6 +1,12 @@
 import { findGameById } from "./game.repository";
 import { Game } from "./game.model";
+import {
+  GamePlayer,
+} from "../gamePlayers/gamePlayer.model";
 
+import {
+  Card,
+} from "../cards/card.model";
 import {
   callGameNumber,
   completeGame,
@@ -19,7 +25,7 @@ const DEFAULT_JOINING_WINDOW_SECONDS =
   120;
 
 const DEFAULT_CALL_INTERVAL_SECONDS =
-  5;
+  15;
 
 const scheduledStartTimers =
   new Map<
@@ -432,15 +438,60 @@ export const startAutomaticCaller =
     }
 
     if (
-      game.status !== "active"
-    ) {
-      return;
-    }
+  game.status !== "active"
+) {
+  return;
+}
 
-    if (
-      game.calledNumbers.length >=
-      75
-    ) {
+/* =========================================
+   MANUAL GAMES DO NOT USE AUTO CALLER
+========================================= */
+
+if (
+  (
+    game.callMode ??
+    "automatic"
+  ) !== "automatic"
+) {
+
+  console.log(
+    `[BINGO] ${game.name} is using manual number calling`
+  );
+
+  return;
+
+}
+
+
+/* =========================================
+   WINNER WINDOW OPEN
+========================================= */
+
+if (
+  game.firstWinnerAt
+) {
+
+  console.log(
+    `[BINGO] Winner claim window open for ${game.name}. Number caller is frozen.`
+  );
+
+  if (
+    game.nextCallAt
+  ) {
+    game.nextCallAt =
+      null;
+
+    await game.save();
+  }
+
+  return;
+}
+
+
+if (
+  game.calledNumbers.length >=
+  75
+) {
       await finishGame(
         gameId
       );
@@ -503,25 +554,64 @@ export const startAutomaticCaller =
 
           try {
             const currentGame =
-              await findGameById(
-                gameId
-              );
+  await findGameById(
+    gameId
+  );
 
-            if (!currentGame) {
-              return;
-            }
+if (!currentGame) {
+  return;
+}
 
-            if (
-              currentGame.status !==
-              "active"
-            ) {
-              return;
-            }
+if (
+  currentGame.status !==
+  "active"
+) {
+  return;
+}
 
-            if (
-              currentGame.calledNumbers
-                .length >= 75
-            ) {
+if (
+  (
+    currentGame.callMode ??
+    "automatic"
+  ) !== "automatic"
+) {
+  return;
+}
+
+
+/* =========================================
+   WINNER WINDOW OPEN
+========================================= */
+
+if (
+  currentGame.firstWinnerAt
+) {
+
+  await Game.updateOne(
+    {
+      _id:
+        gameId,
+    },
+    {
+      $set: {
+        nextCallAt:
+          null,
+      },
+    }
+  );
+
+  console.log(
+    `[BINGO] Winner claim window open for ${currentGame.name}. Pending number call cancelled.`
+  );
+
+  return;
+}
+
+
+if (
+  currentGame.calledNumbers
+    .length >= 75
+) {
               await finishGame(
                 gameId
               );
@@ -697,8 +787,6 @@ const generateRandomGameName =
       }
 
     }
-
-
     return `ID #${Date.now()
       .toString()
       .slice(-6)}`;
@@ -752,7 +840,63 @@ export const stopAutomaticCaller = (
   );
 };
 
+/* =========================================================
+   STOP ALL GAME TIMERS
+========================================================= */
 
+export const stopGameTimers = (
+  gameId: string
+) => {
+
+  /* Automatic number caller */
+  stopAutomaticCaller(
+    gameId
+  );
+
+
+  /* Joining countdown */
+  const joiningTimer =
+    joiningTimers.get(
+      gameId
+    );
+
+  if (joiningTimer) {
+
+    clearTimeout(
+      joiningTimer
+    );
+
+    joiningTimers.delete(
+      gameId
+    );
+
+  }
+
+
+  /* Scheduled Admin start */
+  const scheduledTimer =
+    scheduledStartTimers.get(
+      gameId
+    );
+
+  if (scheduledTimer) {
+
+    clearTimeout(
+      scheduledTimer
+    );
+
+    scheduledStartTimers.delete(
+      gameId
+    );
+
+  }
+
+
+  console.log(
+    `[BINGO] All timers stopped for ${gameId}`
+  );
+
+};
 
 
 /* =========================================================
@@ -875,15 +1019,195 @@ export const ensureAutomaticGameAvailable =
 
     return newGame;
   };
+
+/* =========================================================
+   RECOVER CARD POOL
+========================================================= */
+
+const recoverCardPool =
+  async () => {
+
+    console.log(
+      "[CARDS] Checking card pool..."
+    );
+
+    /*
+     * Cards belonging to a waiting
+     * or active game must stay assigned.
+     */
+    const currentGames =
+      await Game.find({
+        status: {
+          $in: [
+            "waiting",
+            "active",
+          ],
+        },
+      })
+        .select("_id")
+        .lean();
+
+    const currentGameIds =
+      currentGames.map(
+        (game) =>
+          game._id
+      );
+
+    /*
+     * Find every card protected by
+     * the current games.
+     */
+    const currentPlayers =
+      currentGameIds.length > 0
+        ? await GamePlayer.find({
+            gameId: {
+              $in:
+                currentGameIds,
+            },
+          })
+            .select(
+              "cardIds cardId"
+            )
+            .lean()
+        : [];
+
+    const protectedCardIds =
+      currentPlayers.flatMap(
+        (player: any) => {
+
+          const ids: any[] =
+            [];
+
+          if (
+            Array.isArray(
+              player.cardIds
+            )
+          ) {
+            ids.push(
+              ...player.cardIds
+            );
+          }
+
+          /*
+           * Legacy single-card
+           * support.
+           */
+          if (player.cardId) {
+            ids.push(
+              player.cardId
+            );
+          }
+
+          return ids
+            .map(
+              (item) =>
+                item?._id ??
+                item
+            )
+            .filter(Boolean);
+        }
+      );
+
+    /*
+     * "used" is no longer part
+     * of our normal lifecycle.
+     */
+    const usedResult =
+      await Card.updateMany(
+        {
+          status: "used",
+        },
+        {
+          $set: {
+            status:
+              "available",
+          },
+        }
+      );
+
+    /*
+     * Release assigned cards
+     * that do NOT belong to a
+     * waiting/active game.
+     */
+    let staleResult;
+
+    if (
+      protectedCardIds.length >
+      0
+    ) {
+      staleResult =
+        await Card.updateMany(
+          {
+            status:
+              "assigned",
+
+            _id: {
+              $nin:
+                protectedCardIds,
+            },
+          },
+          {
+            $set: {
+              status:
+                "available",
+            },
+          }
+        );
+    } else {
+      /*
+       * No waiting/active game =
+       * no card should remain
+       * assigned.
+       */
+      staleResult =
+        await Card.updateMany(
+          {
+            status:
+              "assigned",
+          },
+          {
+            $set: {
+              status:
+                "available",
+            },
+          }
+        );
+    }
+
+    console.log(
+      `[CARDS] Current protected cards: ${protectedCardIds.length}`
+    );
+
+    console.log(
+      `[CARDS] Old used cards released: ${usedResult.modifiedCount}`
+    );
+
+    console.log(
+      `[CARDS] Stale assigned cards released: ${staleResult.modifiedCount}`
+    );
+
+    console.log(
+      "[CARDS] Card pool recovery complete."
+    );
+  };
+
 /* =========================================================
    SERVER STARTUP RECOVERY
 ========================================================= */
 
-export const recoverAutomaticGames = async () => {
-  try {
-    console.log(
-      "[BINGO] Checking games after server startup..."
-    );
+export const recoverAutomaticGames =
+  async () => {
+    try {
+
+      /*
+       * First repair card statuses.
+       */
+      await recoverCardPool();
+
+      console.log(
+        "[BINGO] Checking games after server startup..."
+      );
 
     // ---------------------------------------------
     // 1. Check active game
@@ -902,12 +1226,66 @@ export const recoverAutomaticGames = async () => {
       );
 
       console.log(
-        `[BINGO] Called numbers: ${activeGame.calledNumbers.length}/75`
-      );
+  `[BINGO] Called numbers: ${activeGame.calledNumbers.length}/75`
+);
 
-      if (
-        activeGame.calledNumbers.length >= 75
-      ) {
+
+/* =========================================
+   RECOVER MULTI-WINNER WINDOW
+========================================= */
+
+if (
+  activeGame.firstWinnerAt
+) {
+
+  console.log(
+    `[BINGO] Winner claim window found for ${activeGame.name}`
+  );
+
+  /*
+   * Never resume number calling.
+   */
+  await Game.updateOne(
+    {
+      _id:
+        activeGame._id,
+    },
+    {
+      $set: {
+        nextCallAt:
+          null,
+      },
+    }
+  );
+
+
+  /*
+   * Dynamic import is intentional.
+   *
+   * game.service.ts already imports
+   * game.autoCaller.ts, so this avoids
+   * adding another top-level circular
+   * import.
+   */
+  const {
+    scheduleWinnerClaimFinalization,
+  } =
+    await import(
+      "./game.service"
+    );
+
+
+  await scheduleWinnerClaimFinalization(
+    activeGame._id.toString()
+  );
+
+  return;
+}
+
+
+if (
+  activeGame.calledNumbers.length >= 75
+) {
         await completeRecoveredGame(
           activeGame._id.toString()
         );
@@ -996,8 +1374,6 @@ if (
 
   return;
 }
-
-
 /* =========================================
    AUTOMATIC RECOVERY GAME
 ========================================= */
@@ -1020,11 +1396,9 @@ const newGame =
 console.log(
   `[BINGO] Recovery created waiting game: ${newGame.name}`
 );
-
     console.log(
       `[BINGO] Recovery created waiting game: ${newGame.name}`
     );
-
   } catch (error) {
     console.error(
       "[BINGO] Startup recovery failed:",
@@ -1032,9 +1406,6 @@ console.log(
     );
   }
 };
-
-
-
 export const scheduleAdminGameStart =
   async (
     gameId: string
@@ -1130,44 +1501,47 @@ export const scheduleAdminGameStart =
             }
 
 
-            if (
-              currentGame.currentPlayers <=
-              0
-            ) {
+           if (
+  currentGame.currentPlayers <=
+  0
+) {
 
-              console.log(
-                `[BINGO] ${currentGame.name} could not start because no players joined`
-              );
+  console.log(
+    `[BINGO] ${currentGame.name} reached scheduled start time but no players joined. Retrying in 5 seconds.`
+  );
+  const retryTimer =
+    setTimeout(
+      () => {
 
-              return;
-            }
+        void scheduleAdminGameStart(
+          gameId
+        );
 
-
+      },
+      5000
+    );
+  scheduledStartTimers.set(
+    gameId,
+    retryTimer
+  );
+  return;
+}
             console.log(
               `[BINGO] Starting scheduled game ${currentGame.name}`
             );
-
-
             await startGame(
               gameId
             );
-
-
           } catch (error) {
 
             console.error(
               `[BINGO] Failed to start scheduled game ${gameId}:`,
               error
             );
-
           }
-
         },
-
         remainingMs
       );
-
-
     scheduledStartTimers.set(
       gameId,
       timer

@@ -8,9 +8,6 @@ import {
   AppSettings,
 } from "../settings/appSettings.model";
 import {
-  PaymentSms,
-} from "../paymentSms/paymentSms.model";
-import {
   createDeposit,
   findPlayerDeposits,
   findAgentPendingDeposits,
@@ -32,54 +29,17 @@ interface CreateDepositInput {
   reference?: string;
   note?: string;
 }
+interface ApproveDepositOptions {
+  verifiedAmount?: number;
 
-/* =========================================
-   PAYMENT SMS MATCH WINDOW
-========================================= */
+  autoApproved?: boolean;
 
-const PAYMENT_SMS_MATCH_WINDOW_MS =
-  24 * 60 * 60 * 1000;
+  matchedTransactionId?: string;
 
-
-/* =========================================
-   AUTO APPROVAL SWITCH
-========================================= */
-
-const isAutoApprovalEnabled = () =>
-  String(
-    process.env.PAYMENT_SMS_AUTO_APPROVE ??
-      "false"
-  )
-    .trim()
-    .toLowerCase() === "true";
+  smsReceivedAt?: Date;
+}
 
 
-/* =========================================
-   EXTRACT RECEIVED SMS AMOUNT
-========================================= */
-
-const extractReceivedSmsAmount = (
-  text: string
-): number | null => {
-
-  const match =
-    String(text || "").match(
-      /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i
-    );
-
-  if (!match) {
-    return null;
-  }
-
-  const value =
-    Number(
-      match[1].replace(/,/g, "")
-    );
-
-  return Number.isFinite(value)
-    ? value
-    : null;
-};
 export const submitDeposit = async (
   playerId: string,
   data: CreateDepositInput
@@ -252,117 +212,7 @@ const deposit = await createDeposit({
     note: data.note,
   });
 
-  /* =========================================
-   MATCH SMS THAT ARRIVED BEFORE DEPOSIT
-========================================= */
 
-if (
-  reference &&
-  (
-    data.paymentMethod === "telebirr" ||
-    data.paymentMethod === "cbe"
-  )
-) {
-
-  const since =
-    new Date(
-      Date.now() -
-        PAYMENT_SMS_MATCH_WINDOW_MS
-    );
-
-  const previousSms =
-    await PaymentSms.findOne({
-      agentId:
-        agent._id,
-
-      reference,
-
-      paymentMethod:
-        data.paymentMethod,
-
-      status:
-        "ignored",
-
-      createdAt: {
-        $gte: since,
-      },
-    }).sort({
-      createdAt: -1,
-    });
-
-
-  if (previousSms) {
-
-    const storedSmsAmount =
-      Number(
-        previousSms.amount
-      );
-
-    const parsedSmsAmount =
-      extractReceivedSmsAmount(
-        previousSms.text || ""
-      );
-
-    const smsAmount =
-      Number.isFinite(
-        storedSmsAmount
-      )
-        ? storedSmsAmount
-        : parsedSmsAmount;
-
-
-    const amountMatches =
-      smsAmount !== null &&
-      Number.isFinite(
-        Number(smsAmount)
-      ) &&
-      Math.abs(
-        Number(smsAmount) -
-          Number(data.amount)
-      ) < 0.01;
-
-
-    if (amountMatches) {
-
-      previousSms.status =
-        "matched";
-
-      previousSms.amount =
-        Number(data.amount);
-
-      previousSms.depositId =
-        deposit._id;
-
-      previousSms.error =
-        undefined;
-
-      await previousSms.save();
-
-
-      /* =====================================
-         AUTOMATIC APPROVAL
-      ===================================== */
-
-      if (
-        isAutoApprovalEnabled()
-      ) {
-
-        const approval =
-          await approveDeposit(
-            deposit._id.toString(),
-            agent._id.toString()
-          );
-
-        previousSms.status =
-          "approved";
-
-        await previousSms.save();
-
-        return approval.deposit;
-      }
-    }
-  }
-}
 
   // ------------------------------------------
   // NOTIFY AGENT
@@ -487,7 +337,8 @@ export const getDeposit = async (
 
 export const approveDeposit = async (
   depositId: string,
-  agentId: string
+  agentId: string,
+  options: ApproveDepositOptions = {}
 ) => {
   const session =
     await mongoose.startSession();
@@ -576,10 +427,45 @@ export const approveDeposit = async (
        4. CALCULATE BONUS
     ========================================= */
 
-    const depositAmount =
-      Number(
-        deposit.amount
-      );
+    const requestedAmount =
+  Number(
+    deposit.amount
+  );
+
+
+const depositAmount =
+  Number(
+    options.verifiedAmount ??
+      requestedAmount
+  );
+
+
+if (
+  !Number.isFinite(
+    depositAmount
+  ) ||
+  depositAmount <= 0
+) {
+  throw new Error(
+    "Invalid approved deposit amount"
+  );
+}
+
+
+/*
+ * An automatically verified SMS
+ * must never approve less than
+ * the player requested.
+ */
+if (
+  options.autoApproved === true &&
+  depositAmount <
+    requestedAmount
+) {
+  throw new Error(
+    "Verified SMS amount is lower than requested deposit amount"
+  );
+}
 
 
     const bonusAmount =
@@ -611,8 +497,6 @@ export const approveDeposit = async (
       Number(
         wallet.balance || 0
       );
-
-
     const balanceAfter =
       Number(
         (
@@ -620,7 +504,6 @@ export const approveDeposit = async (
           creditedAmount
         ).toFixed(2)
       );
-
 
     /* =========================================
        6. UPDATE WALLET
@@ -640,17 +523,49 @@ export const approveDeposit = async (
     ========================================= */
 
     deposit.status =
-      "approved";
+  "approved";
 
 
-    deposit.processedBy =
-      new mongoose.Types.ObjectId(
-        agentId
-      );
+deposit.approvedAmount =
+  depositAmount;
 
 
-    deposit.processedAt =
-      new Date();
+deposit.processedBy =
+  new mongoose.Types.ObjectId(
+    agentId
+  );
+
+
+deposit.processedAt =
+  new Date();
+
+
+/* =========================================
+   SMS AUTO APPROVAL DATA
+========================================= */
+
+if (
+  options.autoApproved === true
+) {
+
+  deposit.autoApproved =
+    true;
+
+  deposit.smsAmount =
+    depositAmount;
+
+  deposit.matchedTransactionId =
+    options.matchedTransactionId;
+
+  deposit.smsReceivedAt =
+    options.smsReceivedAt;
+
+} else {
+
+  deposit.autoApproved =
+    false;
+
+}
 
 
     await deposit.save({
@@ -690,7 +605,8 @@ export const approveDeposit = async (
             "completed",
 
           reference:
-            deposit.reference,
+            options.matchedTransactionId ||
+               deposit.reference,
 
           requestId:
             deposit._id,
@@ -701,9 +617,13 @@ export const approveDeposit = async (
             ),
 
           description:
-            bonusAmount > 0
-              ? `Deposit approved by agent. Base deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
-              : "Deposit approved by agent",
+  options.autoApproved
+    ? bonusAmount > 0
+      ? `Deposit automatically approved from SMS. Verified deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
+      : `Deposit automatically approved from verified SMS: ${depositAmount} ETB`
+    : bonusAmount > 0
+    ? `Deposit approved by agent. Base deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
+    : "Deposit approved by agent",
         },
       ],
       {
@@ -808,3 +728,17 @@ export const approveDeposit = async (
 
   }
 };
+
+
+/* =========================================
+   PROCESS NEW PAYMENT SMS
+
+   RULES:
+
+   1. SMS arrives AFTER deposit request
+   2. SMS arrives within 24 hours
+   3. Reference matches
+   4. Payment method matches
+   5. Agent matches
+   6. SMS amount >= requested amount
+========================================= */

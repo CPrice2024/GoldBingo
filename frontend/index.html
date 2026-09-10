@@ -5,7 +5,10 @@
 
   <meta charset="UTF-8" />
 
-  <!-- CRITICAL FOR MOBILE / CAPACITOR -->
+  <!-- ========================================
+       MOBILE
+  ========================================= -->
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover"
@@ -16,19 +19,64 @@
     content="#D4A72C"
   />
 
+  <meta
+    name="color-scheme"
+    content="dark"
+  />
 
-  <!-- APP TITLE -->
+
+  <!-- ========================================
+       BRANDING
+  ========================================= -->
 
   <title>
-    GoldBingo
+    GoldBingo | Play Bingo Online
   </title>
 
+  <meta
+    name="description"
+    content="GoldBingo is an online Bingo platform where players can join live Bingo games, select cards, follow called numbers, and enjoy real-time gameplay."
+  />
 
-  <!-- FAVICONS -->
+  <meta
+    name="application-name"
+    content="GoldBingo"
+  />
+
+  <meta
+    name="apple-mobile-web-app-title"
+    content="GoldBingo"
+  />
+
+  <meta
+    name="apple-mobile-web-app-capable"
+    content="yes"
+  />
+
+  <meta
+    name="apple-mobile-web-app-status-bar-style"
+    content="black-translucent"
+  />
+
+
+  <!-- ========================================
+       CANONICAL
+  ========================================= -->
+
+  <link
+    rel="canonical"
+    href="https://goldbingo.org/"
+  />
+
+
+  <!-- ========================================
+       FAVICONS
+  ========================================= -->
 
   <link
     rel="icon"
     href="/favicon.ico"
+    sizes="any"
   />
 
   <link
@@ -52,7 +100,9 @@
   />
 
 
-  <!-- APPLE / MOBILE -->
+  <!-- ========================================
+       APPLE ICON
+  ========================================= -->
 
   <link
     rel="apple-touch-icon"
@@ -61,11 +111,88 @@
   />
 
 
-  <!-- PWA -->
+  <!-- ========================================
+       PWA MANIFEST
+  ========================================= -->
 
   <link
     rel="manifest"
     href="/site.webmanifest"
+  />
+
+
+  <!-- ========================================
+       OPEN GRAPH / SOCIAL SHARE
+  ========================================= -->
+
+  <meta
+    property="og:type"
+    content="website"
+  />
+
+  <meta
+    property="og:site_name"
+    content="GoldBingo"
+  />
+
+  <meta
+    property="og:title"
+    content="GoldBingo | Play Bingo Online"
+  />
+
+  <meta
+    property="og:description"
+    content="Join live Bingo games, select your cards, follow called numbers, and play in real time with GoldBingo."
+  />
+
+  <meta
+    property="og:url"
+    content="https://goldbingo.org/"
+  />
+
+  <meta
+    property="og:image"
+    content="https://goldbingo.org/og-image.png"
+  />
+
+  <meta
+    property="og:image:width"
+    content="1200"
+  />
+
+  <meta
+    property="og:image:height"
+    content="630"
+  />
+
+  <meta
+    property="og:image:alt"
+    content="GoldBingo"
+  />
+
+
+  <!-- ========================================
+       TWITTER / X
+  ========================================= -->
+
+  <meta
+    name="twitter:card"
+    content="summary_large_image"
+  />
+
+  <meta
+    name="twitter:title"
+    content="GoldBingo | Play Bingo Online"
+  />
+
+  <meta
+    name="twitter:description"
+    content="Join live Bingo games and enjoy real-time Bingo gameplay with GoldBingo."
+  />
+
+  <meta
+    name="twitter:image"
+    content="https://goldbingo.org/og-image.png"
   />
 
 </head>
@@ -74,7 +201,6 @@
 <body>
 
   <div id="root"></div>
-
 
   <script
     type="module"

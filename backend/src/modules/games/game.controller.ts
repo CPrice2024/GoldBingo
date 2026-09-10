@@ -10,11 +10,11 @@ import {
   startGame, 
   callGameNumber, 
   getGameState, 
-  checkBingo, 
   claimBingo, 
   getCurrentGame,
   updateExistingGame,
   getGameWinners,
+  cancelWaitingGame,
 } from "./game.service";
 
 export const createGame =
@@ -25,17 +25,24 @@ export const createGame =
     try {
      const {
   name,
+  gameType,
   entryFee,
   maxPlayers,
   winningPattern,
   prizeAmount,
   scheduledStartAt,
+  callMode,
+  callIntervalSeconds,
 } = req.body;
 
 
 const game =
   await createNewGame({
     name,
+    gameType:
+      gameType === -1
+        ? -1
+        : 1,
     entryFee:
       Number(entryFee),
 
@@ -54,9 +61,20 @@ const game =
             prizeAmount
           ),
 
+    callIntervalSeconds:
+  callIntervalSeconds === undefined
+    ? 5
+    : Number(
+        callIntervalSeconds
+      ),
+
     scheduledStartAt:
       scheduledStartAt ||
       null,
+    callMode:
+    callMode === "manual"
+    ? "manual"
+    : "automatic",
   });
 
       return res.status(201).json({
@@ -183,6 +201,9 @@ export const updateGameController =
   winningPattern,
   prizeAmount,
   scheduledStartAt,
+  callMode,
+  gameType,
+  callIntervalSeconds,
 } = req.body;
 
 
@@ -221,10 +242,24 @@ export const updateGameController =
           ? null
           : Number(prizeAmount),
 
+      callIntervalSeconds:
+  callIntervalSeconds === undefined
+    ? undefined
+    : Number(
+        callIntervalSeconds
+      ),
+
       scheduledStartAt:
         scheduledStartAt === undefined
           ? undefined
           : scheduledStartAt || null,
+
+      callMode:
+  callMode === undefined
+    ? undefined
+    : callMode === "manual"
+    ? "manual"
+    : "automatic",
     }
   );
 
@@ -310,7 +345,84 @@ async (
     });
   }
 };
+/* =========================================================
+   CANCEL GAME
+========================================================= */
 
+export const cancelGameController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+
+    try {
+
+      const {
+        id,
+      } = req.params;
+
+
+      if (
+        !id ||
+        Array.isArray(id)
+      ) {
+
+        return res
+          .status(400)
+          .json({
+
+            success:
+              false,
+
+            message:
+              "Invalid game ID",
+
+          });
+
+      }
+
+
+      const game =
+        await cancelWaitingGame(
+          id
+        );
+
+
+      return res
+        .status(200)
+        .json({
+
+          success:
+            true,
+
+          message:
+            "Game cancelled successfully",
+
+          data:
+            game,
+
+        });
+
+
+    } catch (error) {
+
+      return res
+        .status(400)
+        .json({
+
+          success:
+            false,
+
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to cancel game",
+
+        });
+
+    }
+
+  };
 export const callNumber =
 async (
   req: Request,
@@ -384,59 +496,6 @@ async (
   }
 };
 
-export const checkBingoController =
-async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const { id } = req.params;
-
-    if (Array.isArray(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid game ID",
-      });
-    }
-
-    const playerId =
-      (req as any).user?.userId;
-
-    if (!playerId) {
-      return res.status(401).json({
-        success: false,
-        message:
-          "Authentication required",
-      });
-    }
-
-    const { pattern } = req.body;
-
-    const result =
-      await checkBingo(
-        id,
-        playerId,
-        pattern
-      );
-
-    return res.status(200).json({
-      success: true,
-      message:
-        result.hasBingo
-          ? "Bingo pattern matched"
-          : "Bingo pattern not matched",
-      data: result,
-    });
-  } catch (error) {
-    return res.status(400).json({
-      success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Failed to check Bingo",
-    });
-  }
-};
 export const claimBingoController =
   async (
     req: Request,
@@ -473,6 +532,30 @@ export const claimBingoController =
               "Authentication required",
           });
       }
+      /* =========================================
+   EXACT CARD
+========================================= */
+
+const {
+  cardId,
+} = req.body;
+
+
+if (
+  typeof cardId !==
+    "string" ||
+  !cardId.trim()
+) {
+
+  return res
+    .status(400)
+    .json({
+      success: false,
+
+      message:
+        "Card ID is required",
+    });
+}
 
 
       /*
@@ -482,11 +565,11 @@ export const claimBingoController =
        * uses game.winningPattern.
        */
       const result =
-        await claimBingo(
-          id,
-          playerId
-        );
-
+  await claimBingo(
+    id,
+    playerId,
+    cardId.trim()
+  );
 
       /*
        * =========================================
@@ -494,24 +577,52 @@ export const claimBingoController =
        * =========================================
        */
       if (
-        result.status ===
-        "BLOCKED"
-      ) {
-        return res
-          .status(200)
-          .json({
-            success: true,
+  result.status ===
+  "BLOCKED"
+) {
 
-            code:
-              "FALSE_BINGO",
+  /* =========================================
+     BROADCAST FALSE BINGO TO ALL PLAYERS
+  ========================================= */
 
-            message:
-              result.message,
+  const io =
+    req.app.get("io");
 
-            data:
-              result,
-          });
+  if (io) {
+    io.emit(
+      "bingo:blocked",
+      {
+        gameId:
+          id,
+
+        gamePlayerId:
+          result.gamePlayerId,
+
+        cardId:
+          result.cardId,
+
+        blockedAt:
+          result.blockedAt,
       }
+    );
+  }
+
+
+  return res
+    .status(200)
+    .json({
+      success: true,
+
+      code:
+        "FALSE_BINGO",
+
+      message:
+        result.message,
+
+      data:
+        result,
+    });
+}
 
 
       /*

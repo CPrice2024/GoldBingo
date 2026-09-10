@@ -849,6 +849,136 @@ game: {
 
   bingoClaimedWith:
     "ቢንጎ በዚህ ካርድ ተወስዷል",
+
+  show: "አሳይ",
+hide: "ደብቅ",
+
+loadingInformation:
+  "መረጃ በመጫን ላይ...",
+
+info:
+  "መረጃ",
+
+status:
+  "ሁኔታ",
+
+normalGame:
+  "መደበኛ ጨዋታ",
+
+bonusGame:
+  "ቦነስ ጨዋታ",
+
+falseBingo:
+  "የተሳሳተ ቢንጎ",
+
+blockedCard:
+  "የታገደ ካርድ",
+
+reason:
+  "ምክንያት",
+
+blockedCardNote:
+  "ይህ ካርድ ትክክል ያልሆነ የቢንጎ ጥያቄ ስለቀረበበት ታግዷል።",
+
+loadingCard:
+  "ካርድ በመጫን ላይ...",
+
+currentCardsStayActive:
+  "አሁን ያሉ ካርዶችዎ እንደተገኙ ይቆያሉ",
+
+addCard:
+  "ካርድ ጨምር",
+
+addCards:
+  "ካርዶች ጨምር",
+
+removeCard:
+  "ካርድ አስወግድ",
+
+join:
+  "ተቀላቀል",
+
+joined:
+  "ተቀላቅሏል",
+
+bingo:
+  "ቢንጎ",
+
+bingoBlocked:
+  "ቢንጎ ታግዷል",
+
+maximumCardsAllowed:
+  "የሚፈቀደው ከፍተኛ የካርድ ብዛት:",
+
+moreCardsAvailable:
+  "ተጨማሪ ካርዶች ብቻ ይገኛሉ።",
+
+failedAddCards:
+  "የቢንጎ ካርዶችን መጨመር አልተቻለም",
+
+invalidBingoCard:
+  "የቢንጎ ካርዱ ትክክል አይደለም።",
+
+gameNotAcceptingPlayers:
+  "ይህ ጨዋታ ከእንግዲህ ተጫዋቾችን አይቀበልም።",
+
+joinedSuccessfully:
+  "በተሳካ ሁኔታ ተቀላቅሏል።",
+
+failedJoinCard:
+  "የቢንጎ ካርዱን መቀላቀል አልተቻለም",
+
+cardBlockedFromClaiming:
+  "ቢንጎ እንዳይጠይቅ ታግዷል።",
+
+bingoAlreadyAccepted:
+  "ቢንጎዎ አስቀድሞ ተቀባይነት አግኝቷል።",
+
+gameNotActive:
+  "ጨዋታው ንቁ አይደለም።",
+
+bingoAcceptedWaiting:
+  "ቢንጎ ተቀባይነት አግኝቷል! ሌሎች አሸናፊዎችን በመጠበቅ ላይ...",
+
+cardIsBlocked:
+  "ታግዷል።",
+
+winnerWindowClosed:
+  "የቢንጎ አሸናፊ ማረጋገጫ ጊዜው አልቋል።",
+
+failedSubmitBingo:
+  "ቢንጎን ማስገባት አልተቻለም።",
+},
+winningPatternHint: {
+  title:
+    "የአሸናፊ ንድፍ መመሪያ",
+
+  gameType:
+    "የጨዋታ ዓይነት",
+
+  description:
+    "ትክክለኛው (አረንጓዴ) እና የተሳሳተው (ቀይ) የቢንጎ ንድፍ ምሳሌዎች።",
+
+  correct:
+    "ትክክል",
+
+  wrong:
+    "የተሳሳተ",
+
+  required:
+    "አስፈላጊ",
+
+  other:
+    "ሌላ",
+
+  free:
+    "ነፃ",
+
+  close:
+    "የአሸናፊ ንድፍን ዝጋ",
+
+  notConfigured:
+    "የዚህ የጨዋታ ዓይነት የማሸነፊያ ንድፍ ገና አልተዘጋጀም።",
 },
 
   language: {

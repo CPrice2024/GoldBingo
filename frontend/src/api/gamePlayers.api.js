@@ -2,15 +2,29 @@ import api from "./axios";
 
 export const joinGame = async (
   gameId,
-  cardCount = 1
+  cardId
 ) => {
-  const response = await api.post(
-    "/game-players/join",
-    {
-      gameId,
-      cardCount,
-    }
-  );
+
+  if (!gameId) {
+    throw new Error(
+      "Game ID is required"
+    );
+  }
+
+  if (!cardId) {
+    throw new Error(
+      "Card ID is required"
+    );
+  }
+
+  const response =
+    await api.post(
+      "/game-players/join",
+      {
+        gameId,
+        cardId,
+      }
+    );
 
   return response.data;
 };

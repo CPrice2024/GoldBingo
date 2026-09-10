@@ -21,6 +21,7 @@ import profileRoutes from "./modules/profile/profile.routes";
 import promotionRoutes from "./modules/promotions/promotion.routes";
 import otpRoutes from "./otp/otp.routes";
 import paymentSmsRoutes from "./modules/paymentSms/paymentSms.routes";
+import infoRoutes from "./modules/info/info.routes";
 
 const app = express();
 
@@ -175,6 +176,15 @@ app.use("/api/v1/profile", profileRoutes);
 app.use(
   "/api/v1/promotions",
   promotionRoutes
+);
+
+/* =========================
+   INFO / ANNOUNCEMENTS
+========================= */
+
+app.use(
+  "/api/v1/info",
+  infoRoutes
 );
 
 /* =========================

@@ -1,24 +1,26 @@
 import { Game } from "./game.model";
-import { GameStatus } from "./game.types";
+import {
+  GameStatus,
+  GameCallMode,
+} from "./game.types";
 import type {
   WinningPattern,
 } from "./game.patterns";
 
 interface CreateGameData {
   name: string;
-
+  gameType: 1 | -1;
   entryFee: number;
-
   maxPlayers: number;
-
   winningPattern:
     WinningPattern;
-
+  callMode:
+  GameCallMode;
   prizeAmount?:
     number | null;
-
   scheduledStartAt?:
     Date | null;
+  callIntervalSeconds?: number;
 }
 
 export const createGame = async (
@@ -30,6 +32,9 @@ export const createGame = async (
     name:
       data.name,
 
+    gameType:
+      data.gameType,
+
     entryFee:
       data.entryFee,
 
@@ -38,6 +43,12 @@ export const createGame = async (
 
     winningPattern:
       data.winningPattern,
+    
+    callMode:
+      data.callMode,
+
+    callIntervalSeconds:
+      data.callIntervalSeconds,
 
     currentPlayers:
       0,

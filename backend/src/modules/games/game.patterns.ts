@@ -535,6 +535,33 @@ const NON_DIAGONAL_LINES:
 
   ];
 
+  /* =========================================================
+   LINES THAT DO NOT TOUCH FREE CENTER
+
+   FREE CELL = index 12
+
+   Excluded:
+   ROW_3
+   COL_3
+   DIAGONAL_MAIN
+   DIAGONAL_REVERSE
+========================================================= */
+
+const FREE_UNTOUCHED_LINES:
+  number[][] = [
+
+    ROW_1,
+    ROW_2,
+    ROW_4,
+    ROW_5,
+
+    COL_1,
+    COL_2,
+    COL_4,
+    COL_5,
+
+  ];
+
 
 
 const WINNING_PATTERN_LAYOUTS:
@@ -780,30 +807,110 @@ const WINNING_PATTERN_LAYOUTS:
 
 
   /* =======================================================
-     15. THREE RECTANGLES
-  ======================================================= */
+   15. THREE RECTANGLES
 
-  "3_rectangles": [
-    mergeCells(
-      RECTANGLE_OUTER,
-      RECTANGLE_MIDDLE,
-      RECTANGLE_INNER
-    ),
+   4 correct possibilities from image
+======================================================= */
+
+"3_rectangles": [
+
+  // Correct possibility 1
+  [
+    0, 1, 2,
+    5, 6, 7, 8, 9,
+    13, 14,
+    15, 16, 17, 18, 19,
+    20, 21, 22,
   ],
 
-
-  /* =======================================================
-     16. FOUR SQUARES
-  ======================================================= */
-
-  "4_squares": [
-    mergeCells(
-      SQUARE_TOP_LEFT,
-      SQUARE_TOP_RIGHT,
-      SQUARE_BOTTOM_LEFT,
-      SQUARE_BOTTOM_RIGHT
-    ),
+  // Correct possibility 2
+  [
+    0, 1, 2, 3,
+    5, 6, 7, 8,
+    10, 11,
+    13,
+    17, 18, 19,
+    22, 23, 24,
   ],
+
+  // Correct possibility 3
+  [
+    0, 1, 2, 3, 4,
+    5, 6, 7, 8, 9,
+    10, 11,
+    17, 18, 19,
+    22, 23, 24,
+  ],
+
+  // Correct possibility 4
+  [
+    0, 1, 2, 3, 4,
+    5, 6, 7, 8, 9,
+    10, 11,
+    13, 14,
+    15, 16, 17,
+  ],
+
+],
+
+
+/* =======================================================
+   16. FOUR SQUARES
+
+   4 correct possibilities from image
+======================================================= */
+
+"4_squares": [
+
+  // Correct possibility 1
+  [
+    0, 1, 2, 3,
+    5, 6, 7, 8,
+    13, 14,
+    15, 16,
+    18, 19,
+    20, 21,
+  ],
+
+  // Correct possibility 2
+  [
+    0, 1, 2, 3,
+    5, 6, 7, 8,
+    10, 11,
+    13,
+    15, 16, 17, 18,
+  ],
+
+  // Correct possibility 3
+  [
+    0, 1,
+    3, 4,
+
+    5, 6,
+    8, 9,
+
+    15, 16,
+    18, 19,
+
+    20, 21,
+    23, 24,
+  ],
+
+  // Correct possibility 4
+  [
+    0, 1,
+    3, 4,
+
+    5, 6,
+    8, 9,
+
+    10, 11,
+    13,
+
+    15, 16, 17, 18,
+  ],
+
+],
 
 
   /* =======================================================
@@ -825,45 +932,140 @@ const WINNING_PATTERN_LAYOUTS:
   ],
 
 
-  /* =======================================================
-     18. 3 CORNER DOTS + 3 SQUARES
-  ======================================================= */
+ /* =======================================================
+   18. 3 CORNER DOTS + 3 DISCONNECTED SQUARES
 
-  "3_corner_dots_3_disconnected_squares": [
-    mergeCells(
-      [
-        0,
-        4,
-        24,
-      ],
+   4 correct possibilities
+======================================================= */
 
-      SQUARE_INNER_LEFT,
+"3_corner_dots_3_disconnected_squares": [
 
-      SQUARE_INNER_RIGHT,
+  // Correct possibility 1
+  [
+    0,
+    2, 3, 4,
 
-      SQUARE_INNER_BOTTOM
-    ),
+    7, 8,
+
+    13, 14,
+
+    15, 16,
+    18, 19,
+
+    20, 21,
+    24,
   ],
 
+  // Correct possibility 2
+  [
+    0,
+    2, 3, 4,
 
-  /* =======================================================
-     19. 4 CORNER DOTS + 2 SQUARES
-  ======================================================= */
+    7, 8,
 
-  "4_corner_dots_2_disconnected_squares": [
-    mergeCells(
-      [
-        0,
-        4,
-        20,
-        24,
-      ],
+    10, 11,
+    13,
 
-      SQUARE_INNER_LEFT,
+    15, 16, 17, 18,
 
-      SQUARE_INNER_RIGHT
-    ),
+    24,
   ],
+
+  // Correct possibility 3
+  [
+    0, 1, 2, 3, 4,
+
+    5, 6, 7,
+
+    10, 11,
+
+    15, 16,
+
+    20,
+    24,
+  ],
+
+  // Correct possibility 4
+  [
+    0,
+    3, 4,
+
+    8, 9,
+
+    10, 11,
+    13,
+
+    15, 16, 17, 18,
+
+    20,
+    24,
+  ],
+
+],
+
+ /* =======================================================
+   19. 4 CORNER DOTS + 2 DISCONNECTED SQUARES
+
+   4 correct possibilities
+======================================================= */
+
+"4_corner_dots_2_disconnected_squares": [
+
+  // Correct possibility 1
+  [
+    0, 4,
+
+    5, 6, 7, 8, 9,
+
+    10, 11,
+    13, 14,
+
+    18, 19,
+
+    20, 24,
+  ],
+
+  // Correct possibility 2
+  [
+    0, 1, 2, 3, 4,
+
+    6, 7, 8,
+
+    16, 17, 18,
+
+    20, 21, 22, 23, 24,
+  ],
+
+  // Correct possibility 3
+  [
+    0, 1, 2,
+    4,
+
+    6, 7,
+
+    11,
+
+    16, 17, 18,
+
+    20, 21, 22, 23, 24,
+  ],
+
+  // Correct possibility 4
+  [
+    0, 4,
+
+    6, 7, 8, 9,
+
+    11,
+    13, 14,
+
+    16, 17, 18, 19,
+
+    20,
+    24,
+  ],
+
+],
 
 
   /* =======================================================
@@ -969,76 +1171,231 @@ const WINNING_PATTERN_LAYOUTS:
   ],
 
 
-  /* =======================================================
-     27. THREE SMALL T
-  ======================================================= */
+ /* =======================================================
+   27. THREE SMALL T
 
-  "3_small_t": [
-    mergeCells(
+   4 correct possibilities
+======================================================= */
 
-      [
-        0, 1, 2,
-        6,
-      ],
+"3_small_t": [
 
-      [
-        6, 7, 8,
-        12,
-      ],
+  // Correct possibility 1
+  [
+    0,
+    2, 3, 4,
 
-      [
-        16, 17, 18,
-        22,
-      ]
+    5, 6, 7, 8,
 
-    ),
+    10, 11,
+    13,
+
+    17,
+
+    21, 22, 23,
   ],
 
+  // Correct possibility 2
+  [
+    4,
 
-  /* =======================================================
-     28. RECTANGLE + 2 SQUARES
-  ======================================================= */
+    7, 8, 9,
 
-  "1_rectangle_2_squares": [
-    mergeCells(
-      RECTANGLE_OUTER,
+    10,
+    13, 14,
 
-      SQUARE_INNER_LEFT,
+    15, 16, 17, 18,
 
-      SQUARE_INNER_RIGHT
-    ),
+    20,
+    22, 23, 24,
   ],
 
+  // Correct possibility 3
+  [
+    0,
 
-  /* =======================================================
-     29. LINE + 2 SQUARES
-  ======================================================= */
+    5, 6, 7,
 
-  "1_line_2_squares": [
-    mergeCells(
-      ROW_3,
+    10, 11,
+    14,
 
-      SQUARE_TOP_LEFT,
+    16, 17, 18, 19,
 
-      SQUARE_BOTTOM_RIGHT
-    ),
+    20, 21, 22,
+    24,
   ],
 
+  // Correct possibility 4
+  [
+    0, 1, 2,
 
-  /* =======================================================
-     30. 2 DISCONNECTED LINES + 2 SQUARES
-  ======================================================= */
+    6, 7, 8, 9,
 
-  "2_disconnected_lines_2_disconnected_squares": [
-    mergeCells(
-      ROW_1,
-      ROW_5,
+    11,
+    13,
 
-      SQUARE_INNER_LEFT,
+    17, 18,
 
-      SQUARE_INNER_RIGHT
-    ),
+    21, 22, 23,
   ],
+
+],
+
+
+/* =======================================================
+   28. RECTANGLE + 2 SQUARES
+
+   4 correct possibilities
+======================================================= */
+
+"1_rectangle_2_squares": [
+
+  // Correct possibility 1
+  [
+    0, 1, 2,
+
+    5, 6, 7,
+
+    11,
+    13, 14,
+
+    16, 17, 18, 19,
+  ],
+
+  // Correct possibility 2
+  [
+    0, 1,
+
+    5, 6,
+
+    10, 11,
+
+    15, 16,
+    18,
+
+    20, 21,
+    23, 24,
+  ],
+
+  // Correct possibility 3
+  [
+    0, 1,
+    3, 4,
+
+    5, 6,
+    8, 9,
+
+    14,
+
+    16, 17,
+
+    21, 22,
+  ],
+
+  // Correct possibility 4
+  [
+    2, 3, 4,
+
+    7, 8, 9,
+
+    15, 16,
+    18, 19,
+
+    20, 21,
+    23, 24,
+  ],
+
+],
+
+ /* =======================================================
+   29. ONE LINE + TWO SQUARES
+======================================================= */
+
+"1_line_2_squares": [
+
+  [
+    0, 1, 2, 3, 4,
+
+    6,
+    8,
+
+    10, 11,
+    13, 14,
+
+    15, 16,
+    18, 19,
+
+    20, 21, 22, 23, 24,
+  ],
+
+],
+
+/* =======================================================
+   30. 2 DISCONNECTED LINES + 2 DISCONNECTED SQUARES
+
+   4 correct possibilities
+======================================================= */
+
+"2_disconnected_lines_2_disconnected_squares": [
+
+  // Correct possibility 1
+  [
+    0, 1, 2, 3, 4,
+
+    5, 6, 7, 8, 9,
+
+    15, 16, 17, 18,
+
+    20, 21, 22, 23,
+  ],
+
+  // Correct possibility 2
+  [
+    0, 4,
+
+    5,
+    7, 8, 9,
+
+    10,
+    13, 14,
+
+    15,
+    17, 18, 19,
+
+    20,
+    22, 23, 24,
+  ],
+
+  // Correct possibility 3
+  [
+    0, 1, 2, 3, 4,
+
+    5, 6,
+    8, 9,
+
+    10, 11,
+    13, 14,
+
+    15, 16, 17, 18, 19,
+  ],
+
+  // Correct possibility 4
+  [
+    0, 1, 2,
+    4,
+
+    5, 6, 7,
+    9,
+
+    14,
+
+    15, 16, 17,
+    19,
+
+    20, 21, 22,
+    24,
+  ],
+
+],
 
 
   /* =======================================================
@@ -1117,21 +1474,53 @@ const WINNING_PATTERN_LAYOUTS:
   ],
 
 
-  /* =======================================================
-     36. DIAGONAL + 2 CORNER SQUARES
-  ======================================================= */
+ /* =======================================================
+   36. DIAGONAL + 2 DISCONNECTED CORNER SQUARES
 
-  "1_diagonal_2_disconnected_corner_squares": [
-    mergeCells(
-      DIAGONAL_MAIN,
+   2 correct possibilities
+======================================================= */
 
-      SQUARE_TOP_RIGHT,
+"1_diagonal_2_disconnected_corner_squares": [
 
-      SQUARE_BOTTOM_LEFT
-    ),
+  // Main diagonal version
+  [
+    0,
+
+    3, 4,
+
+    6,
+
+    8, 9,
+
+    15, 16,
+
+    18,
+
+    20, 21,
+
+    24,
   ],
 
-};
+  // Reverse diagonal version
+  [
+    0, 1,
+
+    4,
+
+    5, 6,
+
+    8,
+
+    16,
+
+    18, 19,
+
+    20,
+
+    23, 24,
+  ],
+
+],};
 /* =========================================================
    PATTERN MATCHER
 
@@ -1145,7 +1534,11 @@ export const isPatternMatched = (
   calledNumbers: number[],
   pattern:
     | WinningPattern
-    | BingoPattern
+    | BingoPattern,
+
+  requiredNumber?:
+    | number
+    | null
 ): boolean => {
 
   /* =========================================
@@ -1218,6 +1611,174 @@ export const isPatternMatched = (
       Number(value)
     );
   };
+  /* =========================================
+   REQUIRED / CURRENT CALLED NUMBER
+
+   When requiredNumber is supplied:
+   - it MUST exist on this card
+   - it MUST participate in the
+     completed winning pattern
+========================================= */
+
+const requiredCellIndex:
+  number | null = (() => {
+
+  /*
+   * No extra requirement.
+   *
+   * Keeps backward compatibility
+   * for other callers.
+   */
+  if (
+    requiredNumber ===
+      undefined ||
+    requiredNumber === null
+  ) {
+    return null;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return -1;
+  }
+
+
+  for (
+    let row = 0;
+    row < 5;
+    row += 1
+  ) {
+
+    for (
+      let col = 0;
+      col < 5;
+      col += 1
+    ) {
+
+      const index =
+        row * 5 + col;
+
+
+      /*
+       * FREE cannot be the
+       * called number.
+       */
+      if (
+        index === 12
+      ) {
+        continue;
+      }
+
+
+      const value =
+        numbers[row]?.[
+          col
+        ];
+
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        Number(value) ===
+          target
+      ) {
+
+        return index;
+
+      }
+
+    }
+
+  }
+
+
+  /*
+   * Current called number
+   * does not exist on card.
+   */
+  return -1;
+
+})();
+
+
+/*
+ * When the current called
+ * number was required but
+ * is not on the card:
+ *
+ * NOT A WINNER.
+ */
+if (
+  requiredCellIndex === -1
+) {
+  return false;
+}
+
+/* =========================================
+   CHECK WHETHER A COMPLETED LINE
+   CONTAINS THE CURRENT CALLED CELL
+========================================= */
+
+const completedLineContainsRequiredCell =
+  (
+    lines:
+      number[][]
+  ): boolean => {
+
+    /*
+     * No requiredNumber was supplied.
+     *
+     * Preserve original matcher behavior.
+     */
+    if (
+      requiredCellIndex ===
+      null
+    ) {
+      return true;
+    }
+
+
+    return lines.some(
+      (line) => {
+
+        /*
+         * Current called cell must
+         * belong to this line.
+         */
+        if (
+          !line.includes(
+            requiredCellIndex
+          )
+        ) {
+          return false;
+        }
+
+
+        /*
+         * And the complete line
+         * must already be marked.
+         */
+        return line.every(
+          (cellIndex) =>
+            isCellMarked(
+              cellIndex
+            )
+        );
+
+      }
+    );
+
+  };
 /* =========================================
    COUNT COMPLETED STANDARD LINES
 ========================================= */
@@ -1237,6 +1798,69 @@ const completedLines =
 
 
 /* =========================================
+   COMPLETED HORIZONTAL LINES
+========================================= */
+
+const completedHorizontalLines =
+  [
+    ROW_1,
+    ROW_2,
+    ROW_3,
+    ROW_4,
+    ROW_5,
+  ].filter(
+    (line) =>
+      line.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
+  ).length;
+
+
+/* =========================================
+   COMPLETED VERTICAL LINES
+========================================= */
+
+const completedVerticalLines =
+  [
+    COL_1,
+    COL_2,
+    COL_3,
+    COL_4,
+    COL_5,
+  ].filter(
+    (line) =>
+      line.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
+  ).length;
+
+
+/* =========================================
+   COMPLETED DIAGONALS
+========================================= */
+
+const completedDiagonalLines =
+  [
+    DIAGONAL_MAIN,
+    DIAGONAL_REVERSE,
+  ].filter(
+    (line) =>
+      line.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
+  ).length;
+
+
+/* =========================================
    COUNT COMPLETED NON-DIAGONAL LINES
 ========================================= */
 
@@ -1252,6 +1876,139 @@ const completedNonDiagonalLines =
         )
     )
     .length;
+
+  /* =========================================
+   COMPLETED FREE-UNTOUCHED LINES
+========================================= */
+
+const completedFreeUntouchedLines =
+  FREE_UNTOUCHED_LINES.filter(
+    (line) =>
+      line.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
+  ).length;
+
+
+/* =========================================
+   4 LINES NOT TOUCHING FREE
+========================================= */
+
+if (
+  pattern ===
+  "4_free_untouched_lines"
+) {
+  return (
+    completedFreeUntouchedLines >=
+      4 &&
+
+    completedLineContainsRequiredCell(
+      FREE_UNTOUCHED_LINES
+    )
+  );
+}
+
+
+/* =========================================
+   3 HORIZONTAL + 2 VERTICAL
+========================================= */
+
+if (
+  pattern ===
+  "3_horizontal_2_vertical"
+) {
+
+  const requiredInHorizontal =
+    completedLineContainsRequiredCell(
+      [
+        ROW_1,
+        ROW_2,
+        ROW_3,
+        ROW_4,
+        ROW_5,
+      ]
+    );
+
+
+  const requiredInVertical =
+    completedLineContainsRequiredCell(
+      [
+        COL_1,
+        COL_2,
+        COL_3,
+        COL_4,
+        COL_5,
+      ]
+    );
+
+
+  return (
+    completedHorizontalLines >=
+      3 &&
+
+    completedVerticalLines >=
+      2 &&
+
+    (
+      requiredInHorizontal ||
+      requiredInVertical
+    )
+  );
+
+}
+
+/* =========================================
+   2 HORIZONTAL + 2 VERTICAL
+========================================= */
+
+if (
+  pattern ===
+  "2_horizontal_2_vertical"
+) {
+
+  const requiredInHorizontal =
+    completedLineContainsRequiredCell(
+      [
+        ROW_1,
+        ROW_2,
+        ROW_3,
+        ROW_4,
+        ROW_5,
+      ]
+    );
+
+
+  const requiredInVertical =
+    completedLineContainsRequiredCell(
+      [
+        COL_1,
+        COL_2,
+        COL_3,
+        COL_4,
+        COL_5,
+      ]
+    );
+
+
+  return (
+    completedHorizontalLines >=
+      2 &&
+
+    completedVerticalLines >=
+      2 &&
+
+    (
+      requiredInHorizontal ||
+      requiredInVertical
+    )
+  );
+
+}
+
+
     /* =========================================
    DYNAMIC LINE PATTERNS
 ========================================= */
@@ -1261,17 +2018,26 @@ if (
   "3_lines"
 ) {
   return (
-    completedLines >= 3
+    completedLines >=
+      3 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
-
 
 if (
   pattern ===
   "4_lines"
 ) {
   return (
-    completedLines >= 4
+    completedLines >=
+      4 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
 
@@ -1281,7 +2047,12 @@ if (
   "5_lines"
 ) {
   return (
-    completedLines >= 5
+    completedLines >=
+      5 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
 
@@ -1291,7 +2062,12 @@ if (
   "6_lines"
 ) {
   return (
-    completedLines >= 6
+    completedLines >=
+      6 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
 
@@ -1301,7 +2077,12 @@ if (
   "7_lines"
 ) {
   return (
-    completedLines >= 7
+    completedLines >=
+      7 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
 
@@ -1311,10 +2092,14 @@ if (
   "8_lines"
 ) {
   return (
-    completedLines >= 8
+    completedLines >=
+      8 &&
+
+    completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
   );
 }
-
 
 /* =========================================
    LINE PATTERNS WITHOUT DIAGONAL
@@ -1326,7 +2111,11 @@ if (
 ) {
   return (
     completedNonDiagonalLines >=
-    3
+      3 &&
+
+    completedLineContainsRequiredCell(
+      NON_DIAGONAL_LINES
+    )
   );
 }
 
@@ -1337,7 +2126,11 @@ if (
 ) {
   return (
     completedNonDiagonalLines >=
-    4
+      4 &&
+
+    completedLineContainsRequiredCell(
+      NON_DIAGONAL_LINES
+    )
   );
 }
 
@@ -1348,7 +2141,11 @@ if (
 ) {
   return (
     completedNonDiagonalLines >=
-    5
+      5 &&
+
+    completedLineContainsRequiredCell(
+      NON_DIAGONAL_LINES
+    )
   );
 }
 
@@ -1359,10 +2156,13 @@ if (
 ) {
   return (
     completedNonDiagonalLines >=
-    6
+      6 &&
+
+    completedLineContainsRequiredCell(
+      NON_DIAGONAL_LINES
+    )
   );
 }
-
   /* =========================================
      NEW ADMIN WINNING PATTERNS
   ========================================= */
@@ -1397,14 +2197,40 @@ if (
      * top half OR bottom half.
      */
     return layouts.some(
-      (requiredCells) =>
-        requiredCells.every(
-          (cellIndex) =>
-            isCellMarked(
-              cellIndex
-            )
+  (
+    requiredCells
+  ) => {
+
+    /*
+     * If the current called number
+     * requirement is active,
+     * this exact winning possibility
+     * MUST contain that cell.
+     */
+    if (
+      requiredCellIndex !==
+        null &&
+      !requiredCells.includes(
+        requiredCellIndex
+      )
+    ) {
+      return false;
+    }
+
+
+    /*
+     * Original winning-pattern
+     * validation remains unchanged.
+     */
+    return requiredCells.every(
+      (cellIndex) =>
+        isCellMarked(
+          cellIndex
         )
     );
+
+  }
+);
   }
 
 

@@ -6,6 +6,7 @@ import mongoose, {
 import {
   IGame,
   GameStatus,
+  GameCallMode,
 } from "./game.types";
 import {
   WINNING_PATTERNS,
@@ -27,6 +28,17 @@ const gameSchema = new Schema(
       trim: true,
       maxlength: 100,
     },
+
+    gameType: {
+  type: Number,
+  enum: [
+    1,
+    -1,
+  ],
+  default: 1,
+  required: true,
+  index: true,
+},
 
     entryFee: {
       type: Number,
@@ -95,6 +107,19 @@ callIntervalSeconds: {
   min: 1,
 },
 
+callMode: {
+  type: String,
+
+  enum: [
+    "automatic",
+    "manual",
+  ] satisfies GameCallMode[],
+
+  default: "automatic",
+
+  required: true,
+},
+
 joiningEndsAt: {
   type: Date,
   default: null,
@@ -111,10 +136,38 @@ nextCallAt: {
     },
 
     completedAt: {
-      type: Date,
-      default: null,
-    },
-    scheduledStartAt: {
+  type: Date,
+  default: null,
+},
+
+/* =========================
+   MULTI-WINNER WINDOW
+========================= */
+
+firstWinnerAt: {
+  type: Date,
+  default: null,
+},
+
+winnerClaimEndsAt: {
+  type: Date,
+  default: null,
+  index: true,
+},
+
+winnerCount: {
+  type: Number,
+  default: 0,
+  min: 0,
+  max: 10,
+},
+
+payoutSettledAt: {
+  type: Date,
+  default: null,
+},
+
+scheduledStartAt: {
   type: Date,
   default: null,
 },

@@ -879,6 +879,124 @@ game: {
 
   bingoClaimedWith:
     "Bingo claimed with",
+
+  show: "Show",
+hide: "Hide",
+
+loadingInformation:
+  "Loading information...",
+
+info:
+  "Info",
+
+status:
+  "Status",
+
+normalGame:
+  "Normal Game",
+
+bonusGame:
+  "Bonus Game",
+
+falseBingo:
+  "FALSE BINGO",
+
+blockedCard:
+  "Blocked Card",
+
+reason:
+  "Reason",
+
+blockedCardNote:
+  "This card was blocked because of an incorrect Bingo claim.",
+
+loadingCard:
+  "Loading Card...",
+
+currentCardsStayActive:
+  "Your current cards stay active",
+
+addCard:
+  "Add Card",
+
+addCards:
+  "Add Cards",
+
+removeCard:
+  "Remove card",
+
+join:
+  "JOIN",
+
+joined:
+  "JOINED",
+
+bingo:
+  "BINGO",
+
+bingoBlocked:
+  "BINGO BLOCKED",
+
+maximumCardsAllowed:
+  "Maximum cards allowed:",
+
+moreCardsAvailable:
+  "more cards are currently available.",
+
+failedAddCards:
+  "Failed to add Bingo cards",
+
+invalidBingoCard:
+  "Invalid Bingo card.",
+
+gameNotAcceptingPlayers:
+  "This game is no longer accepting players.",
+
+joinedSuccessfully:
+  "joined successfully.",
+
+failedJoinCard:
+  "Failed to join Bingo card",
+
+cardBlockedFromClaiming:
+  "is blocked from claiming Bingo.",
+
+bingoAlreadyAccepted:
+  "Your Bingo has already been accepted.",
+
+gameNotActive:
+  "The game is not active.",
+
+bingoAcceptedWaiting:
+  "BINGO accepted! Waiting for other winners...",
+
+cardIsBlocked:
+  "is blocked.",
+
+winnerWindowClosed:
+  "The Bingo winner window has closed.",
+
+failedSubmitBingo:
+  "Failed to submit Bingo.",
+},
+winningPatternHint: {
+  title: "Pattern Hints",
+  gameType: "Game Type",
+
+  description:
+    "Correct (green) and wrong (red) Bingo pattern examples for this game.",
+
+  correct: "Correct",
+  wrong: "Wrong",
+  required: "Required",
+  other: "Other",
+  free: "FREE",
+
+  close:
+    "Close winning pattern",
+
+  notConfigured:
+    "The winning pattern for this game type has not been configured yet.",
 },
 
   language: {

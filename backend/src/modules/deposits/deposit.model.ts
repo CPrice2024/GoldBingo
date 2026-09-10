@@ -46,7 +46,31 @@ const depositSchema =
         required: true,
         min: 1,
       },
+      approvedAmount: {
+  type: Number,
+  min: 1,
+},
 
+smsAmount: {
+  type: Number,
+  min: 1,
+},
+
+matchedTransactionId: {
+  type: String,
+  trim: true,
+  uppercase: true,
+  maxlength: 100,
+},
+
+smsReceivedAt: {
+  type: Date,
+},
+
+autoApproved: {
+  type: Boolean,
+  default: false,
+},
       paymentMethod: {
         type: String,
         enum: [
@@ -106,6 +130,15 @@ depositSchema.index({
   playerId: 1,
   createdAt: -1,
 });
+depositSchema.index(
+  {
+    matchedTransactionId: 1,
+  },
+  {
+    unique: true,
+    sparse: true,
+  }
+);
 depositSchema.index(
   { reference: 1 },
   {

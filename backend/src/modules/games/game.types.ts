@@ -7,9 +7,16 @@ export type GameStatus =
   | "active"
   | "completed"
   | "cancelled";
-
+export type GameType =
+  | 1
+  | -1;
+export type GameCallMode =
+  | "automatic"
+  | "manual";
 export interface IGame {
   name: string;
+
+  gameType: GameType;
 
   entryFee: number;
 
@@ -21,6 +28,8 @@ export interface IGame {
   joiningWindowSeconds: number;
 
   callIntervalSeconds: number;
+
+  callMode: GameCallMode;
 
   joiningEndsAt?: Date | null;
 
@@ -42,9 +51,35 @@ scheduledStartAt:
 
   startedAt?: Date | null;
 
-  completedAt?: Date | null;
+ completedAt?: Date | null;
 
-  createdAt: Date;
+/*
+ * Multi-winner window.
+ *
+ * The first valid Bingo opens
+ * a 30-second claim period.
+ */
+firstWinnerAt?:
+  Date | null;
+
+winnerClaimEndsAt?:
+  Date | null;
+
+/*
+ * Number of accepted unique
+ * winning players.
+ */
+winnerCount:
+  number;
+
+/*
+ * Set only after prizes have
+ * actually been divided and paid.
+ */
+payoutSettledAt?:
+  Date | null;
+
+createdAt: Date;
 
   updatedAt: Date;
 }

@@ -864,7 +864,136 @@ game: {
 
   bingoClaimedWith:
     "Bingo ብዚ ካርድ ተወሲዱ",
+    show: "ኣርኢ",
+hide: "ሕባእ",
 
+loadingInformation:
+  "ሓበሬታ ይጽዕን ኣሎ...",
+
+info:
+  "ሓበሬታ",
+
+status:
+  "ኩነታት",
+
+normalGame:
+  "ንቡር ጸወታ",
+
+bonusGame:
+  "ቦነስ ጸወታ",
+
+falseBingo:
+  "ዘይትኽክል BINGO",
+
+blockedCard:
+  "ዝተኣገደ ካርድ",
+
+reason:
+  "ምኽንያት",
+
+blockedCardNote:
+  "እዚ ካርድ ብሰንኪ ዘይትኽክል Bingo ሕቶ ተኣጊዱ።",
+
+loadingCard:
+  "ካርድ ይጽዕን ኣሎ...",
+
+currentCardsStayActive:
+  "ዘለዉ ካርድታትኩም ከምዘለዉ ይቕጽሉ",
+
+addCard:
+  "ካርድ ወስኽ",
+
+addCards:
+  "ካርድታት ወስኽ",
+
+removeCard:
+  "ካርድ ኣውጽእ",
+
+join:
+  "ተጸንበር",
+
+joined:
+  "ተጸንቢሩ",
+
+bingo:
+  "BINGO",
+
+bingoBlocked:
+  "BINGO ተኣጊዱ",
+
+maximumCardsAllowed:
+  "ዝፍቀድ ዝለዓለ ብዝሒ ካርድ:",
+
+moreCardsAvailable:
+  "ተወሳኺ ካርድታት ጥራይ ይርከቡ።",
+
+failedAddCards:
+  "ካርድታት Bingo ምውሳኽ ኣይተኻእለን",
+
+invalidBingoCard:
+  "ዘይትኽክል Bingo ካርድ።",
+
+gameNotAcceptingPlayers:
+  "እዚ ጸወታ ድሕሪ ሕጂ ተጻወትቲ ኣይቕበልን።",
+
+joinedSuccessfully:
+  "ብዓወት ተጸንቢሩ።",
+
+failedJoinCard:
+  "ናብ Bingo ካርድ ምጽንባር ኣይተኻእለን",
+
+cardBlockedFromClaiming:
+  "Bingo ከይሓትት ተኣጊዱ።",
+
+bingoAlreadyAccepted:
+  "Bingoኹም ድሮ ተቐቢሉ እዩ።",
+
+gameNotActive:
+  "እቲ ጸወታ ንጡፍ ኣይኮነን።",
+
+bingoAcceptedWaiting:
+  "BINGO ተቐቢሉ! ካልኦት ተዓወትቲ ይጽበ ኣሎ...",
+
+cardIsBlocked:
+  "ተኣጊዱ።",
+
+winnerWindowClosed:
+  "ግዜ ምርግጋጽ ተዓዋቲ Bingo ተዓጽዩ።",
+
+failedSubmitBingo:
+  "Bingo ምቕራብ ኣይተኻእለን።",
+
+},
+winningPatternHint: {
+  title:
+    "መምርሒ ቅርጺ ዓወት",
+
+  gameType:
+    "ዓይነት ጸወታ",
+
+  description:
+    "ትኽክለኛ (ቀጠልያ)ን ጌጋ (ቀይሕ)ን ናይ Bingo ቅርጺ ኣብነታት።",
+
+  correct:
+    "ትኽክል",
+
+  wrong:
+    "ጌጋ",
+
+  required:
+    "ኣድላዪ",
+
+  other:
+    "ካልእ",
+
+  free:
+    "FREE",
+
+  close:
+    "ቅርጺ ዓወት ዕጸው",
+
+  notConfigured:
+    "ናይዚ ዓይነት ጸወታ ቅርጺ ዓወት ገና ኣይተዳለወን።",
 },
 
   language: {

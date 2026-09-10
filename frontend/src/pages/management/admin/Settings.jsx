@@ -11,10 +11,18 @@ import {
   Upload,
   Trash2,
   Eye,
+  FileText,
+  Pencil,
   EyeOff,
   BadgePercent,
 } from "lucide-react";
-
+import {
+  getAdminInfo,
+  createInfo,
+  updateInfo,
+  updateInfoPublishStatus,
+  deleteInfo,
+} from "../../../api/info.api";
 import {
   getAdminPromotions,
   createPromotion,
@@ -59,7 +67,45 @@ export default function AdminSettings() {
   promotions,
   setPromotions,
 ] = useState([]);
+const [
+  infoPosts,
+  setInfoPosts,
+] = useState([]);
 
+const [
+  infoTitle,
+  setInfoTitle,
+] = useState("");
+
+const [
+  infoContent,
+  setInfoContent,
+] = useState("");
+
+const [
+  infoCategory,
+  setInfoCategory,
+] = useState("general");
+
+const [
+  infoPublished,
+  setInfoPublished,
+] = useState(true);
+
+const [
+  infoLoading,
+  setInfoLoading,
+] = useState(false);
+
+const [
+  infoSaving,
+  setInfoSaving,
+] = useState(false);
+
+const [
+  editingInfoId,
+  setEditingInfoId,
+] = useState(null);
 const [
   promotionImage,
   setPromotionImage,
@@ -175,6 +221,40 @@ const [
     }
   };
 
+const loadInfo =
+  async () => {
+
+    try {
+
+      setInfoLoading(true);
+
+      const response =
+        await getAdminInfo();
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to load information"
+        );
+      }
+
+      setInfoPosts(
+        response.data || []
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Info loading error:",
+        error
+      );
+
+    } finally {
+
+      setInfoLoading(false);
+    }
+  };
+
   const loadDepositBonus =
   async () => {
 
@@ -231,6 +311,7 @@ useEffect(() => {
   loadProfile();
   loadPromotions();
   loadDepositBonus();
+  loadInfo();
 }, []);
 
 const handlePromotionImageChange =
@@ -574,6 +655,244 @@ const handleDepositBonusSave =
       );
     } finally {
       setSavingProfile(false);
+    }
+  };
+
+const resetInfoForm = () => {
+
+  setInfoTitle("");
+  setInfoContent("");
+  setInfoCategory("general");
+  setInfoPublished(true);
+  setEditingInfoId(null);
+};
+
+
+const handleInfoSubmit =
+  async () => {
+
+    if (!infoTitle.trim()) {
+      setError(
+        "Information title is required."
+      );
+
+      return;
+    }
+
+    if (!infoContent.trim()) {
+      setError(
+        "Information content is required."
+      );
+
+      return;
+    }
+
+    try {
+
+      setInfoSaving(true);
+      setError("");
+      setMessage("");
+
+      let response;
+
+
+      if (editingInfoId) {
+
+        response =
+          await updateInfo(
+            editingInfoId,
+            {
+              title:
+                infoTitle.trim(),
+
+              content:
+                infoContent.trim(),
+
+              category:
+                infoCategory,
+            }
+          );
+
+      } else {
+
+        response =
+          await createInfo({
+            title:
+              infoTitle.trim(),
+
+            content:
+              infoContent.trim(),
+
+            category:
+              infoCategory,
+
+            isPublished:
+              infoPublished,
+          });
+      }
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to save information"
+        );
+      }
+
+
+      setMessage(
+        editingInfoId
+          ? "Information updated successfully."
+          : "Information created successfully."
+      );
+
+      resetInfoForm();
+
+      await loadInfo();
+
+    } catch (error) {
+
+      console.error(
+        "Info save error:",
+        error
+      );
+
+      setError(
+        error?.response?.data
+          ?.message ||
+          error?.message ||
+          "Failed to save information"
+      );
+
+    } finally {
+
+      setInfoSaving(false);
+    }
+  };
+
+
+const handleInfoEdit =
+  (info) => {
+
+    setEditingInfoId(
+      info._id
+    );
+
+    setInfoTitle(
+      info.title || ""
+    );
+
+    setInfoContent(
+      info.content || ""
+    );
+
+    setInfoCategory(
+      info.category ||
+        "general"
+    );
+
+    setInfoPublished(
+      Boolean(
+        info.isPublished
+      )
+    );
+  };
+
+
+const handleInfoToggle =
+  async (info) => {
+
+    try {
+
+      setError("");
+      setMessage("");
+
+      const response =
+        await updateInfoPublishStatus(
+          info._id,
+          !info.isPublished
+        );
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to update publish status"
+        );
+      }
+
+
+      setMessage(
+        info.isPublished
+          ? "Information unpublished."
+          : "Information published."
+      );
+
+      await loadInfo();
+
+    } catch (error) {
+
+      setError(
+        error?.response?.data
+          ?.message ||
+          "Failed to update information"
+      );
+    }
+  };
+
+
+const handleInfoDelete =
+  async (infoId) => {
+
+    const confirmed =
+      window.confirm(
+        "Delete this information?"
+      );
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    try {
+
+      setError("");
+      setMessage("");
+
+      const response =
+        await deleteInfo(
+          infoId
+        );
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to delete information"
+        );
+      }
+
+
+      setMessage(
+        "Information deleted successfully."
+      );
+
+      if (
+        editingInfoId ===
+        infoId
+      ) {
+        resetInfoForm();
+      }
+
+      await loadInfo();
+
+    } catch (error) {
+
+      setError(
+        error?.response?.data
+          ?.message ||
+          "Failed to delete information"
+      );
     }
   };
 
@@ -1240,6 +1559,335 @@ const handleDepositBonusSave =
     </>
 
   )}
+
+</section>
+{/* =====================================
+    PLAYER INFORMATION / ANNOUNCEMENTS
+===================================== */}
+
+<section className="admin-settings-card admin-info-card">
+
+  <div className="admin-settings-card-header">
+
+    <div className="admin-settings-card-icon">
+      <FileText size={20} />
+    </div>
+
+    <div>
+      <h2>
+        Player Information
+      </h2>
+
+      <p>
+        Create and manage information
+        displayed in the player's Info
+        section.
+      </p>
+    </div>
+
+  </div>
+
+
+  {/* TITLE */}
+
+  <div className="admin-settings-field">
+
+    <label>
+      Information Title
+    </label>
+
+    <div className="admin-settings-input">
+
+      <input
+        type="text"
+        value={infoTitle}
+        placeholder="Welcome to GoldBingo"
+        onChange={(event) =>
+          setInfoTitle(
+            event.target.value
+          )
+        }
+      />
+
+    </div>
+
+  </div>
+
+
+  {/* CATEGORY */}
+
+  <div className="admin-settings-field">
+
+    <label>
+      Category
+    </label>
+
+    <div className="admin-settings-input">
+
+      <select
+        value={infoCategory}
+        onChange={(event) =>
+          setInfoCategory(
+            event.target.value
+          )
+        }
+      >
+        <option value="general">
+          General
+        </option>
+
+        <option value="important">
+          Important
+        </option>
+
+        <option value="promotion">
+          Promotion
+        </option>
+
+        <option value="maintenance">
+          Maintenance
+        </option>
+
+        <option value="game">
+          Game
+        </option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  {/* CONTENT */}
+
+  <div className="admin-settings-field">
+
+    <label>
+      Information
+    </label>
+
+    <textarea
+      className="admin-info-textarea"
+      rows={7}
+      value={infoContent}
+      placeholder="Write the information players should see..."
+      onChange={(event) =>
+        setInfoContent(
+          event.target.value
+        )
+      }
+    />
+
+  </div>
+
+
+  {/* PUBLISH IMMEDIATELY */}
+
+  {!editingInfoId && (
+
+    <label className="admin-info-publish-row">
+
+      <input
+        type="checkbox"
+        checked={infoPublished}
+        onChange={(event) =>
+          setInfoPublished(
+            event.target.checked
+          )
+        }
+      />
+
+      <span>
+        Publish immediately
+      </span>
+
+    </label>
+
+  )}
+
+
+  {/* SAVE */}
+
+  <button
+    type="button"
+    className="admin-settings-save-button"
+    disabled={infoSaving}
+    onClick={handleInfoSubmit}
+  >
+
+    {infoSaving ? (
+      <>
+        <Loader2
+          size={17}
+          className="admin-spin"
+        />
+
+        Saving...
+      </>
+    ) : editingInfoId ? (
+      <>
+        <Save size={17} />
+
+        Update Information
+      </>
+    ) : (
+      <>
+        <FileText size={17} />
+
+        Publish Information
+      </>
+    )}
+
+  </button>
+
+
+  {editingInfoId && (
+
+    <button
+      type="button"
+      className="admin-info-cancel-button"
+      onClick={resetInfoForm}
+    >
+      Cancel Edit
+    </button>
+
+  )}
+
+
+  {/* CURRENT INFORMATION */}
+
+  <div className="admin-info-list">
+
+    <h3>
+      Current Information
+    </h3>
+
+
+    {infoLoading ? (
+
+      <div className="admin-promotion-empty">
+        Loading information...
+      </div>
+
+    ) : infoPosts.length === 0 ? (
+
+      <div className="admin-promotion-empty">
+        No information posted yet.
+      </div>
+
+    ) : (
+
+      infoPosts.map(
+        (info) => (
+
+          <div
+            key={info._id}
+            className="admin-info-item"
+          >
+
+            <div className="admin-info-item-content">
+
+              <div className="admin-info-meta">
+
+                <span>
+                  {info.category}
+                </span>
+
+                <small
+                  className={
+                    info.isPublished
+                      ? "active"
+                      : "hidden"
+                  }
+                >
+                  {info.isPublished
+                    ? "Published"
+                    : "Draft"}
+                </small>
+
+              </div>
+
+
+              <strong>
+                {info.title}
+              </strong>
+
+
+              <p>
+                {info.content}
+              </p>
+
+
+              <small>
+                {new Date(
+                  info.createdAt
+                ).toLocaleString()}
+              </small>
+
+            </div>
+
+
+            <div className="admin-info-actions">
+
+              <button
+                type="button"
+                title="Edit information"
+                onClick={() =>
+                  handleInfoEdit(
+                    info
+                  )
+                }
+              >
+                <Pencil size={17} />
+              </button>
+
+
+              <button
+                type="button"
+                title={
+                  info.isPublished
+                    ? "Unpublish"
+                    : "Publish"
+                }
+                onClick={() =>
+                  handleInfoToggle(
+                    info
+                  )
+                }
+              >
+
+                {info.isPublished ? (
+                  <Eye size={17} />
+                ) : (
+                  <EyeOff size={17} />
+                )}
+
+              </button>
+
+
+              <button
+                type="button"
+                className="delete"
+                title="Delete information"
+                onClick={() =>
+                  handleInfoDelete(
+                    info._id
+                  )
+                }
+              >
+                <Trash2 size={17} />
+              </button>
+
+            </div>
+
+          </div>
+
+        )
+      )
+
+    )}
+
+  </div>
 
 </section>
 

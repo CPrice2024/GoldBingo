@@ -872,6 +872,136 @@ game: {
 
   bingoClaimedWith:
     "Bingo kaardii kanaan fudhatame",
+
+  show: "Agarsiisi",
+hide: "Dhoksi",
+
+loadingInformation:
+  "Odeeffannoo fe'aa jira...",
+
+info:
+  "Odeeffannoo",
+
+status:
+  "Haala",
+
+normalGame:
+  "Tapha Idilee",
+
+bonusGame:
+  "Tapha Bonusii",
+
+falseBingo:
+  "BINGO DOGOGGORAA",
+
+blockedCard:
+  "Kaardii Uggurame",
+
+reason:
+  "Sababa",
+
+blockedCardNote:
+  "Kaardiin kun gaaffii Bingo dogoggoraa waan dhiyaateef uggurameera.",
+
+loadingCard:
+  "Kaardii fe'aa jira...",
+
+currentCardsStayActive:
+  "Kaardiiwwan amma jiran akkuma jiranitti itti fufu",
+
+addCard:
+  "Kaardii Dabali",
+
+addCards:
+  "Kaardiiwwan Dabali",
+
+removeCard:
+  "Kaardii Haqi",
+
+join:
+  "SEENI",
+
+joined:
+  "SEENEERA",
+
+bingo:
+  "BINGO",
+
+bingoBlocked:
+  "BINGO UGgurame",
+
+maximumCardsAllowed:
+  "Baay'ina kaardii guddaan hayyamamu:",
+
+moreCardsAvailable:
+  "kaardiiwwan dabalataa qofa jiru.",
+
+failedAddCards:
+  "Kaardiiwwan Bingo dabaluu hin dandeenye",
+
+invalidBingoCard:
+  "Kaardii Bingo sirrii miti.",
+
+gameNotAcceptingPlayers:
+  "Taphi kun yeroo ammaa taphattoota haaraa hin fudhatu.",
+
+joinedSuccessfully:
+  "milkaa'inaan seeneera.",
+
+failedJoinCard:
+  "Kaardii Bingo seenuun hin milkoofne",
+
+cardBlockedFromClaiming:
+  "Bingo gaafachuu irraa uggurameera.",
+
+bingoAlreadyAccepted:
+  "Bingo kee duraan fudhatameera.",
+
+gameNotActive:
+  "Taphi kun hojii irra hin jiru.",
+
+bingoAcceptedWaiting:
+  "BINGO fudhatameera! Injifattoota biroo eegaa jira...",
+
+cardIsBlocked:
+  "uggurameera.",
+
+winnerWindowClosed:
+  "Yeroon Bingo injifataa mirkaneessuu cufameera.",
+
+failedSubmitBingo:
+  "Bingo erguun hin milkoofne.",
+},
+winningPatternHint: {
+  title:
+    "Qajeelfama Akkaataa Injifannoo",
+
+  gameType:
+    "Gosa Taphaa",
+
+  description:
+    "Fakkeenya akkaataa Bingo sirrii (magariisa) fi dogoggoraa (diimaa).",
+
+  correct:
+    "Sirrii",
+
+  wrong:
+    "Dogoggora",
+
+  required:
+    "Barbaachisaa",
+
+  other:
+    "Kan Biroo",
+
+  free:
+    "FREE",
+
+  close:
+    "Akkaataa injifannoo cufi",
+
+  notConfigured:
+    "Akkaataan injifannoo gosa taphaa kanaa amma iyyuu hin qophoofne.",
 },
 
   language: {

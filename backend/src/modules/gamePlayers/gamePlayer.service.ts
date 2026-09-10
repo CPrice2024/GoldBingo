@@ -13,32 +13,31 @@ import {
   findGamePlayers,
   countGamePlayers,
 } from "./gamePlayer.repository";
+import { Card } from "../cards/card.model";
 
 import {
-  findAndAssignAvailableCards,
-} from "../cards/card.repository";
+  GamePlayer,
+} from "./gamePlayer.model";
 
 export const joinGame =
   async (
     playerId: string,
     gameId: string,
-    cardCount: number = 1
+    cardId: string
   ) => {
-    const allowedCardCounts = [
-      1,
-      2,
-      3,
-      5,
-      10,
-    ];
+
+
+    /* =========================
+       VALIDATE CARD ID
+    ========================= */
 
     if (
-      !allowedCardCounts.includes(
-        cardCount
+      !mongoose.Types.ObjectId.isValid(
+        cardId
       )
     ) {
       throw new Error(
-        "Card count must be 1, 2, 3, 5, or 10"
+        "Invalid card ID"
       );
     }
 
@@ -46,7 +45,9 @@ export const joinGame =
     const session =
       await mongoose.startSession();
 
+
     try {
+
       session.startTransaction();
 
 
@@ -56,10 +57,18 @@ export const joinGame =
 
       const player =
         await User.findOne({
-          _id: playerId,
-          role: "player",
-          status: "active",
-        }).session(session);
+          _id:
+            playerId,
+
+          role:
+            "player",
+
+          status:
+            "active",
+        }).session(
+          session
+        );
+
 
       if (!player) {
         throw new Error(
@@ -74,25 +83,93 @@ export const joinGame =
 
       const game =
         await Game.findOne({
-          _id: gameId,
-          status: "waiting",
-        }).session(session);
+          _id:
+            gameId,
+
+          status:
+            "waiting",
+        }).session(
+          session
+        );
+
 
       if (!game) {
         throw new Error(
           "Game is already running or is not accepting players. Please wait for the next game."
         );
       }
+      /* =========================
+   GAME TYPE
+
+   1  = NORMAL
+   -1 = BONUS
+========================= */
+
+const gameType:
+  1 | -1 =
+    Number(
+      game.gameType ?? 1
+    ) === -1
+      ? -1
+      : 1;
+
+
+const isBonusGame =
+  gameType === -1;
+
+
+/*
+ * Normal:
+ * max 25 cards
+ *
+ * Bonus:
+ * max 2 cards
+ */
+const maxCardsForGame =
+  isBonusGame
+    ? 2
+    : 25;
 
 
       /* =========================
-         3. PLAYER LIMIT
+         3. EXISTING PARTICIPATION
       ========================= */
 
+      const existingPlayer =
+        await GamePlayer.findOne({
+          gameId:
+            gameId,
+
+          playerId:
+            playerId,
+        }).session(
+          session
+        );
+
+
+      const isNewPlayer =
+        !existingPlayer;
+
+
+      /*
+       * Player limit only applies
+       * when this is a NEW player.
+       *
+       * A player already inside the
+       * game may still add cards.
+       */
       if (
-        game.currentPlayers >=
-        game.maxPlayers
+        isNewPlayer &&
+        Number(
+          game.currentPlayers ||
+            0
+        ) >=
+          Number(
+            game.maxPlayers ||
+              0
+          )
       ) {
+
         throw new Error(
           "Game is full"
         );
@@ -100,314 +177,543 @@ export const joinGame =
 
 
       /* =========================
-         4. DUPLICATE JOIN
+         4. CURRENT CARD COUNT
       ========================= */
 
-      const existingPlayer =
-        await findGamePlayer(
-          gameId,
-          playerId,
-          session
-        );
+      let existingCardCount =
+        0;
+
 
       if (existingPlayer) {
-        throw new Error(
-          "Player has already joined this game"
-        );
+
+        if (
+          Array.isArray(
+            existingPlayer.cardIds
+          ) &&
+          existingPlayer.cardIds
+            .length > 0
+        ) {
+
+          existingCardCount =
+            existingPlayer.cardIds
+              .length;
+
+        } else if (
+          existingPlayer.cardId
+        ) {
+
+          /*
+           * Legacy one-card records.
+           */
+          existingCardCount =
+            1;
+
+        } else {
+
+          existingCardCount =
+            Number(
+              existingPlayer.cardCount ||
+                0
+            );
+        }
+
+
+       if (
+  existingCardCount >=
+  maxCardsForGame
+) {
+
+  throw new Error(
+    isBonusGame
+      ? "Bonus games allow a maximum of 2 cards per player"
+      : "Maximum 25 cards allowed per player"
+  );
+
+}
+
+/*
+ * CLOSE:
+ * if (existingPlayer)
+ */
+}
+
+
+/* =========================
+   5. DUPLICATE CARD CHECK
+========================= */
+
+      if (existingPlayer) {
+
+        const ownedCardIds =
+          new Set<string>();
+
+
+        if (
+          Array.isArray(
+            existingPlayer.cardIds
+          )
+        ) {
+
+          existingPlayer.cardIds.forEach(
+            (
+              item: any
+            ) => {
+
+              ownedCardIds.add(
+                String(
+                  item?._id ??
+                    item
+                )
+              );
+
+            }
+          );
+        }
+
+
+        if (
+          existingPlayer.cardId
+        ) {
+
+          ownedCardIds.add(
+            String(
+              (
+                existingPlayer.cardId as any
+              )?._id ??
+                existingPlayer.cardId
+            )
+          );
+        }
+
+
+        if (
+          ownedCardIds.has(
+            String(
+              cardId
+            )
+          )
+        ) {
+
+          throw new Error(
+            "You already joined this card"
+          );
+        }
       }
 
 
       /* =========================
-         5. WALLET
+         6. WALLET
       ========================= */
 
       const wallet =
         await Wallet.findOne({
-          userId: playerId,
-          status: "active",
-        }).session(session);
+          userId:
+            playerId,
+
+          status:
+            "active",
+        }).session(
+          session
+        );
+
 
       if (!wallet) {
+
         throw new Error(
           "Player wallet not found or inactive"
         );
       }
 
-/* =========================
-   6. TOTAL ENTRY COST
-========================= */
 
-const totalEntryFee =
-  game.entryFee *
-  cardCount;
+      /* =========================
+         7. ONE CARD ENTRY COST
+      ========================= */
 
-
-/* =========================
-   WALLET BALANCES
-========================= */
-
-/*
- * Deposit money.
- */
-const depositBalanceBefore =
-  Number(
-    wallet.balance || 0
-  );
-
-
-/*
- * Money won from Bingo.
- */
-const winningBalanceBefore =
-  Number(
-    wallet.winningBalance || 0
-  );
-
-
-/*
- * Reserved deposit money.
- */
-const reservedDepositBalance =
-  Number(
-    wallet.reservedBalance || 0
-  );
-
-
-/*
- * Winning money currently
- * reserved for withdrawal.
- */
-const reservedWinningBalance =
-  Number(
-    wallet.reservedWinningBalance ||
-    0
-  );
-
-
-/* =========================
-   AVAILABLE WINNINGS
-========================= */
-
-const availableWinningBalance =
-  Math.max(
-    0,
-    winningBalanceBefore -
-      reservedWinningBalance
-  );
-
-
-/* =========================
-   AVAILABLE DEPOSIT
-========================= */
-
-const availableDepositBalance =
-  Math.max(
-    0,
-    depositBalanceBefore -
-      reservedDepositBalance
-  );
-
-
-/* =========================
-   TOTAL PLAYABLE BALANCE
-========================= */
-
-const totalPlayableBalance =
-  availableWinningBalance +
-  availableDepositBalance;
-
-
-if (
-  totalPlayableBalance <
-  totalEntryFee
-) {
-  throw new Error(
-    `Insufficient balance. ${cardCount} cards cost ${totalEntryFee} ETB. Available to play: ${totalPlayableBalance.toFixed(
-      2
-    )} ETB.`
-  );
-}
+      const totalEntryFee =
+  isBonusGame
+    ? 0
+    : Number(
+        game.entryFee ||
+          0
+      );
 
 
       /* =========================
-         7. ASSIGN CARDS
+         WALLET BALANCES
       ========================= */
 
-      const cards =
-        await findAndAssignAvailableCards(
-          cardCount,
-          session
+      const depositBalanceBefore =
+        Number(
+          wallet.balance ||
+            0
         );
 
+
+      const winningBalanceBefore =
+        Number(
+          wallet.winningBalance ||
+            0
+        );
+
+
+      const reservedDepositBalance =
+        Number(
+          wallet.reservedBalance ||
+            0
+        );
+
+
+      const reservedWinningBalance =
+        Number(
+          wallet
+            .reservedWinningBalance ||
+            0
+        );
+
+
+      /* =========================
+         AVAILABLE WINNINGS
+      ========================= */
+
+      const availableWinningBalance =
+        Math.max(
+          0,
+
+          winningBalanceBefore -
+            reservedWinningBalance
+        );
+
+
+      /* =========================
+         AVAILABLE DEPOSIT
+      ========================= */
+
+      const availableDepositBalance =
+        Math.max(
+          0,
+
+          depositBalanceBefore -
+            reservedDepositBalance
+        );
+
+
+      /* =========================
+         TOTAL PLAYABLE
+      ========================= */
+
+      const totalPlayableBalance =
+        availableWinningBalance +
+        availableDepositBalance;
+
+
       if (
-        cards.length !==
-        cardCount
+        totalPlayableBalance <
+        totalEntryFee
       ) {
+
         throw new Error(
-          "Failed to assign requested cards"
+          `Insufficient balance. This card costs ${totalEntryFee} ETB. Available to play: ${totalPlayableBalance.toFixed(
+            2
+          )} ETB.`
         );
       }
 
 
-      const cardIds =
-        cards.map(
-          (card) =>
-            card._id
-        );
-
-
- /* =========================
-   8. DEDUCT BALANCE
-
-   PRIORITY:
-   1. WINNINGS
-   2. DEPOSIT
-========================= */
-
-
-/*
- * First take as much as possible
- * from withdrawable winnings.
- */
-const amountFromWinning =
-  Math.min(
-    totalEntryFee,
-    availableWinningBalance
-  );
-
-
-/*
- * Whatever remains comes
- * from deposit balance.
- */
-const amountFromDeposit =
-  totalEntryFee -
-  amountFromWinning;
-
-
-/* =========================
-   UPDATE WINNING BALANCE
-========================= */
-
-wallet.winningBalance =
-  winningBalanceBefore -
-  amountFromWinning;
-
-
-/* =========================
-   UPDATE DEPOSIT BALANCE
-========================= */
-
-wallet.balance =
-  depositBalanceBefore -
-  amountFromDeposit;
-
-
-await wallet.save({
-  session,
-});
-
-
-/* =========================
-   BALANCE AFTER
-========================= */
-
-const depositBalanceAfter =
-  Number(
-    wallet.balance || 0
-  );
-
-
-const winningBalanceAfter =
-  Number(
-    wallet.winningBalance || 0
-  );
-
-
-const totalBalanceBefore =
-  depositBalanceBefore +
-  winningBalanceBefore;
-
-
-const totalBalanceAfter =
-  depositBalanceAfter +
-  winningBalanceAfter;
-
-
-/*
- * Remaining winnings that can
- * still be withdrawn or played.
- */
-const withdrawableWinningBalanceAfter =
-  Math.max(
-    0,
-    winningBalanceAfter -
-      reservedWinningBalance
-  );
-
-
-/*
- * Remaining deposit balance
- * that can be played.
- */
-const availableDepositBalanceAfter =
-  Math.max(
-    0,
-    depositBalanceAfter -
-      reservedDepositBalance
-  );
-
-
-/*
- * Total money currently
- * available for another game.
- */
-const availableBalanceAfter =
-  withdrawableWinningBalanceAfter +
-  availableDepositBalanceAfter;
-
-
       /* =========================
-         9. GAME PARTICIPATION
+         8. ASSIGN EXACT CARD
       ========================= */
 
-      const gamePlayer =
-        await createGamePlayer(
+      /*
+       * Atomic update:
+       *
+       * The card must STILL be
+       * available when we purchase it.
+       *
+       * If another player got it first,
+       * this returns null.
+       */
+      const card =
+        await Card.findOneAndUpdate(
           {
-            gameId:
+            _id:
               new mongoose.Types.ObjectId(
-                gameId
+                cardId
               ),
 
-            playerId:
-              new mongoose.Types.ObjectId(
-                playerId
-              ),
-
-            entryFee:
-              totalEntryFee,
-
-            cardIds:
-              cardIds as mongoose.Types.ObjectId[],
-
-            cardCount,
+            status:
+              "available",
           },
-          session
+          {
+            $set: {
+              status:
+                "assigned",
+            },
+          },
+          {
+            new:
+              true,
+
+            session,
+          }
         );
 
 
+      if (!card) {
+
+        throw new Error(
+          "This Bingo card is no longer available. Please choose another card."
+        );
+      }
+
+
       /* =========================
-         10. UPDATE GAME
+         9. DEDUCT BALANCE
+
+         PRIORITY:
+         1. WINNINGS
+         2. DEPOSIT
       ========================= */
 
-      // One PLAYER joined,
-      // regardless of card quantity.
-      game.currentPlayers += 1;
+      /* =========================
+   9. DEDUCT BALANCE
 
-      // Every purchased card
-      // contributes entry fee.
-      game.prizePool +=
+   NORMAL:
+   deduct card entry fee.
+
+   BONUS:
+   card is completely free.
+========================= */
+
+let amountFromWinning =
+  0;
+
+let amountFromDeposit =
+  0;
+
+
+if (
+  totalEntryFee > 0
+) {
+
+  amountFromWinning =
+    Math.min(
+      totalEntryFee,
+      availableWinningBalance
+    );
+
+
+  amountFromDeposit =
+    totalEntryFee -
+    amountFromWinning;
+
+
+  wallet.winningBalance =
+    winningBalanceBefore -
+    amountFromWinning;
+
+
+  wallet.balance =
+    depositBalanceBefore -
+    amountFromDeposit;
+
+
+  await wallet.save({
+    session,
+  });
+
+}
+
+
+      /* =========================
+         BALANCE AFTER
+      ========================= */
+
+      const depositBalanceAfter =
+        Number(
+          wallet.balance ||
+            0
+        );
+
+
+      const winningBalanceAfter =
+        Number(
+          wallet.winningBalance ||
+            0
+        );
+
+
+      const totalBalanceBefore =
+        depositBalanceBefore +
+        winningBalanceBefore;
+
+
+      const totalBalanceAfter =
+        depositBalanceAfter +
+        winningBalanceAfter;
+
+
+      const withdrawableWinningBalanceAfter =
+        Math.max(
+          0,
+
+          winningBalanceAfter -
+            reservedWinningBalance
+        );
+
+
+      const availableDepositBalanceAfter =
+        Math.max(
+          0,
+
+          depositBalanceAfter -
+            reservedDepositBalance
+        );
+
+
+      const availableBalanceAfter =
+        withdrawableWinningBalanceAfter +
+        availableDepositBalanceAfter;
+
+
+      /* =========================
+         10. GAME PARTICIPATION
+      ========================= */
+
+      let gamePlayer:
+        any;
+
+
+      if (existingPlayer) {
+
+        /*
+         * Existing player:
+         *
+         * Keep ONE GamePlayer document
+         * and append the new card.
+         */
+
+        if (
+          !Array.isArray(
+            existingPlayer.cardIds
+          )
+        ) {
+
+          existingPlayer.cardIds =
+            [];
+        }
+
+
+        /*
+         * Convert legacy cardId into
+         * cardIds if necessary.
+         */
+        if (
+          existingPlayer.cardIds
+            .length === 0 &&
+          existingPlayer.cardId
+        ) {
+
+          existingPlayer.cardIds.push(
+            existingPlayer.cardId as any
+          );
+        }
+
+
+        existingPlayer.cardIds.push(
+          card._id as mongoose.Types.ObjectId
+        );
+
+
+        existingPlayer.cardCount =
+          existingPlayer.cardIds
+            .length;
+
+
+        /*
+         * entryFee now represents total
+         * amount paid by this player for
+         * this game.
+         */
+        existingPlayer.entryFee =
+          Number(
+            existingPlayer.entryFee ||
+              0
+          ) +
+          totalEntryFee;
+
+
+        await existingPlayer.save({
+          session,
+        });
+
+
+        gamePlayer =
+          existingPlayer;
+
+      } else {
+
+        /*
+         * First card:
+         * create participation.
+         */
+        gamePlayer =
+          await createGamePlayer(
+            {
+              gameId:
+                new mongoose.Types.ObjectId(
+                  gameId
+                ),
+
+              playerId:
+                new mongoose.Types.ObjectId(
+                  playerId
+                ),
+
+              entryFee:
+                totalEntryFee,
+
+              cardIds: [
+                card._id as mongoose.Types.ObjectId,
+              ],
+
+              cardCount:
+                1,
+            },
+            session
+          );
+
+      }
+
+
+      /* =========================
+         11. UPDATE GAME
+      ========================= */
+
+      /*
+       * currentPlayers counts PEOPLE,
+       * not cards.
+       */
+      if (isNewPlayer) {
+
+        game.currentPlayers =
+          Number(
+            game.currentPlayers ||
+              0
+          ) + 1;
+      }
+
+
+      /*
+       * Every individual card adds
+       * one entry fee to prize pool.
+       */
+      game.prizePool =
+        Number(
+          game.prizePool ||
+            0
+        ) +
         totalEntryFee;
+
 
       await game.save({
         session,
@@ -415,147 +721,176 @@ const availableBalanceAfter =
 
 
       /* =========================
-         11. TRANSACTION
+         12. TRANSACTION
       ========================= */
 
-      await Transaction.create(
-        [
-          {
-            userId:
-              new mongoose.Types.ObjectId(
-                playerId
-              ),
+      if (
+  totalEntryFee > 0
+) {
 
-            type:
-              "game_entry",
+  await Transaction.create(
+    [
+      {
+        userId:
+          new mongoose.Types.ObjectId(
+            playerId
+          ),
 
-            amount:
-              totalEntryFee,
+        type:
+          "game_entry",
 
-            balanceBefore:
-              totalBalanceBefore,
+        amount:
+          totalEntryFee,
 
-            balanceAfter:
-              totalBalanceAfter,
+        balanceBefore:
+          totalBalanceBefore,
 
-            currency:
-              "ETB",
+        balanceAfter:
+          totalBalanceAfter,
 
-            status:
-              "completed",
+        currency:
+          "ETB",
 
-            requestId:
-              gamePlayer._id,
+        status:
+          "completed",
 
-            description:
-  `Entry fee for ${cardCount} card(s) in ${game.name}. Used ${amountFromWinning.toFixed(
-    2
-  )} ETB winnings and ${amountFromDeposit.toFixed(
-    2
-  )} ETB deposit.`,
-          },
-        ],
-        {
-          session,
-        }
-      );
+        requestId:
+          gamePlayer._id,
+
+        description:
+          `Entry fee for Bingo card ${card.cardNumber} in ${game.name}. Used ${amountFromWinning.toFixed(
+            2
+          )} ETB winnings and ${amountFromDeposit.toFixed(
+            2
+          )} ETB deposit.`,
+      },
+    ],
+    {
+      session,
+    }
+  );
+
+}
 
 
       /* =========================
-         12. COMMIT
+         13. COMMIT
       ========================= */
 
       await session.commitTransaction();
 
 
       /*
-       * Start joining timer only
-       * when first PLAYER joins.
+       * Start joining timer only when
+       * the very first PLAYER joins.
+       *
+       * Card #2, #3, etc. must NOT
+       * restart the joining timer.
        */
       if (
-        game.currentPlayers === 1
+        isNewPlayer &&
+        game.currentPlayers ===
+          1
       ) {
+
         startJoiningWindow(
           gameId
         );
       }
 
 
+      /* =========================
+         RESULT
+      ========================= */
+
       return {
+
         gamePlayer,
 
-        cardCount,
-
-        cards:
-          cards.map(
-            (card) => ({
-              id:
-                card._id,
-
-              cardNumber:
-                card.cardNumber,
-
-              numbers:
-                card.numbers,
-            })
+        cardCount:
+          Number(
+            gamePlayer.cardCount ||
+              1
           ),
+
+        card: {
+          id:
+            card._id,
+
+          cardNumber:
+            card.cardNumber,
+
+          numbers:
+            card.numbers,
+        },
 
         totalEntryFee,
 
 
-/* DEPOSIT */
+        /* DEPOSIT */
 
-balance:
-  depositBalanceAfter,
+        balance:
+          depositBalanceAfter,
 
-depositBalance:
-  depositBalanceAfter,
+        depositBalance:
+          depositBalanceAfter,
 
-reservedBalance:
-  reservedDepositBalance,
+        reservedBalance:
+          reservedDepositBalance,
 
-availableDepositBalance:
-  availableDepositBalanceAfter,
-
-
-/* WINNINGS */
-
-winningBalance:
-  winningBalanceAfter,
-
-reservedWinningBalance:
-  reservedWinningBalance,
-
-withdrawableWinningBalance:
-  withdrawableWinningBalanceAfter,
+        availableDepositBalance:
+          availableDepositBalanceAfter,
 
 
-/* TOTAL */
+        /* WINNINGS */
 
-totalBalance:
-  totalBalanceAfter,
+        winningBalance:
+          winningBalanceAfter,
 
-availableBalance:
-  availableBalanceAfter,
+        reservedWinningBalance:
+          reservedWinningBalance,
+
+        withdrawableWinningBalance:
+          withdrawableWinningBalanceAfter,
 
 
-/* ENTRY SOURCE */
+        /* TOTAL */
 
-amountFromWinning,
+        totalBalance:
+          totalBalanceAfter,
 
-amountFromDeposit,
+        availableBalance:
+          availableBalanceAfter,
+
+
+        /* ENTRY SOURCE */
+
+        amountFromWinning,
+
+        amountFromDeposit,
       };
 
+
     } catch (error) {
-      await session.abortTransaction();
+
+      if (
+        session.inTransaction()
+      ) {
+
+        await session.abortTransaction();
+      }
+
 
       throw error;
 
-    } finally {
-      await session.endSession();
-    }
-  };
 
+    } finally {
+
+      await session.endSession();
+
+    }
+
+  };
 export const getGamePlayers =
   async (
     gameId: string

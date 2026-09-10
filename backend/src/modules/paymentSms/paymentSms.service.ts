@@ -37,7 +37,8 @@ const isAutoApprovalEnabled = () => {
       .toLowerCase() === "true"
   );
 };
-
+const PAYMENT_SMS_MATCH_WINDOW_MS =
+  24 * 60 * 60 * 1000;
 
 /* =========================================
    NORMALIZE REFERENCE
@@ -401,39 +402,100 @@ if (receivedAmount !== null) {
     receivedAmount;
 }
 
-      const deposit =
-        await Deposit.findOne({
-          reference:
-            parsed.reference,
+      /* =========================================
+   SMS ARRIVAL TIME
+========================================= */
 
-          agentId:
-            new mongoose.Types.ObjectId(
-              data.agentId
-            ),
+/*
+ * Prefer receivedStamp when it contains
+ * a valid SMS arrival timestamp.
+ *
+ * Otherwise use the time our backend
+ * received/stored the SMS.
+ */
 
-          status:
-            "pending",
-        });
+const parsedReceivedStamp =
+  data.receivedStamp
+    ? new Date(
+        data.receivedStamp
+      )
+    : null;
+
+
+const smsReceivedAt =
+  parsedReceivedStamp &&
+  Number.isFinite(
+    parsedReceivedStamp.getTime()
+  )
+    ? parsedReceivedStamp
+    : new Date();
+
+
+const windowStart =
+  new Date(
+    smsReceivedAt.getTime() -
+      PAYMENT_SMS_MATCH_WINDOW_MS
+  );
+
+
+/* =========================================
+   FIND PENDING DEPOSIT
+
+   Deposit must have been submitted:
+
+   1. BEFORE SMS arrival
+   2. No more than 24 hours before SMS
+========================================= */
+
+const deposit =
+  await Deposit.findOne({
+
+    reference:
+      parsed.reference,
+
+    agentId:
+      new mongoose.Types.ObjectId(
+        data.agentId
+      ),
+
+    status:
+      "pending",
+
+    createdAt: {
+      $gte:
+        windowStart,
+
+      $lte:
+        smsReceivedAt,
+    },
+
+  }).sort({
+    createdAt: -1,
+  });
 
 
       if (!deposit) {
 
-        sms.status =
-          "ignored";
+  sms.status =
+    "ignored";
 
-        sms.error =
-          "No matching pending deposit request";
+  sms.error =
+    "No matching pending deposit request within the 24-hour window";
 
-        await sms.save();
+  await sms.save();
 
+  return {
+    matched: false,
 
-        return {
-          matched: false,
-          reference:
-            parsed.reference,
-        };
+    reason:
+      "NO_PENDING_DEPOSIT_WITHIN_24_HOURS",
 
-      }
+    reference:
+      parsed.reference,
+
+    smsReceivedAt,
+  };
+}
 
 
       /*
@@ -463,81 +525,121 @@ if (receivedAmount !== null) {
       }
 
 
-      /*
-       * Extract all ETB/Birr amounts
-       * appearing in the SMS.
-       */
+      /* =========================================
+   VERIFY RECEIVED AMOUNT
+========================================= */
 
-      const smsAmounts =
-        extractAmounts(
-          text
-        );
-
-
-      const requestedAmount =
-        Number(
-          deposit.amount
-        );
+const requestedAmount =
+  Number(
+    deposit.amount
+  );
 
 
-      /*
-       * Require one of the actual
-       * currency amounts in the SMS
-       * to equal the requested amount.
-       */
-
-      const amountMatches =
-        smsAmounts.some(
-          (amount) =>
-            Math.abs(
-              amount -
-              requestedAmount
-            ) < 0.01
-        );
+const actualReceivedAmount =
+  Number(
+    receivedAmount
+  );
 
 
-      if (!amountMatches) {
+/*
+ * We must know the actual amount
+ * received from the payment SMS.
+ */
 
-        sms.status =
-          "failed";
+if (
+  receivedAmount === null ||
+  !Number.isFinite(
+    actualReceivedAmount
+  ) ||
+  actualReceivedAmount <= 0
+) {
 
-        sms.error =
-          "SMS amount does not match deposit request";
+  sms.status =
+    "failed";
 
-        await sms.save();
+  sms.error =
+    "Could not determine received payment amount from SMS";
 
-
-        return {
-          matched: false,
-
-          reference:
-            parsed.reference,
-
-          requestedAmount,
-
-          smsAmounts,
-        };
-
-      }
+  await sms.save();
 
 
-      sms.status =
+  return {
+    matched: false,
+
+    reason:
+      "INVALID_SMS_AMOUNT",
+
+    reference:
+      parsed.reference,
+
+    requestedAmount,
+  };
+}
+
+
+/*
+ * IMPORTANT BUSINESS RULE:
+ *
+ * Received amount may be equal to
+ * OR greater than requested amount.
+ *
+ * But it must never be lower.
+ */
+
+if (
+  actualReceivedAmount <
+  requestedAmount
+) {
+
+  sms.status =
+    "failed";
+
+  sms.error =
+    `Received SMS amount ${actualReceivedAmount} ETB is lower than requested deposit amount ${requestedAmount} ETB`;
+
+  await sms.save();
+
+
+  return {
+    matched: false,
+
+    reason:
+      "SMS_AMOUNT_TOO_LOW",
+
+    reference:
+      parsed.reference,
+
+    requestedAmount,
+
+    receivedAmount:
+      actualReceivedAmount,
+  };
+}
+/* =========================================
+   SMS MATCHED
+========================================= */
+
+sms.status =
   "matched";
 
 sms.amount =
-  requestedAmount;
+  actualReceivedAmount;
 
 sms.depositId =
   deposit._id;
 
+sms.error =
+  undefined;
+
 await sms.save();
-
-
 /* =========================================
    SAFE TEST MODE
 ========================================= */
 
-if (!isAutoApprovalEnabled()) {
+if (
+  !isAutoApprovalEnabled()
+) {
+
   return {
     matched: true,
     approved: false,
@@ -551,8 +653,12 @@ if (!isAutoApprovalEnabled()) {
     reference:
       parsed.reference,
 
-    amount:
-      requestedAmount,
+    requestedAmount,
+
+    receivedAmount:
+      actualReceivedAmount,
+
+    smsReceivedAt,
   };
 }
 
@@ -564,7 +670,19 @@ if (!isAutoApprovalEnabled()) {
 const result =
   await approveDeposit(
     deposit._id.toString(),
-    data.agentId
+    data.agentId,
+    {
+      verifiedAmount:
+        actualReceivedAmount,
+
+      autoApproved:
+        true,
+
+      matchedTransactionId:
+        parsed.reference,
+
+      smsReceivedAt,
+    }
   );
 
       sms.status =
@@ -574,20 +692,24 @@ const result =
 
 
       return {
-        matched: true,
-        approved: true,
+  matched: true,
+  approved: true,
 
-        depositId:
-          deposit._id,
+  depositId:
+    deposit._id,
 
-        reference:
-          parsed.reference,
+  reference:
+    parsed.reference,
 
-        amount:
-          requestedAmount,
+  requestedAmount,
 
-        result,
-      };
+  approvedAmount:
+    actualReceivedAmount,
+
+  smsReceivedAt,
+
+  result,
+};
 
     } catch (error) {
 

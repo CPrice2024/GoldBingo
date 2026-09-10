@@ -152,21 +152,16 @@ const gamePlayerSchema =
         default: [],
       },
 
-      cardCount: {
-        type: Number,
+     cardCount: {
+  type: Number,
 
-        enum: [
-          1,
-          2,
-          3,
-          5,
-          10,
-        ],
+  min: 1,
+  max: 25,
 
-        default: 1,
+  default: 1,
 
-        required: true,
-      },
+  required: true,
+},
 
       prizeAmount: {
         type: Number,
