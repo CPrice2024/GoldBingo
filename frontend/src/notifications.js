@@ -112,13 +112,78 @@ export const listenForMessages = (
 ) => {
   return onMessage(
     messaging,
-    (payload) => {
+    async (payload) => {
       console.log(
         "🔥 FCM FOREGROUND MESSAGE:",
         payload
       );
 
+      // Keep updating GoldBingo's
+      // internal notification page
       callback(payload);
+
+      // Also show Android/Chrome
+      // system notification
+      if (
+        Notification.permission ===
+        "granted"
+      ) {
+        try {
+          const registration =
+            await navigator
+              .serviceWorker
+              .ready;
+
+          const title =
+            payload.notification?.title ||
+            payload.data?.title ||
+            "GoldBingo";
+
+          const body =
+            payload.notification?.body ||
+            payload.data?.body ||
+            "A new Bingo game is available.";
+
+          await registration.showNotification(
+            title,
+            {
+              body,
+
+              icon:
+                "/og-image.png",
+
+              badge:
+                "/og-image.png",
+
+              tag:
+                payload.messageId ||
+                `goldbingo-${Date.now()}`,
+
+              data: {
+                ...(payload.data || {}),
+
+                url:
+                  payload.data?.url ||
+                  "/player",
+              },
+            }
+          );
+
+          console.log(
+            "✅ Foreground system notification shown"
+          );
+        } catch (error) {
+          console.error(
+            "❌ Failed to show foreground notification:",
+            error
+          );
+        }
+      } else {
+        console.log(
+          "⚠️ Notification permission is not granted:",
+          Notification.permission
+        );
+      }
     }
   );
 };
