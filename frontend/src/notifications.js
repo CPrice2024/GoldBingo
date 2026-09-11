@@ -53,7 +53,7 @@ export const requestFcmToken = async (
     }
 
     console.log(
-      "CURRENT FCM TOKEN:",
+      "REAL FCM TOKEN generated:",
       token
     );
 
