@@ -2300,33 +2300,7 @@ strong {
       #0c0f15
     );
 
-  box-shadow:
-    0 24px 70px
-      rgba(0, 0, 0, 0.58),
-    0 0 30px
-      rgba(212, 167, 44, 0.08);
-
-  animation:
-    winningPatternPopup
-    0.22s ease;
-}
-
-@keyframes winningPatternPopup {
-  from {
-    opacity: 0;
-
-    transform:
-      translateY(12px)
-      scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-
-    transform:
-      translateY(0)
-      scale(1);
-  }
+  
 }
 
 
