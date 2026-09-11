@@ -348,7 +348,9 @@ if (
    NOTIFY ALL PLAYERS
    NEW WAITING GAME
 ========================================= */
-
+console.log(
+  `[FCM DEBUG] createNewGame reached | name=${game.name} | status=${game.status} | id=${game._id}`
+);
 if (
   game.status === "waiting"
 ) {
