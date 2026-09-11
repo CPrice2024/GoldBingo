@@ -9,25 +9,45 @@ const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("accessToken");
+    const token =
+      localStorage.getItem(
+        "accessToken"
+      );
 
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
+
+    console.log(
+      "[API]",
+      config.method?.toUpperCase(),
+      config.url,
+      "token:",
+      token ? "YES" : "NO"
+    );
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) =>
+    Promise.reject(error)
 );
 
 api.interceptors.response.use(
   (response) => response,
+
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
+    if (
+      error.response?.status ===
+      401
+    ) {
+      console.error(
+        "[AUTH] 401:",
+        error.config?.url
+      );
+
+      // Do NOT remove the current
+      // access token automatically here.
     }
 
     return Promise.reject(error);
