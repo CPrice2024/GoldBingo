@@ -978,6 +978,8 @@ winnerWindowClosed:
 
 failedSubmitBingo:
   "Failed to submit Bingo.",
+showMore: "Show More",
+showLess: "Show Less",
 },
 winningPatternHint: {
   title: "Pattern Hints",

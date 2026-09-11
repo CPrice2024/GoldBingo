@@ -962,6 +962,8 @@ winnerWindowClosed:
 
 failedSubmitBingo:
   "Bingo ምቕራብ ኣይተኻእለን።",
+  showMore: "ተወሳኺ ኣርኢ",
+showLess: "ውሑድ ኣርኢ",
 
 },
 winningPatternHint: {

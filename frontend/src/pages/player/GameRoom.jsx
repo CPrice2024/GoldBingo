@@ -454,8 +454,16 @@ const [
   selectedBlockedCard,
   setSelectedBlockedCard,
 ] = useState(null);
-  
+const [
+  showAllWinnerCards,
+  setShowAllWinnerCards,
+] = useState(false);
 
+const [
+  showAllBlockedCards,
+  setShowAllBlockedCards,
+] = useState(false);
+  
   /* =========================================
      LOAD GAME
   ========================================= */
@@ -867,7 +875,8 @@ useEffect(() => {
 setConfirmedCardId(null);
 setJoiningCardId(null);
 setClaimingCardId(null);
-
+setShowAllBlockedCards(false);
+setShowAllWinnerCards(false);
 setShowLastCalled(false);
 
   setBlockedPlayers([]);
@@ -884,6 +893,8 @@ setShowLastCalled(false);
 
   setSelectedWinner(null);
   setSelectedBlockedCard(null);
+  setShowAllWinnerCards(false);
+setShowAllBlockedCards(false);
 
 
   previousCalledCountRef.current =
@@ -3607,7 +3618,6 @@ const handleClaimBingo =
       {t("game.birr")}
     </strong>
   </div>
-
 </div>
 
 </section>
@@ -3622,10 +3632,15 @@ const handleClaimBingo =
 
 
 
-    <div className="bingo-winner-grid">
+            <div className="bingo-winner-grid">
 
       {blockedCards
-        .slice(0, 16)
+        .slice(
+  0,
+  showAllBlockedCards
+    ? blockedCards.length
+    : 4
+)
         .map(
           (
             blocked,
@@ -3690,6 +3705,26 @@ const handleClaimBingo =
         )}
 
     </div>
+    {blockedCards.length > 4 && (
+
+  <button
+    type="button"
+    className="bingo-show-more-button"
+    onClick={() =>
+      setShowAllBlockedCards(
+        (current) =>
+          !current
+      )
+    }
+  >
+    {showAllBlockedCards
+  ? t("game.showLess")
+  : `${t("game.showMore")} (${
+      blockedCards.length - 4
+    })`}
+  </button>
+
+)}
 
   </section>
 
@@ -4352,80 +4387,133 @@ MAX_CARDS_PER_PLAYER && (
 
       </div>
 
-    ) : winnerData
-        ?.winners
-        ?.length > 0 ? (
+ ) : winnerData
+    ?.winners
+    ?.length > 0 ? (
 
-      <div className="bingo-winner-grid">
+  <>
 
-        {winnerData.winners
-          .slice(0, 16)
-          .map(
-            (
-              winner,
-              index
-            ) => {
+    <div className="bingo-winner-grid">
 
-              const isMyWinningCard =
-                String(
-                  winner.gamePlayerId
-                ) ===
-                String(
-                  gamePlayer?._id
-                );
+      {winnerData.winners
+        .slice(
+          0,
+          showAllWinnerCards
+            ? winnerData.winners.length
+            : 4
+        )
+        .map(
+          (
+            winner,
+            index
+          ) => {
 
-              return (
-
-                <button
-                  type="button"
-                  key={
-                    winner
-                      .gamePlayerId ||
-                    index
-                  }
-                  className={`bingo-winner-card-button ${
-                    isMyWinningCard
-                      ? "mine"
-                      : ""
-                  }`}
-                  onClick={() =>
-                    setSelectedWinner(
-                      winner
-                    )
-                  }
-                >
-
-                  <Trophy
-                    size={14}
-                  />
-
-                  <span>
-                    {winner.card
-                      ?.cardNumber ||
-                      t("game.winner")}
-                  </span>
-
-                  {isMyWinningCard && (
-                    <small>
-  {t("game.you")}
-</small>
-                  )}
-
-                </button>
-
+            const isMyWinningCard =
+              String(
+                winner.gamePlayerId
+              ) ===
+              String(
+                gamePlayer?._id
               );
-            }
-          )}
 
-      </div>
+            return (
 
-    ) : (
+              <button
+                type="button"
+                key={
+                  winner.gamePlayerId ||
+                  index
+                }
+                className={`bingo-winner-card-button ${
+                  isMyWinningCard
+                    ? "mine"
+                    : ""
+                }`}
+                onClick={() =>
+                  setSelectedWinner(
+                    winner
+                  )
+                }
+              >
+
+                <Trophy
+                  size={14}
+                />
+
+                <span>
+                  {winner.card
+                    ?.cardNumber ||
+                    t("game.winner")}
+                </span>
+
+                {isMyWinningCard && (
+                  <small>
+                    {t("game.you")}
+                  </small>
+                )}
+
+              </button>
+
+            );
+          }
+        )}
+
+    </div>
+
+
+    {winnerData.winners.length > 4 && (
+
+      <button
+        type="button"
+        className="bingo-show-more-button"
+        onClick={() =>
+          setShowAllWinnerCards(
+            (current) =>
+              !current
+          )
+        }
+      >
+
+        {showAllWinnerCards
+          ? t("game.showLess")
+          : `${t("game.showMore")} (${
+              winnerData.winners.length - 4
+            })`}
+
+      </button>
+
+    )}
+
+  </>
+
+) : (
 
       <div className="bingo-no-winner">
   {t("game.noClaimedWinner")}
 </div>
 
     )}
+    {winnerData.winners.length > 4 && (
+
+  <button
+    type="button"
+    className="bingo-show-more-button"
+    onClick={() =>
+      setShowAllWinnerCards(
+        (current) => !current
+      )
+    }
+  >
+
+    {showAllWinnerCards
+      ? t("game.showLess")
+      : `${t("game.showMore")} (${
+          winnerData.winners.length - 4
+        })`}
+
+  </button>
+
+)}
 
   </section>
 

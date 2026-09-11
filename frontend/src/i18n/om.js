@@ -971,6 +971,8 @@ winnerWindowClosed:
 
 failedSubmitBingo:
   "Bingo erguun hin milkoofne.",
+  showMore: "Dabalata Agarsiisi",
+showLess: "Xiqqeessi Agarsiisi",
 },
 winningPatternHint: {
   title:

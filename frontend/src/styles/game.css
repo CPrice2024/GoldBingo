@@ -6523,7 +6523,7 @@ html[data-theme="day"]
 
   .bingo-winner-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(4, minmax(0, 1fr));
   }
 
   .bingo-winner-detail-overlay {
@@ -8688,4 +8688,46 @@ top: 93% !important;
   pointer-events: auto !important;
 
   touch-action: manipulation;
+}
+
+/* =====================================================
+   WINNER / BLOCKED CARDS SHOW MORE
+===================================================== */
+
+.bingo-show-more-button {
+  width: auto;
+
+  margin-top: 4px;
+  padding: 8px 12px;
+
+  border:
+    1px solid
+    rgba(112, 39, 201, 0.3);
+
+  border-radius: 8px;
+
+  background:
+    rgba(112, 39, 201, 0.08);
+
+  color: #7027c9;
+
+  font-size: 11px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.15s ease;
+}
+
+
+.bingo-show-more-button:hover {
+  background:
+    rgba(112, 39, 201, 0.14);
+}
+
+
+.bingo-show-more-button:active {
+  transform: scale(0.98);
 }

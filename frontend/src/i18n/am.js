@@ -948,6 +948,8 @@ winnerWindowClosed:
 
 failedSubmitBingo:
   "ቢንጎን ማስገባት አልተቻለም።",
+showMore: "ተጨማሪ አሳይ",
+showLess: "ያነሰ አሳይ",
 },
 winningPatternHint: {
   title:
