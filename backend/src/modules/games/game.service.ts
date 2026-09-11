@@ -330,57 +330,43 @@ const game =
 
 
 /* =========================================
+   PUSH NOTIFICATION IMMEDIATELY
+   WHEN NEW GAME IS CREATED
+========================================= */
+
+console.log(
+  `[FCM] New game created | name=${game.name} | status=${game.status} | id=${game._id}`
+);
+
+try {
+  const messageId =
+    await sendNewGameNotification(
+      game
+    );
+
+  console.log(
+    `[FCM] Players notified immediately about new game ${game.name}`,
+    messageId
+  );
+} catch (error) {
+  console.error(
+    `[FCM] Failed to notify players about new game ${game._id}:`,
+    error
+  );
+}
+
+
+/* =========================================
    SCHEDULE GAME START
 ========================================= */
 
 if (
   game.scheduledStartAt
 ) {
-
   await scheduleAdminGameStart(
     game._id.toString()
   );
-
 }
-
-
-/* =========================================
-   NOTIFY ALL PLAYERS
-   NEW WAITING GAME
-========================================= */
-console.log(
-  `[FCM DEBUG] createNewGame reached | name=${game.name} | status=${game.status} | id=${game._id}`
-);
-if (
-  game.status === "waiting"
-) {
-
-  try {
-
-    await sendNewGameNotification(
-      game
-    );
-
-
-    console.log(
-      `[FCM] Players notified about new game ${game.name}`
-    );
-
-  } catch (error) {
-
-    /*
-     * Firebase failure must NOT
-     * prevent game creation.
-     */
-    console.error(
-      `[FCM] Failed to notify players about game ${game._id}:`,
-      error
-    );
-
-  }
-
-}
-
 
 return game;
 };
