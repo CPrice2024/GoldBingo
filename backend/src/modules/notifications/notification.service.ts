@@ -4,6 +4,8 @@ import { User } from "../users/user.model";
 
 import {
   sendPushNotification,
+  subscribePlayerToNotifications,
+  unsubscribePlayerFromNotifications,
 } from "./firebase.service";
 
 import {
@@ -20,33 +22,133 @@ import {
   NotificationType,
 } from "./notification.types";
 
-export const saveUserFcmToken = async (
-  userId: string,
-  fcmToken: string
-) => {
-  if (!fcmToken || !fcmToken.trim()) {
-    throw new Error("FCM token is required");
-  }
+export const saveUserFcmToken =
+  async (
+    userId: string,
+    fcmToken: string
+  ) => {
 
-  const user = await User.findByIdAndUpdate(
-    userId,
-    {
-      $set: {
-        fcmToken: fcmToken.trim(),
-      },
-    },
-    {
-      new: true,
-      runValidators: true,
+    if (
+      !fcmToken ||
+      !fcmToken.trim()
+    ) {
+      throw new Error(
+        "FCM token is required"
+      );
     }
-  ).select("_id fullName phone role fcmToken");
 
-  if (!user) {
-    throw new Error("User not found");
-  }
 
-  return user;
-};
+    const cleanToken =
+      fcmToken.trim();
+
+
+    /*
+     * Get old token first.
+     */
+    const existingUser =
+      await User.findById(
+        userId
+      ).select(
+        "_id role fcmToken"
+      );
+
+
+    if (!existingUser) {
+      throw new Error(
+        "User not found"
+      );
+    }
+
+
+    const oldToken =
+      existingUser.fcmToken;
+
+
+    /*
+     * Save new token.
+     */
+    const user =
+      await User.findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            fcmToken:
+              cleanToken,
+          },
+        },
+        {
+          new: true,
+          runValidators: true,
+        }
+      ).select(
+        "_id fullName phone role fcmToken"
+      );
+
+
+    if (!user) {
+      throw new Error(
+        "User not found"
+      );
+    }
+
+
+    /*
+     * PLAYER:
+     * automatically subscribe to
+     * GoldBingo player notifications.
+     */
+    if (
+      user.role ===
+      "player"
+    ) {
+
+      try {
+
+        /*
+         * Remove old token if
+         * this phone/token changed.
+         */
+        if (
+          oldToken &&
+          oldToken !==
+            cleanToken
+        ) {
+
+          await unsubscribePlayerFromNotifications(
+            oldToken
+          );
+
+        }
+
+
+        await subscribePlayerToNotifications(
+          cleanToken
+        );
+
+
+        console.log(
+          `[FCM] Player ${user._id} subscribed to game notifications`
+        );
+
+      } catch (error) {
+
+        /*
+         * Do not fail login/token
+         * registration just because
+         * Firebase temporarily failed.
+         */
+        console.error(
+          "[FCM] Player topic subscription failed:",
+          error
+        );
+
+      }
+
+    }
+
+
+    return user;
+  };
 
 export const sendNotificationToUser = async (
   userId: string,

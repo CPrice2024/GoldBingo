@@ -8,7 +8,9 @@ import { messaging } from "./firebase";
 const VAPID_KEY =
   "BHw0vbHQF2KjjeM5yOJvkoZGo3Ozy1QIz3umHHNwicFOXwRncV6DDzKNNxwJMXcjsJtAVZcljPM8NEVD6xSBnDM";
 
-const API_URL = "http://localhost:5000/api/v1";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api/v1";
 
 export const requestFcmToken = async (accessToken) => {
   try {

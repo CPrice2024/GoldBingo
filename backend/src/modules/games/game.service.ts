@@ -5,7 +5,9 @@ import {
   startGame as startGameRepository,
   callNumber as callNumberRepository,
 } from "./game.repository";
-
+import {
+  sendNewGameNotification,
+} from "../notifications/firebase.service";
 import {
   startAutomaticCaller,
   stopAutomaticCaller,
@@ -325,12 +327,56 @@ const game =
 
     prizeAmount,
   });
+
+
+/* =========================================
+   SCHEDULE GAME START
+========================================= */
+
 if (
   game.scheduledStartAt
 ) {
+
   await scheduleAdminGameStart(
     game._id.toString()
   );
+
+}
+
+
+/* =========================================
+   NOTIFY ALL PLAYERS
+   NEW WAITING GAME
+========================================= */
+
+if (
+  game.status === "waiting"
+) {
+
+  try {
+
+    await sendNewGameNotification(
+      game
+    );
+
+
+    console.log(
+      `[FCM] Players notified about new game ${game.name}`
+    );
+
+  } catch (error) {
+
+    /*
+     * Firebase failure must NOT
+     * prevent game creation.
+     */
+    console.error(
+      `[FCM] Failed to notify players about game ${game._id}:`,
+      error
+    );
+
+  }
+
 }
 
 
