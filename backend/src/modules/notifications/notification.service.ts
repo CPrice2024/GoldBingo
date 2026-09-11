@@ -323,3 +323,33 @@ export const removeUserNotification = async (
     notificationId,
   };
 };
+export const getUserFcmToken =
+  async (userId: string) => {
+
+    const user =
+      await User.findById(
+        userId
+      ).select(
+        "_id phone role fcmToken"
+      );
+
+    if (!user) {
+      throw new Error(
+        "User not found"
+      );
+    }
+
+    return {
+      userId:
+        user._id.toString(),
+
+      phone:
+        user.phone,
+
+      role:
+        user.role,
+
+      fcmToken:
+        user.fcmToken || null,
+    };
+  };

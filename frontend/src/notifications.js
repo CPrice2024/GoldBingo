@@ -12,7 +12,9 @@ const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://localhost:5000/api/v1";
 
-export const requestFcmToken = async (accessToken) => {
+export const requestFcmToken = async (
+  accessToken
+) => {
   try {
     const permission =
       await Notification.requestPermission();
@@ -21,11 +23,10 @@ export const requestFcmToken = async (accessToken) => {
       console.log(
         "Notification permission denied"
       );
+
       return null;
     }
 
-    // Make sure Firebase Messaging service worker
-    // is registered.
     const registration =
       await navigator.serviceWorker.register(
         "/firebase-messaging-sw.js"
@@ -36,33 +37,39 @@ export const requestFcmToken = async (accessToken) => {
       registration
     );
 
-    const token = await getToken(messaging, {
-      vapidKey: VAPID_KEY,
-      serviceWorkerRegistration:
-        registration,
-    });
+    const token =
+      await getToken(messaging, {
+        vapidKey: VAPID_KEY,
+        serviceWorkerRegistration:
+          registration,
+      });
 
     if (!token) {
       console.log(
         "No FCM registration token available"
       );
+
       return null;
     }
 
     console.log(
-      "REAL FCM TOKEN generated:",
+      "CURRENT FCM TOKEN:",
       token
     );
 
-    // Register token with Gold backend
     const response = await fetch(
       `${API_URL}/notifications/token`,
       {
         method: "PATCH",
+
         headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
+          "Content-Type":
+            "application/json",
+
+          Authorization:
+            `Bearer ${accessToken}`,
         },
+
         body: JSON.stringify({
           fcmToken: token,
         }),

@@ -3,12 +3,13 @@ import { Request, Response } from "express";
 import {
   saveUserFcmToken,
   sendNotificationToUser,
-   getUserNotifications,
+  getUserNotifications,
   getUserUnreadCount,
   readUserNotification,
   readAllUserNotifications,
   removeUserNotification,
   createUserNotification,
+  getUserFcmToken,
 } from "./notification.service";
 
 import {
@@ -467,5 +468,50 @@ export const deleteMyNotification =
           ? error.message
           : "Failed to create test notification",
     });
+  }
+};
+
+export const getMyFcmToken = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+
+    const userId =
+      req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message:
+          "Authentication required",
+      });
+    }
+
+    const result =
+      await getUserFcmToken(
+        userId
+      );
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Get FCM token error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to get FCM token",
+    });
+
   }
 };

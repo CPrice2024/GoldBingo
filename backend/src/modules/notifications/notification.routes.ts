@@ -6,11 +6,12 @@ import {
   registerFcmToken,
   testUserNotification,
   getMyNotifications,
-getUnreadNotificationCount,
-markNotificationRead,
-markAllNotificationsRead,
-deleteMyNotification,
-createTestNotification,
+  getUnreadNotificationCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+  deleteMyNotification,
+  createTestNotification,
+  getMyFcmToken,
 } from "./notification.controller";
 
 import { authenticate } from "../auth/auth.middleware";
@@ -54,6 +55,11 @@ router.get(
   "/unread-count",
   authenticate,
   getUnreadNotificationCount
+);
+router.get(
+  "/my-token",
+  authenticate,
+  getMyFcmToken
 );
 
 router.patch(
