@@ -10,15 +10,16 @@ import {
 
 
 export interface IGamePlayerDocument
-  extends Omit<
-    IGamePlayer,
-    | "gameId"
-    | "playerId"
-    | "cardId"
-    | "cardIds"
-    | "winningCardId"
-    | "blockedCardIds"
-  >,
+ extends Omit<
+  IGamePlayer,
+  | "gameId"
+  | "playerId"
+  | "cardId"
+  | "cardIds"
+  | "winningCardId"
+  | "blockedCardIds"
+  | "blockedCardClaims"
+>,
     Document {
 
   gameId:
@@ -64,11 +65,81 @@ export interface IGamePlayerDocument
   blockedCardIds:
     mongoose.Types.ObjectId[];
 
+  blockedCardClaims: {
+  cardId:
+    mongoose.Types.ObjectId;
+
+  calledNumber:
+    number | null;
+
+  blockedAt:
+    Date;
+
+  reason:
+    string;
+}[];
+
 
   createdAt: Date;
 
   updatedAt: Date;
 }
+
+const blockedCardClaimSchema =
+  new Schema(
+    {
+      cardId: {
+        type:
+          Schema.Types.ObjectId,
+
+        ref:
+          "Card",
+
+        required:
+          true,
+      },
+
+      calledNumber: {
+        type:
+          Number,
+
+        min:
+          1,
+
+        max:
+          75,
+
+        default:
+          null,
+      },
+
+      blockedAt: {
+        type:
+          Date,
+
+        default:
+          Date.now,
+
+        required:
+          true,
+      },
+
+      reason: {
+        type:
+          String,
+
+        default:
+          "False Bingo",
+
+        required:
+          true,
+      },
+    },
+    {
+      _id:
+        false,
+    }
+  );
 
 
 const gamePlayerSchema =
@@ -221,6 +292,14 @@ blockedCardIds: {
     },
   ],
   default: [],
+},
+blockedCardClaims: {
+  type: [
+    blockedCardClaimSchema,
+  ],
+
+  default:
+    [],
 },
     },
     {

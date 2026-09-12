@@ -347,7 +347,7 @@ function Login() {
 
       {transitionLoading && (
         <GoldBingoLoader
-          text="Opening your dashboard..."
+          text="Opening your bingo..."
         />
       )}
 

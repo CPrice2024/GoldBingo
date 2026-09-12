@@ -16,7 +16,7 @@ export const WINNING_PATTERNS = [
   {
     value: "half_house_diagonal",
     label:
-      "ግማሽ ቤት በዲያጎናል የሚያልፍ",
+      "በዲያጎናል የሚያልፍ ግማሽ ቤት",
   },
 
   {
@@ -84,68 +84,68 @@ export const WINNING_PATTERNS = [
 
   {
     value: "3_rectangles",
-    label: "3 ሬግታንግል",
+    label: "3 የማይገናኙ ሬግታንግል(3*2)",
   },
 
   {
     value: "4_squares",
-    label: "4 ስዃር",
+    label: "4 የማይገናኙ ስኴር 2*2",
   },
 
   {
     value:
       "3_corner_dots_2_disconnected_squares",
     label:
-      "3 የማዓዝን ነጠብጣብ ከ 2 ስዃር የማይገናኙ",
+      "3 የማዓዝን ነጥብ ከ 2 ስኴር ሁሉም የማይገናኙ",
   },
 
   {
     value:
       "3_corner_dots_3_disconnected_squares",
     label:
-      "3 የማዓዝን ነጠብጣብ ከ 3 ስዃር የማይገናኙ",
+      "3 የማዓዝን ነጥብ ከ 3 ስኴር ሁሉም የማይገናኙ ",
   },
 
   {
     value:
       "4_corner_dots_2_disconnected_squares",
     label:
-      "4 የማዓዝን ነጠብጣብ ከ 2 ስዃር የማይገናኙ",
+      "4 የማዓዝን ነጥብ ከ 2 ስኴር ሁሉም የማይገናኙ",
   },
 
   {
     value:
       "t_2_disconnected_squares",
     label:
-      "T መስመር ከ 2 ስዄር የማይገናኙ የማይገናኙ",
+      "ትልቅ T ከ 2 ስኴር ሁሉም የማይገናኙ",
   },
 
   {
     value:
       "t_1_diagonal_2_lines",
     label:
-      "T መስመር ከ 1 ዲያጎናል እና 2 መስመር",
+      "ትልቅ T ከ 1 ዲያጎናል እና 2 መስመር",
   },
 
   {
     value:
       "t_1_rectangle",
     label:
-      "T መስመር ከ 1 ሬግታንግል",
+      "ትልቅ T ከ 1 ሬግታንግል ሁሉም የማይገናኙ",
   },
 
   {
     value:
       "t_3_lines",
     label:
-      "T መስመር ከ 3 መስመር",
+      "ትልቅ T ከ 3 መስመር",
   },
 
   {
     value:
       "4_corner_squares",
     label:
-      "4 የማዓዝን ስዄር",
+      "4 የማዓዝን ስኴር",
   },
 
   {
@@ -159,35 +159,35 @@ export const WINNING_PATTERNS = [
     value:
       "1_cross_2_lines",
     label:
-      "1 መሰቀል ከ 2 መስመር",
+      "ትልቅ መሰቀል ከ 2 መስመር",
   },
 
   {
     value:
       "3_small_t",
     label:
-      "3 ትናንሽ T",
+      "3 ትናንሽ T የማይገናኙ",
   },
 
   {
     value:
       "1_rectangle_2_squares",
     label:
-      "1 ሬግታንግል 2 ስዃር",
+      "2 ስኴር 1 ሬግታንግል የማይገናኙ",
   },
 
   {
     value:
       "1_line_2_squares",
     label:
-      "1 መስመር ከ 2 ስዃር",
+      "1 መስመር ከ 2 ስኴር",
   },
 
   {
     value:
       "2_disconnected_lines_2_disconnected_squares",
     label:
-      "2 የማይገናኙ መስመሮች ከ 2 ስዃር ሁሉም የማይገናኙ",
+      "2 የማይገናኙ መስመሮች ከ 2 ስኴር ሁሉም የማይገናኙ",
   },
 
   {
@@ -224,12 +224,25 @@ export const WINNING_PATTERNS = [
     label:
       "6 መስመር ያለ ድያጎናል",
   },
+  {
+  value:
+    "7_lines_no_diagonal",
+  label:
+    "7 መስመር ያለ ድያጎናል",
+},
+
+{
+  value:
+    "8_lines_no_diagonal",
+  label:
+    "8 መስመር ያለ ድያጎናል",
+},
 
   {
     value:
       "1_diagonal_2_disconnected_corner_squares",
     label:
-      "1 ዲያጎናል ከ 2 የማዓዝን ስኴር ጋር የማይገናኙ",
+      "1 ዲያጎናል ከ 2 የማዓዝን ስኴር ሁሉም የማይገናኙ",
   },
 ] as const;
 
@@ -418,7 +431,31 @@ const SQUARE_INNER_BOTTOM = [
   16, 17,
   21, 22,
 ];
+/* =========================================================
+   ALL 2x2 SQUARE LAYOUTS
+========================================================= */
 
+const SQUARE_2X2_LAYOUTS:
+  number[][] = [];
+
+for (
+  let row = 0;
+  row <= 3;
+  row += 1
+) {
+  for (
+    let col = 0;
+    col <= 3;
+    col += 1
+  ) {
+    SQUARE_2X2_LAYOUTS.push([
+      row * 5 + col,
+      row * 5 + col + 1,
+      (row + 1) * 5 + col,
+      (row + 1) * 5 + col + 1,
+    ]);
+  }
+}
 
 /* =========================================================
    RECTANGLES
@@ -456,14 +493,120 @@ const RECTANGLE_INNER = [
 
 
 /* =========================================================
-   T / CROSS
+   BIG T - 4 DIRECTIONS
 ========================================================= */
 
-const BIG_T =
+const BIG_T_TOP =
   mergeCells(
     ROW_1,
     COL_3
   );
+
+const BIG_T_BOTTOM =
+  mergeCells(
+    ROW_5,
+    COL_3
+  );
+
+const BIG_T_LEFT =
+  mergeCells(
+    COL_1,
+    ROW_3
+  );
+
+const BIG_T_RIGHT =
+  mergeCells(
+    COL_5,
+    ROW_3
+  );
+
+const BIG_T_CONFIGS = [
+  {
+    cells: BIG_T_TOP,
+    baseLines: [
+      ROW_1,
+      COL_3,
+    ],
+  },
+
+  {
+    cells: BIG_T_BOTTOM,
+    baseLines: [
+      ROW_5,
+      COL_3,
+    ],
+  },
+
+  {
+    cells: BIG_T_LEFT,
+    baseLines: [
+      COL_1,
+      ROW_3,
+    ],
+  },
+
+  {
+    cells: BIG_T_RIGHT,
+    baseLines: [
+      COL_5,
+      ROW_3,
+    ],
+  },
+];
+
+/* =========================================================
+   FILLED 3x2 RECTANGLES
+========================================================= */
+
+const RECTANGLE_3X2_LAYOUTS:
+  number[][] = [];
+
+/* 2 rows x 3 columns */
+for (
+  let row = 0;
+  row <= 3;
+  row += 1
+) {
+  for (
+    let col = 0;
+    col <= 2;
+    col += 1
+  ) {
+    RECTANGLE_3X2_LAYOUTS.push([
+      row * 5 + col,
+      row * 5 + col + 1,
+      row * 5 + col + 2,
+
+      (row + 1) * 5 + col,
+      (row + 1) * 5 + col + 1,
+      (row + 1) * 5 + col + 2,
+    ]);
+  }
+}
+
+/* 3 rows x 2 columns */
+for (
+  let row = 0;
+  row <= 2;
+  row += 1
+) {
+  for (
+    let col = 0;
+    col <= 3;
+    col += 1
+  ) {
+    RECTANGLE_3X2_LAYOUTS.push([
+      row * 5 + col,
+      row * 5 + col + 1,
+
+      (row + 1) * 5 + col,
+      (row + 1) * 5 + col + 1,
+
+      (row + 2) * 5 + col,
+      (row + 2) * 5 + col + 1,
+    ]);
+  }
+}
 
 
 const BIG_CROSS =
@@ -535,32 +678,7 @@ const NON_DIAGONAL_LINES:
 
   ];
 
-  /* =========================================================
-   LINES THAT DO NOT TOUCH FREE CENTER
 
-   FREE CELL = index 12
-
-   Excluded:
-   ROW_3
-   COL_3
-   DIAGONAL_MAIN
-   DIAGONAL_REVERSE
-========================================================= */
-
-const FREE_UNTOUCHED_LINES:
-  number[][] = [
-
-    ROW_1,
-    ROW_2,
-    ROW_4,
-    ROW_5,
-
-    COL_1,
-    COL_2,
-    COL_4,
-    COL_5,
-
-  ];
 
 
 
@@ -601,44 +719,77 @@ const WINNING_PATTERN_LAYOUTS:
     ),
 
   ],
+  
 
 
-  /* =======================================================
-     3. HALF HOUSE + DIAGONAL
-  ======================================================= */
+/* =======================================================
+   3. HALF HOUSE DIAGONAL
 
-  half_house_diagonal: [
+   4 POSSIBILITIES:
+   - Upper → Right
+   - Upper → Left
+   - Lower → Right
+   - Lower → Left
+======================================================= */
 
-    mergeCells(
-      ROW_1,
-      ROW_2,
-      ROW_3,
-      DIAGONAL_MAIN
-    ),
+half_house_diagonal: [
 
-    mergeCells(
-      ROW_1,
-      ROW_2,
-      ROW_3,
-      DIAGONAL_REVERSE
-    ),
+  // 1. UPPER → RIGHT
+  [
+    0, 1, 2, 3, 4,
 
-    mergeCells(
-      ROW_3,
-      ROW_4,
-      ROW_5,
-      DIAGONAL_MAIN
-    ),
+    6, 7, 8, 9,
 
-    mergeCells(
-      ROW_3,
-      ROW_4,
-      ROW_5,
-      DIAGONAL_REVERSE
-    ),
+    12, 13, 14,
 
+    18, 19,
+
+    24,
   ],
 
+
+  // 2. UPPER → LEFT
+  [
+    0, 1, 2, 3, 4,
+
+    5, 6, 7, 8,
+
+    10, 11, 12,
+
+    15, 16,
+
+    20,
+  ],
+
+
+  // 3. LOWER → RIGHT
+  [
+    4,
+
+    8, 9,
+
+    12, 13, 14,
+
+    16, 17, 18, 19,
+
+    20, 21, 22, 23, 24,
+  ],
+
+
+  // 4. LOWER → LEFT
+  [
+    0,
+
+    5, 6,
+
+    10, 11, 12,
+
+    15, 16, 17, 18,
+
+    20, 21, 22, 23, 24,
+  ],
+
+],
 
   /* =======================================================
      4. THREE LINES
@@ -651,7 +802,6 @@ const WINNING_PATTERN_LAYOUTS:
       ROW_5
     ),
   ],
-
 
   /* =======================================================
      5. FOUR LINES
@@ -913,23 +1063,60 @@ const WINNING_PATTERN_LAYOUTS:
 ],
 
 
-  /* =======================================================
-     17. 3 CORNER DOTS + 2 SQUARES
-  ======================================================= */
+ /* =======================================================
+   17. 3 CORNER DOTS + 2 DISCONNECTED SQUARES
 
-  "3_corner_dots_2_disconnected_squares": [
-    mergeCells(
-      [
-        0,
-        4,
-        24,
-      ],
+   4 rotated possibilities.
+   Squares do not overlap or touch each other.
+======================================================= */
 
-      SQUARE_INNER_LEFT,
+"3_corner_dots_2_disconnected_squares": [
 
-      SQUARE_BOTTOM_LEFT
-    ),
+  // 1. Missing BOTTOM-RIGHT corner dot
+  [
+    0, 4, 20,
+
+    6, 7,
+    11, 12,
+
+    18, 19,
+    23, 24,
   ],
+
+  // 2. Missing BOTTOM-LEFT corner dot
+  [
+    0, 4, 24,
+
+    7, 8,
+    12, 13,
+
+    15, 16,
+    20, 21,
+  ],
+
+  // 3. Missing TOP-RIGHT corner dot
+  [
+    0, 20, 24,
+
+    3, 4,
+    8, 9,
+
+    11, 12,
+    16, 17,
+  ],
+
+  // 4. Missing TOP-LEFT corner dot
+  [
+    4, 20, 24,
+
+    0, 1,
+    5, 6,
+
+    12, 13,
+    17, 18,
+  ],
+
+],
 
 
  /* =======================================================
@@ -975,7 +1162,7 @@ const WINNING_PATTERN_LAYOUTS:
   [
     0, 1, 2, 3, 4,
 
-    5, 6, 7,
+    5, 6, 7, 8,
 
     10, 11,
 
@@ -1006,111 +1193,85 @@ const WINNING_PATTERN_LAYOUTS:
  /* =======================================================
    19. 4 CORNER DOTS + 2 DISCONNECTED SQUARES
 
-   4 correct possibilities
+   Dynamic matcher controls actual validation.
 ======================================================= */
 
 "4_corner_dots_2_disconnected_squares": [
-
-  // Correct possibility 1
-  [
-    0, 4,
-
-    5, 6, 7, 8, 9,
-
-    10, 11,
-    13, 14,
-
-    18, 19,
-
-    20, 24,
-  ],
-
-  // Correct possibility 2
-  [
-    0, 1, 2, 3, 4,
-
-    6, 7, 8,
-
-    16, 17, 18,
-
-    20, 21, 22, 23, 24,
-  ],
-
-  // Correct possibility 3
-  [
-    0, 1, 2,
-    4,
-
-    6, 7,
-
-    11,
-
-    16, 17, 18,
-
-    20, 21, 22, 23, 24,
-  ],
-
-  // Correct possibility 4
-  [
-    0, 4,
-
-    6, 7, 8, 9,
-
-    11,
-    13, 14,
-
-    16, 17, 18, 19,
-
-    20,
-    24,
-  ],
-
+  mergeCells(
+    [0, 4, 20, 24],
+    SQUARE_INNER_LEFT,
+    SQUARE_INNER_RIGHT
+  ),
 ],
 
 
-  /* =======================================================
-     20. T + 2 DISCONNECTED SQUARES
-  ======================================================= */
+ /* =======================================================
+   20. T + 2 DISCONNECTED SQUARES
 
-  "t_2_disconnected_squares": [
-    mergeCells(
-      BIG_T,
+   T can face:
+   TOP / BOTTOM / LEFT / RIGHT
+======================================================= */
 
-      SQUARE_BOTTOM_LEFT,
+"t_2_disconnected_squares": [
 
-      SQUARE_BOTTOM_RIGHT
-    ),
-  ],
+  // TOP T
+  mergeCells(
+    BIG_T_TOP,
+    SQUARE_BOTTOM_LEFT,
+    SQUARE_BOTTOM_RIGHT
+  ),
 
+  // BOTTOM T
+  mergeCells(
+    BIG_T_BOTTOM,
+    SQUARE_TOP_LEFT,
+    SQUARE_TOP_RIGHT
+  ),
+
+  // LEFT T
+  mergeCells(
+    BIG_T_LEFT,
+    SQUARE_TOP_RIGHT,
+    SQUARE_BOTTOM_RIGHT
+  ),
+
+  // RIGHT T
+  mergeCells(
+    BIG_T_RIGHT,
+    SQUARE_TOP_LEFT,
+    SQUARE_BOTTOM_LEFT
+  ),
+
+],
 
   /* =======================================================
      21. T + DIAGONAL + 2 LINES
   ======================================================= */
 
-  "t_1_diagonal_2_lines": [
-    mergeCells(
-      BIG_T,
-
-      DIAGONAL_MAIN,
-
-      ROW_5,
-
-      COL_1
-    ),
-  ],
-
+"t_1_diagonal_2_lines": [
+  mergeCells(
+    BIG_T_TOP,
+    DIAGONAL_MAIN,
+    ROW_5,
+    COL_1
+  ),
+],
 
   /* =======================================================
      22. T + RECTANGLE
   ======================================================= */
 
-  "t_1_rectangle": [
-    mergeCells(
-      BIG_T,
+ "t_1_rectangle": [
+  mergeCells(
+    BIG_T_TOP,
 
-      RECTANGLE_INNER
-    ),
-  ],
+    [
+      8, 9,
+      13, 14,
+      18, 19,
+    ]
+  ),
+],
 
 
   /* =======================================================
@@ -1118,14 +1279,13 @@ const WINNING_PATTERN_LAYOUTS:
   ======================================================= */
 
   "t_3_lines": [
-    mergeCells(
-      BIG_T,
-
-      ROW_2,
-      ROW_4,
-      ROW_5
-    ),
-  ],
+  mergeCells(
+    BIG_T_TOP,
+    ROW_2,
+    ROW_4,
+    ROW_5
+  ),
+],
 
 
   /* =======================================================
@@ -1186,7 +1346,7 @@ const WINNING_PATTERN_LAYOUTS:
 
     5, 6, 7, 8,
 
-    10, 11,
+    10,
     13,
 
     17,
@@ -1240,7 +1400,6 @@ const WINNING_PATTERN_LAYOUTS:
 
 ],
 
-
 /* =======================================================
    28. RECTANGLE + 2 SQUARES
 
@@ -1270,7 +1429,7 @@ const WINNING_PATTERN_LAYOUTS:
     10, 11,
 
     15, 16,
-    18,
+    18, 19,
 
     20, 21,
     23, 24,
@@ -1284,7 +1443,7 @@ const WINNING_PATTERN_LAYOUTS:
     5, 6,
     8, 9,
 
-    14,
+    13, 14,
 
     16, 17,
 
@@ -1306,111 +1465,52 @@ const WINNING_PATTERN_LAYOUTS:
 
 ],
 
- /* =======================================================
+/* =======================================================
    29. ONE LINE + TWO SQUARES
+
+   Dynamic matcher controls actual validation.
 ======================================================= */
 
 "1_line_2_squares": [
-
-  [
-    0, 1, 2, 3, 4,
-
-    6,
-    8,
-
-    10, 11,
-    13, 14,
-
-    15, 16,
-    18, 19,
-
-    20, 21, 22, 23, 24,
-  ],
-
+  mergeCells(
+    ROW_1,
+    SQUARE_BOTTOM_LEFT,
+    SQUARE_BOTTOM_RIGHT
+  ),
 ],
-
 /* =======================================================
    30. 2 DISCONNECTED LINES + 2 DISCONNECTED SQUARES
-
-   4 correct possibilities
+   Dynamic matcher controls actual validation.
 ======================================================= */
 
 "2_disconnected_lines_2_disconnected_squares": [
+  mergeCells(
+    ROW_1,
+    ROW_5,
 
-  // Correct possibility 1
-  [
-    0, 1, 2, 3, 4,
-
-    5, 6, 7, 8, 9,
-
-    15, 16, 17, 18,
-
-    20, 21, 22, 23,
-  ],
-
-  // Correct possibility 2
-  [
-    0, 4,
-
-    5,
-    7, 8, 9,
-
-    10,
-    13, 14,
-
-    15,
-    17, 18, 19,
-
-    20,
-    22, 23, 24,
-  ],
-
-  // Correct possibility 3
-  [
-    0, 1, 2, 3, 4,
-
-    5, 6,
-    8, 9,
-
-    10, 11,
-    13, 14,
-
-    15, 16, 17, 18, 19,
-  ],
-
-  // Correct possibility 4
-  [
-    0, 1, 2,
-    4,
-
-    5, 6, 7,
-    9,
-
-    14,
-
-    15, 16, 17,
-    19,
-
-    20, 21, 22,
-    24,
-  ],
-
+    [5, 6, 10, 11],
+    [8, 9, 13, 14]
+  ),
 ],
 
 
   /* =======================================================
-     31. 2 SQUARES + RECTANGLE
-  ======================================================= */
+   31. 2 SQUARES + 1 RECTANGLE
 
-  "2_squares_1_rectangle": [
-    mergeCells(
-      SQUARE_TOP_LEFT,
+   Dynamic matcher controls actual validation.
+======================================================= */
 
-      SQUARE_BOTTOM_RIGHT,
+"2_squares_1_rectangle": [
+  mergeCells(
+    SQUARE_TOP_LEFT,
+    SQUARE_BOTTOM_RIGHT,
 
-      RECTANGLE_INNER
-    ),
-  ],
+    [
+      10, 11, 12,
+      15, 16, 17,
+    ]
+  ),
+],
 
 
   /* =======================================================
@@ -1472,55 +1572,72 @@ const WINNING_PATTERN_LAYOUTS:
       COL_5
     ),
   ],
+/* =======================================================
+   36. SEVEN LINES NO DIAGONAL
+======================================================= */
+
+"7_lines_no_diagonal": [
+  mergeCells(
+    ROW_1,
+    ROW_2,
+    ROW_3,
+    ROW_5,
+
+    COL_1,
+    COL_3,
+    COL_5
+  ),
+],
 
 
- /* =======================================================
-   36. DIAGONAL + 2 DISCONNECTED CORNER SQUARES
+/* =======================================================
+   37. EIGHT LINES NO DIAGONAL
+======================================================= */
 
-   2 correct possibilities
+"8_lines_no_diagonal": [
+  mergeCells(
+    ROW_1,
+    ROW_2,
+    ROW_3,
+    ROW_4,
+    ROW_5,
+
+    COL_1,
+    COL_3,
+    COL_5
+  ),
+],
+
+/* =======================================================
+   DIAGONAL + 2 DISCONNECTED CORNER SQUARES
+
+   Exactly 2 valid possibilities.
+
+   Disconnected = no shared cells.
 ======================================================= */
 
 "1_diagonal_2_disconnected_corner_squares": [
 
-  // Main diagonal version
-  [
-    0,
+  // MAIN diagonal
+  // Valid corner squares:
+  // TOP-RIGHT + BOTTOM-LEFT
+  mergeCells(
+    DIAGONAL_MAIN,
+    SQUARE_TOP_RIGHT,
+    SQUARE_BOTTOM_LEFT
+  ),
 
-    3, 4,
+  // REVERSE diagonal
+  // Valid corner squares:
+  // TOP-LEFT + BOTTOM-RIGHT
+  mergeCells(
+    DIAGONAL_REVERSE,
+    SQUARE_TOP_LEFT,
+    SQUARE_BOTTOM_RIGHT
+  ),
 
-    6,
-
-    8, 9,
-
-    15, 16,
-
-    18,
-
-    20, 21,
-
-    24,
-  ],
-
-  // Reverse diagonal version
-  [
-    0, 1,
-
-    4,
-
-    5, 6,
-
-    8,
-
-    16,
-
-    18, 19,
-
-    20,
-
-    23, 24,
-  ],
-
-],};
+],
+  };
 /* =========================================================
    PATTERN MATCHER
 
@@ -1612,6 +1729,107 @@ export const isPatternMatched = (
     );
   };
   /* =========================================
+   1. FULL HOUSE
+   PATTERN ONLY
+
+   WIN:
+   - every cell is marked
+   - center FREE counts automatically
+
+   FALSE:
+   - even one required numbered cell
+     is still not called
+
+   No latest-number requirement.
+========================================= */
+
+if (
+  pattern === "full_house"
+) {
+  return ALL_CELLS.every(
+    (cellIndex) =>
+      isCellMarked(
+        cellIndex
+      )
+  );
+}
+
+
+/* =========================================
+   2. HALF HOUSE
+   PATTERN ONLY
+
+   WIN:
+   - TOP 3 rows completely marked
+     OR
+   - BOTTOM 3 rows completely marked
+
+   No latest-number requirement.
+========================================= */
+
+if (
+  pattern === "half_house"
+) {
+  const topHalf =
+    mergeCells(
+      ROW_1,
+      ROW_2,
+      ROW_3
+    );
+
+  const bottomHalf =
+    mergeCells(
+      ROW_3,
+      ROW_4,
+      ROW_5
+    );
+
+  return (
+    topHalf.every(
+      (cellIndex) =>
+        isCellMarked(
+          cellIndex
+        )
+    ) ||
+    bottomHalf.every(
+      (cellIndex) =>
+        isCellMarked(
+          cellIndex
+        )
+    )
+  );
+}
+/* =========================================
+   3. HALF HOUSE DIAGONAL
+   PATTERN ONLY
+
+   WIN:
+   Any ONE of the four diagonal-half
+   possibilities must be fully marked.
+
+   No latest-number requirement.
+========================================= */
+
+if (
+  pattern ===
+  "half_house_diagonal"
+) {
+  const possibilities =
+    WINNING_PATTERN_LAYOUTS[
+      "half_house_diagonal"
+    ];
+
+  return possibilities.some(
+    (requiredCells) =>
+      requiredCells.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
+  );
+}
+  /* =========================================
    REQUIRED / CURRENT CALLED NUMBER
 
    When requiredNumber is supplied:
@@ -1623,19 +1841,70 @@ export const isPatternMatched = (
 const requiredCellIndex:
   number | null = (() => {
 
-  /*
-   * No extra requirement.
-   *
-   * Keeps backward compatibility
-   * for other callers.
-   */
-  if (
-    requiredNumber ===
-      undefined ||
-    requiredNumber === null
-  ) {
-    return null;
-  }
+/* =========================================
+   PATTERNS THAT DO NOT REQUIRE
+   THE LATEST CALLED NUMBER
+========================================= */
+
+const ignoreLatestNumber =
+  pattern === "3_lines" ||
+  pattern === "4_lines" ||
+  pattern === "5_lines" ||
+  pattern === "6_lines" ||
+  pattern === "7_lines" ||
+  pattern === "8_lines" ||
+  pattern === "4_free_untouched_lines" ||
+  pattern === "3_horizontal_2_vertical" ||
+  pattern === "3_disconnected_lines" ||
+  pattern === "4_disconnected_lines" ||
+  pattern === "2_diagonals" ||
+  pattern === "3_rectangles" ||
+  pattern === "4_squares" ||
+  pattern ===
+    "3_corner_dots_2_disconnected_squares" ||
+  pattern ===
+    "3_corner_dots_3_disconnected_squares" ||
+  pattern ===
+  "4_corner_dots_2_disconnected_squares" ||
+pattern ===
+  "t_2_disconnected_squares" ||
+pattern ===
+  "t_1_diagonal_2_lines" ||
+pattern ===
+  "t_1_rectangle" ||
+pattern ===
+  "t_3_lines"||
+  pattern === "4_corner_squares" ||
+pattern === "2_horizontal_2_vertical" ||
+pattern === "1_cross_2_lines"||
+pattern === "3_small_t" ||
+pattern === "1_rectangle_2_squares" ||
+pattern === "1_line_2_squares"||
+pattern === "2_disconnected_lines_2_disconnected_squares" ||
+pattern === "2_squares_1_rectangle"||
+pattern === "3_lines_no_diagonal" ||
+pattern === "4_lines_no_diagonal" ||
+pattern === "5_lines_no_diagonal" ||
+pattern === "6_lines_no_diagonal" ||
+pattern === "7_lines_no_diagonal" ||
+pattern === "8_lines_no_diagonal"||
+pattern ===
+  "1_diagonal_2_disconnected_corner_squares";
+
+if (ignoreLatestNumber) {
+  return null;
+}
+
+
+/*
+ * No current number supplied.
+ */
+if (
+  requiredNumber === undefined ||
+  requiredNumber === null
+) {
+  return null;
+}
 
 
   const target =
@@ -1877,24 +2146,22 @@ const completedNonDiagonalLines =
     )
     .length;
 
-  /* =========================================
-   COMPLETED FREE-UNTOUCHED LINES
-========================================= */
-
-const completedFreeUntouchedLines =
-  FREE_UNTOUCHED_LINES.filter(
-    (line) =>
-      line.every(
-        (cellIndex) =>
-          isCellMarked(
-            cellIndex
-          )
-      )
-  ).length;
-
-
 /* =========================================
    4 LINES NOT TOUCHING FREE
+========================================= */
+
+/* =========================================
+   10. FOUR LINES
+
+   Any 4 completed standard Bingo lines:
+
+   - Horizontal
+   - Vertical
+   - Diagonal
+
+   Any mixture is allowed.
+
+   No latest-number requirement.
 ========================================= */
 
 if (
@@ -1902,12 +2169,7 @@ if (
   "4_free_untouched_lines"
 ) {
   return (
-    completedFreeUntouchedLines >=
-      4 &&
-
-    completedLineContainsRequiredCell(
-      FREE_UNTOUCHED_LINES
-    )
+    completedLines >= 4
   );
 }
 
@@ -1916,193 +2178,157 @@ if (
    3 HORIZONTAL + 2 VERTICAL
 ========================================= */
 
+/* =========================================
+   11. 3 HORIZONTAL + 2 VERTICAL
+
+   WIN:
+   - any 3 completed horizontal rows
+   - any 2 completed vertical columns
+
+   No latest-number requirement.
+========================================= */
+
 if (
   pattern ===
   "3_horizontal_2_vertical"
 ) {
-
-  const requiredInHorizontal =
-    completedLineContainsRequiredCell(
-      [
-        ROW_1,
-        ROW_2,
-        ROW_3,
-        ROW_4,
-        ROW_5,
-      ]
-    );
-
-
-  const requiredInVertical =
-    completedLineContainsRequiredCell(
-      [
-        COL_1,
-        COL_2,
-        COL_3,
-        COL_4,
-        COL_5,
-      ]
-    );
-
-
   return (
-    completedHorizontalLines >=
-      3 &&
-
-    completedVerticalLines >=
-      2 &&
-
-    (
-      requiredInHorizontal ||
-      requiredInVertical
-    )
+    completedHorizontalLines >= 3 &&
+    completedVerticalLines >= 2
   );
-
 }
 
+
 /* =========================================
-   2 HORIZONTAL + 2 VERTICAL
+   25. 2 HORIZONTAL + 2 VERTICAL
+
+   WIN:
+   - any 2 completed horizontal rows
+   - any 2 completed vertical columns
+
+   No latest-number requirement.
 ========================================= */
 
 if (
   pattern ===
   "2_horizontal_2_vertical"
 ) {
-
-  const requiredInHorizontal =
-    completedLineContainsRequiredCell(
-      [
-        ROW_1,
-        ROW_2,
-        ROW_3,
-        ROW_4,
-        ROW_5,
-      ]
-    );
-
-
-  const requiredInVertical =
-    completedLineContainsRequiredCell(
-      [
-        COL_1,
-        COL_2,
-        COL_3,
-        COL_4,
-        COL_5,
-      ]
-    );
-
-
   return (
-    completedHorizontalLines >=
-      2 &&
-
-    completedVerticalLines >=
-      2 &&
-
-    (
-      requiredInHorizontal ||
-      requiredInVertical
-    )
+    completedHorizontalLines >= 2 &&
+    completedVerticalLines >= 2
   );
-
 }
 
 
-    /* =========================================
+/* =========================================
    DYNAMIC LINE PATTERNS
+
+   Any completed standard Bingo line counts:
+
+   - Horizontal
+   - Vertical
+   - Diagonal
+
+   Lines may be mixed in any combination.
+
+   No latest-number requirement.
+========================================= */
+
+
+/* =========================================
+   4. THREE LINES
 ========================================= */
 
 if (
-  pattern ===
-  "3_lines"
+  pattern === "3_lines"
 ) {
   return (
-    completedLines >=
-      3 &&
-
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
-  );
-}
-
-if (
-  pattern ===
-  "4_lines"
-) {
-  return (
-    completedLines >=
-      4 &&
-
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
+    completedLines >= 3
   );
 }
 
 
+/* =========================================
+   5. FOUR LINES
+========================================= */
+
 if (
-  pattern ===
-  "5_lines"
+  pattern === "4_lines"
 ) {
   return (
-    completedLines >=
-      5 &&
-
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
+    completedLines >= 4
   );
 }
 
 
+/* =========================================
+   6. FIVE LINES
+========================================= */
+
 if (
-  pattern ===
-  "6_lines"
+  pattern === "5_lines"
 ) {
   return (
-    completedLines >=
-      6 &&
-
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
+    completedLines >= 5
   );
 }
 
 
+/* =========================================
+   7. SIX LINES
+========================================= */
+
 if (
-  pattern ===
-  "7_lines"
+  pattern === "6_lines"
 ) {
   return (
-    completedLines >=
-      7 &&
-
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
+    completedLines >= 6
   );
 }
 
 
+/* =========================================
+   8. SEVEN LINES
+========================================= */
+
 if (
-  pattern ===
-  "8_lines"
+  pattern === "7_lines"
 ) {
   return (
-    completedLines >=
-      8 &&
+    completedLines >= 7
+  );
+}
 
-    completedLineContainsRequiredCell(
-      STANDARD_BINGO_LINES
-    )
+
+/* =========================================
+   9. EIGHT LINES
+========================================= */
+
+if (
+  pattern === "8_lines"
+) {
+  return (
+    completedLines >= 8
   );
 }
 
 /* =========================================
    LINE PATTERNS WITHOUT DIAGONAL
+
+   Counts ONLY:
+   - horizontal rows
+   - vertical columns
+
+   Diagonals never count.
+
+   Rows and columns may be mixed.
+
+   No latest-number requirement.
+========================================= */
+
+
+/* =========================================
+   32. THREE LINES NO DIAGONAL
 ========================================= */
 
 if (
@@ -2110,58 +2336,695 @@ if (
   "3_lines_no_diagonal"
 ) {
   return (
-    completedNonDiagonalLines >=
-      3 &&
-
-    completedLineContainsRequiredCell(
-      NON_DIAGONAL_LINES
-    )
+    completedNonDiagonalLines >= 3
   );
 }
 
+
+/* =========================================
+   33. FOUR LINES NO DIAGONAL
+========================================= */
 
 if (
   pattern ===
   "4_lines_no_diagonal"
 ) {
   return (
-    completedNonDiagonalLines >=
-      4 &&
-
-    completedLineContainsRequiredCell(
-      NON_DIAGONAL_LINES
-    )
+    completedNonDiagonalLines >= 4
   );
 }
 
+
+/* =========================================
+   34. FIVE LINES NO DIAGONAL
+========================================= */
 
 if (
   pattern ===
   "5_lines_no_diagonal"
 ) {
   return (
-    completedNonDiagonalLines >=
-      5 &&
-
-    completedLineContainsRequiredCell(
-      NON_DIAGONAL_LINES
-    )
+    completedNonDiagonalLines >= 5
   );
 }
 
+
+/* =========================================
+   35. SIX LINES NO DIAGONAL
+========================================= */
 
 if (
   pattern ===
   "6_lines_no_diagonal"
 ) {
   return (
-    completedNonDiagonalLines >=
-      6 &&
-
-    completedLineContainsRequiredCell(
-      NON_DIAGONAL_LINES
-    )
+    completedNonDiagonalLines >= 6
   );
+}
+
+
+/* =========================================
+   36. SEVEN LINES NO DIAGONAL
+========================================= */
+
+if (
+  pattern ===
+  "7_lines_no_diagonal"
+) {
+  return (
+    completedNonDiagonalLines >= 7
+  );
+}
+
+
+/* =========================================
+   37. EIGHT LINES NO DIAGONAL
+========================================= */
+
+if (
+  pattern ===
+  "8_lines_no_diagonal"
+) {
+  return (
+    completedNonDiagonalLines >= 8
+  );
+}
+
+/* =========================================
+   12. THREE DISCONNECTED LINES
+
+   WIN:
+   - any 3 horizontal rows
+     OR
+   - any 3 vertical columns
+
+   Rows and columns cannot be mixed,
+   because they would intersect.
+
+   No latest-number requirement.
+========================================= */
+
+if (
+  pattern ===
+  "3_disconnected_lines"
+) {
+  return (
+    completedHorizontalLines >= 3 ||
+    completedVerticalLines >= 3
+  );
+}
+
+
+/* =========================================
+   13. FOUR DISCONNECTED LINES
+
+   WIN:
+   - any 4 horizontal rows
+     OR
+   - any 4 vertical columns
+
+   No latest-number requirement.
+========================================= */
+
+if (
+  pattern ===
+  "4_disconnected_lines"
+) {
+  return (
+    completedHorizontalLines >= 4 ||
+    completedVerticalLines >= 4
+  );
+}
+/* =========================================
+   21. BIG T + 1 DIAGONAL + 2 EXTRA LINES
+========================================= */
+
+if (
+  pattern ===
+  "t_1_diagonal_2_lines"
+) {
+  return BIG_T_CONFIGS.some(
+    (tConfig) => {
+
+      const tCompleted =
+        tConfig.cells.every(
+          (cellIndex) =>
+            isCellMarked(
+              cellIndex
+            )
+        );
+
+      if (!tCompleted) {
+        return false;
+      }
+
+      const diagonalCompleted =
+        completedDiagonalLines >= 1;
+
+      const extraLines =
+        NON_DIAGONAL_LINES.filter(
+          (line) =>
+            !tConfig.baseLines.includes(
+              line
+            ) &&
+            line.every(
+              (cellIndex) =>
+                isCellMarked(
+                  cellIndex
+                )
+            )
+        ).length;
+
+      return (
+        diagonalCompleted &&
+        extraLines >= 2
+      );
+    }
+  );
+}
+
+
+/* =========================================
+   22. BIG T + 1 DISCONNECTED 3x2 RECTANGLE
+========================================= */
+
+if (
+  pattern ===
+  "t_1_rectangle"
+) {
+  return BIG_T_CONFIGS.some(
+    (tConfig) => {
+
+      const tCompleted =
+        tConfig.cells.every(
+          (cellIndex) =>
+            isCellMarked(
+              cellIndex
+            )
+        );
+
+      if (!tCompleted) {
+        return false;
+      }
+
+      return (
+        RECTANGLE_3X2_LAYOUTS.some(
+          (rectangle) => {
+
+            const disconnected =
+              rectangle.every(
+                (cellIndex) =>
+                  !tConfig.cells.includes(
+                    cellIndex
+                  )
+              );
+
+            if (!disconnected) {
+              return false;
+            }
+
+            return rectangle.every(
+              (cellIndex) =>
+                isCellMarked(
+                  cellIndex
+                )
+            );
+          }
+        )
+      );
+    }
+  );
+}
+
+
+/* =========================================
+   23. BIG T + 3 EXTRA STANDARD LINES
+========================================= */
+
+if (
+  pattern ===
+  "t_3_lines"
+) {
+  return BIG_T_CONFIGS.some(
+    (tConfig) => {
+
+      const tCompleted =
+        tConfig.cells.every(
+          (cellIndex) =>
+            isCellMarked(
+              cellIndex
+            )
+        );
+
+      if (!tCompleted) {
+        return false;
+      }
+
+      const extraCompletedLines =
+        STANDARD_BINGO_LINES.filter(
+          (line) =>
+            !tConfig.baseLines.includes(
+              line
+            ) &&
+            line.every(
+              (cellIndex) =>
+                isCellMarked(
+                  cellIndex
+                )
+            )
+        ).length;
+
+      return (
+        extraCompletedLines >= 3
+      );
+    }
+  );
+}
+
+/* =========================================
+   26. BIG CROSS + 2 EXTRA LINES
+
+   BIG CROSS:
+   - ROW_3
+   - COL_3
+
+   PLUS:
+   - any 2 additional standard lines
+   - horizontal / vertical / diagonal
+========================================= */
+
+if (
+  pattern ===
+  "1_cross_2_lines"
+) {
+
+  const crossCompleted =
+    BIG_CROSS.every(
+      (cellIndex) =>
+        isCellMarked(cellIndex)
+    );
+
+  if (!crossCompleted) {
+    return false;
+  }
+
+  const extraCompletedLines =
+    STANDARD_BINGO_LINES.filter(
+      (line) =>
+        line !== ROW_3 &&
+        line !== COL_3 &&
+        line.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    ).length;
+
+  return extraCompletedLines >= 2;
+}
+/* =========================================
+   29. ONE LINE + TWO SQUARES
+========================================= */
+
+if (
+  pattern ===
+  "1_line_2_squares"
+) {
+  const completedStandardLines =
+    STANDARD_BINGO_LINES.filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  if (
+    completedStandardLines.length < 1
+  ) {
+    return false;
+  }
+
+  const completedSquares =
+    SQUARE_2X2_LAYOUTS.filter(
+      (square) =>
+        square.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  for (
+    let i = 0;
+    i < completedSquares.length;
+    i += 1
+  ) {
+    for (
+      let j = i + 1;
+      j < completedSquares.length;
+      j += 1
+    ) {
+      const square1 =
+        completedSquares[i];
+
+      const square2 =
+        completedSquares[j];
+
+      const squaresDoNotOverlap =
+        square1.every(
+          (cellIndex) =>
+            !square2.includes(
+              cellIndex
+            )
+        );
+
+/* =========================================================
+   RECTANGLES
+========================================================= */
+
+      if (squaresDoNotOverlap) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+/* =========================================
+   30. 2 DISCONNECTED LINES
+       + 2 DISCONNECTED SQUARES
+
+   ANY valid arrangement.
+
+   Rules:
+   - any 2 completed standard lines
+   - the 2 lines must not cross
+   - any 2 completed 2x2 squares
+   - squares must not overlap
+   - squares must not overlap either line
+========================================= */
+
+if (
+  pattern ===
+  "2_disconnected_lines_2_disconnected_squares"
+) {
+  const completedCandidateLines =
+    STANDARD_BINGO_LINES.filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  const completedSquares =
+    SQUARE_2X2_LAYOUTS.filter(
+      (square) =>
+        square.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  for (
+    let lineIndex1 = 0;
+    lineIndex1 <
+    completedCandidateLines.length;
+    lineIndex1 += 1
+  ) {
+    for (
+      let lineIndex2 =
+        lineIndex1 + 1;
+      lineIndex2 <
+      completedCandidateLines.length;
+      lineIndex2 += 1
+    ) {
+      const line1 =
+        completedCandidateLines[
+          lineIndex1
+        ];
+
+      const line2 =
+        completedCandidateLines[
+          lineIndex2
+        ];
+
+      /*
+       * The two lines must not
+       * share any cell.
+       */
+      const linesDisconnected =
+        line1.every(
+          (cellIndex) =>
+            !line2.includes(
+              cellIndex
+            )
+        );
+
+      if (!linesDisconnected) {
+        continue;
+      }
+
+      for (
+        let squareIndex1 = 0;
+        squareIndex1 <
+        completedSquares.length;
+        squareIndex1 += 1
+      ) {
+        for (
+          let squareIndex2 =
+            squareIndex1 + 1;
+          squareIndex2 <
+          completedSquares.length;
+          squareIndex2 += 1
+        ) {
+          const square1 =
+            completedSquares[
+              squareIndex1
+            ];
+
+          const square2 =
+            completedSquares[
+              squareIndex2
+            ];
+
+          /*
+           * Squares must not
+           * overlap each other.
+           */
+          const squaresDisconnected =
+            square1.every(
+              (cellIndex) =>
+                !square2.includes(
+                  cellIndex
+                )
+            );
+
+          if (!squaresDisconnected) {
+            continue;
+          }
+
+          /*
+           * Square 1 cannot touch
+           * either winning line.
+           */
+          const square1Disconnected =
+            square1.every(
+              (cellIndex) =>
+                !line1.includes(
+                  cellIndex
+                ) &&
+                !line2.includes(
+                  cellIndex
+                )
+            );
+
+          if (!square1Disconnected) {
+            continue;
+          }
+
+          /*
+           * Square 2 cannot touch
+           * either winning line.
+           */
+          const square2Disconnected =
+            square2.every(
+              (cellIndex) =>
+                !line1.includes(
+                  cellIndex
+                ) &&
+                !line2.includes(
+                  cellIndex
+                )
+            );
+
+          if (!square2Disconnected) {
+            continue;
+          }
+
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
+}
+/* =========================================
+   31. 2 SQUARES + 1 RECTANGLE
+
+   ANY valid arrangement.
+
+   Rules:
+   - any 2 completed 2x2 squares
+   - squares must be separate
+   - any completed 3x2 / 2x3 rectangle
+========================================= */
+
+if (
+  pattern ===
+  "2_squares_1_rectangle"
+) {
+  const completedSquares =
+    SQUARE_2X2_LAYOUTS.filter(
+      (square) =>
+        square.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  if (completedSquares.length < 2) {
+    return false;
+  }
+
+  const completedRectangles =
+    RECTANGLE_3X2_LAYOUTS.filter(
+      (rectangle) =>
+        rectangle.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        )
+    );
+
+  if (
+    completedRectangles.length < 1
+  ) {
+    return false;
+  }
+
+  for (
+    let i = 0;
+    i < completedSquares.length;
+    i += 1
+  ) {
+    for (
+      let j = i + 1;
+      j < completedSquares.length;
+      j += 1
+    ) {
+      const square1 =
+        completedSquares[i];
+
+      const square2 =
+        completedSquares[j];
+
+      const squaresDoNotOverlap =
+        square1.every(
+          (cellIndex) =>
+            !square2.includes(
+              cellIndex
+            )
+        );
+
+      if (squaresDoNotOverlap) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/* =========================================
+   19. 4 CORNER DOTS
+       + 2 DISCONNECTED SQUARES
+
+   ANY valid arrangement.
+
+   WIN:
+   - all 4 corner dots
+   - any 2 completed 2x2 squares
+   - squares cannot overlap each other
+   - squares cannot use a corner dot
+========================================= */
+
+if (
+  pattern ===
+  "4_corner_dots_2_disconnected_squares"
+) {
+  const cornerDots = [
+    0,
+    4,
+    20,
+    24,
+  ];
+
+  const cornersCompleted =
+    cornerDots.every(
+      (cellIndex) =>
+        isCellMarked(cellIndex)
+    );
+
+  if (!cornersCompleted) {
+    return false;
+  }
+
+  const completedSquares =
+    SQUARE_2X2_LAYOUTS.filter(
+      (square) =>
+        square.every(
+          (cellIndex) =>
+            isCellMarked(cellIndex)
+        ) &&
+        square.every(
+          (cellIndex) =>
+            !cornerDots.includes(
+              cellIndex
+            )
+        )
+    );
+
+  for (
+    let i = 0;
+    i < completedSquares.length;
+    i += 1
+  ) {
+    for (
+      let j = i + 1;
+      j < completedSquares.length;
+      j += 1
+    ) {
+      const square1 =
+        completedSquares[i];
+
+      const square2 =
+        completedSquares[j];
+
+      const squaresDisconnected =
+        square1.every(
+          (cellIndex) =>
+            !square2.includes(
+              cellIndex
+            )
+        );
+
+      if (squaresDisconnected) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
   /* =========================================
      NEW ADMIN WINNING PATTERNS

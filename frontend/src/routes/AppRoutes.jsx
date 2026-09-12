@@ -110,6 +110,15 @@ function AppRoutes() {
             path="games"
             element={<Games />}
           />
+          <Route
+  path="game"
+  element={<GameRoom />}
+/>
+
+<Route
+  path="game/:gameId"
+  element={<GameRoom />}
+/>
 
           <Route
             path="game/:gameId"

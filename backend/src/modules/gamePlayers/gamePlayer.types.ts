@@ -5,6 +5,20 @@ export type GamePlayerStatus =
   | "lost"
   | "cancelled";
 
+  export interface IBlockedCardClaim {
+  cardId:
+    mongoose.Types.ObjectId;
+
+  calledNumber:
+    number | null;
+
+  blockedAt:
+    Date;
+
+  reason:
+    string;
+}
+
 export interface IGamePlayer {
   gameId: string;
 
@@ -39,6 +53,9 @@ blockedReason?:
 
 blockedCardIds?:
   mongoose.Types.ObjectId[];
+
+  blockedCardClaims?:
+  IBlockedCardClaim[];
 
 wonAt?: Date;
 

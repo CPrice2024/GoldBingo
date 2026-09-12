@@ -63,7 +63,7 @@ const game =
 
     callIntervalSeconds:
   callIntervalSeconds === undefined
-    ? 5
+    ? 15
     : Number(
         callIntervalSeconds
       ),
@@ -678,29 +678,68 @@ if (
 
 
       /*
-       * =========================================
-       * VALID BINGO
-       * =========================================
-       */
-      if (
-        result.status ===
-        "WINNER"
-      ) {
-        return res
-          .status(200)
-          .json({
-            success: true,
+ * =========================================
+ * VALID BINGO
+ * =========================================
+ */
 
-            code:
-              "BINGO_WIN",
+if (
+  result.status ===
+  "WINNER"
+) {
 
-            message:
-              "Bingo! Prize collected successfully.",
+  /* =========================================
+     BROADCAST WINNER TO EVERY VIEWER
+  ========================================= */
 
-            data:
-              result,
-          });
+  const io =
+    req.app.get("io");
+
+
+  if (io) {
+
+    io.emit(
+      "bingo:winner",
+      {
+        gameId:
+          id,
+
+        gamePlayerId:
+          result.winner
+            ?.gamePlayerId,
+
+        cardId:
+          result.winner
+            ?.cardId,
+
+        cardNumber:
+          result.winner
+            ?.cardNumber,
+
+        claimedAt:
+          result.winner
+            ?.claimedAt,
       }
+    );
+
+  }
+
+
+  return res
+    .status(200)
+    .json({
+      success: true,
+
+      code:
+        "BINGO_WIN",
+
+      message:
+        "Bingo! Prize collected successfully.",
+
+      data:
+        result,
+    });
+}
 
 
       /*

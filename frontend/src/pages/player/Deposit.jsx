@@ -1076,9 +1076,9 @@ if (!selectedPaymentAccount) {
   >
   {ocrLoading ? (
   <>
-    <SearchIcon
-      size={20}
-      className="ocr-scan-icon"
+    <Loader2
+      size={17}
+      className="spin"
     />
 
     <div className="ocr-loading-text">
@@ -1088,7 +1088,7 @@ if (!selectedPaymentAccount) {
   </>
 ) : (
   <>
-    <ImagePlus size={18} />
+    
     <span>{t("deposit.uploadScreenshot")}</span>
   </>
 )}

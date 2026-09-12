@@ -20,17 +20,31 @@ export const getGames = async (
   return response.data;
 };
 
-
 export const getCurrentGame =
   async () => {
+
     const response =
       await api.get(
-        "/games/current"
+        "/games/current",
+        {
+          params: {
+            _t:
+              Date.now(),
+          },
+
+          headers: {
+            "Cache-Control":
+              "no-cache",
+
+            Pragma:
+              "no-cache",
+          },
+        }
       );
+
 
     return response.data;
   };
-
 
 export const getGameById =
   async (
@@ -44,7 +58,6 @@ export const getGameById =
     return response.data;
   };
 
-
 export const getGameState =
   async (
     gameId
@@ -57,7 +70,6 @@ export const getGameState =
     return response.data;
   };
 
-
 export const getGameWinners =
   async (
     gameId
@@ -69,7 +81,6 @@ export const getGameWinners =
 
     return response.data;
   };
-
 
 /* =========================
    PLAYER BINGO
@@ -92,7 +103,6 @@ export const claimBingo =
         "Card ID is required"
       );
     }
-
     const response =
       await api.post(
         `/games/${gameId}/claim-bingo`,
@@ -100,11 +110,8 @@ export const claimBingo =
           cardId,
         }
       );
-
     return response.data;
   };
-
-
 /* =========================
    ADMIN GAME FUNCTIONS
 ========================= */

@@ -20,20 +20,92 @@ const openCurrentGame = useCallback(
 
       if (showLoading) {
         setLoading(true);
-        setError("");
       }
+
+      /*
+       * Do not keep an old error
+       * while checking again.
+       */
+      setError("");
+
 
       const response =
         await getCurrentGame();
 
+
+      /*
+       * IMPORTANT:
+       * Log exactly what the API returns.
+       */
+      console.log(
+        "[PLAY] Current game RAW response:",
+        response
+      );
+
+
+      /*
+       * Support every response shape:
+       *
+       * 1.
+       * {
+       *   success: true,
+       *   data: { _id: ... }
+       * }
+       *
+       * 2.
+       * {
+       *   data: {
+       *     success: true,
+       *     data: { _id: ... }
+       *   }
+       * }
+       *
+       * 3.
+       * {
+       *   _id: ...
+       * }
+       */
       const game =
-        response?.data;
+        response?.data?.data?._id
+          ? response.data.data
+          : response?.data?._id
+          ? response.data
+          : response?._id
+          ? response
+          : null;
+
+
+      console.log(
+        "[PLAY] Parsed current game:",
+        game
+      );
 
 
       if (!game?._id) {
 
-        setError(
-          "No Bingo game available"
+  navigate(
+    "/player/game",
+    {
+      replace: true,
+    }
+  );
+
+  return;
+}
+
+
+      /*
+       * Only waiting or active games
+       * belong in GameRoom.
+       */
+      if (
+        game.status !== "waiting" &&
+        game.status !== "active"
+      ) {
+
+        console.log(
+          "[PLAY] Game exists but is not playable:",
+          game.status
         );
 
         return;
@@ -41,8 +113,10 @@ const openCurrentGame = useCallback(
 
 
       console.log(
-        "Current Bingo game:",
-        game
+        "[PLAY] Opening current Bingo game:",
+        game.name,
+        game._id,
+        game.status
       );
 
 
@@ -56,16 +130,36 @@ const openCurrentGame = useCallback(
 
     } catch (err) {
 
+      if (
+  err?.response?.status === 404
+) {
+
+  console.log(
+    "[PLAY] No current game yet."
+  );
+
+  navigate(
+    "/player/game",
+    {
+      replace: true,
+    }
+  );
+
+  return;
+}
+
+
       console.error(
-        "Failed to open current game:",
-        err
+        "[PLAY] Failed to load current game:",
+        err?.response?.data ||
+          err
       );
 
 
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "No Bingo game available"
+          "Failed to check current Bingo game"
       );
 
 
@@ -74,9 +168,7 @@ const openCurrentGame = useCallback(
       if (showLoading) {
         setLoading(false);
       }
-
     }
-
   },
   [navigate]
 );
@@ -212,7 +304,7 @@ return (
 
 
         <p>
-          No Bingo Game Available
+          No Bingo
         </p>
 
 

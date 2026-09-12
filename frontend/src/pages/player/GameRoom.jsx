@@ -42,14 +42,15 @@ import {
 } from "lucide-react";
 
 import {
+  useNavigate,
   useParams,
 } from "react-router-dom";
 
 import {
   getGameById,
   getGameState,
+  getCurrentGame,
   claimBingo,
-  getGameWinners,
 } from "../../api/games.api";
 
 import {
@@ -104,6 +105,8 @@ const BALL_LEGEND = [
 function GameRoom() {
   const { gameId } =
     useParams();
+  const navigate =
+  useNavigate();
     const socketRef =
   useRef(null);
 
@@ -164,6 +167,11 @@ const [
   previewCardsLoading,
   setPreviewCardsLoading,
 ] = useState(false);
+
+const [
+  loadingCardCount,
+  setLoadingCardCount,
+] = useState(0);
 
 const [
   bingoConfirmed,
@@ -422,6 +430,11 @@ const [
   setBlockedCards,
 ] = useState([]);
 
+const [
+  publicWinners,
+  setPublicWinners,
+] = useState([]);
+
 const claimSoundRef =
   useRef(null);
 
@@ -430,20 +443,6 @@ const previousCalledCountRef =
 
   const [cardOpen, setCardOpen] = useState(false);
 const [cardNotification, setCardNotification] = useState("");
-const [
-  winnerData,
-  setWinnerData,
-] = useState(null);
-
-const [
-  winnerLoading,
-  setWinnerLoading,
-] = useState(false);
-
-const [
-  winnerError,
-  setWinnerError,
-] = useState("");
 
 const [
   selectedWinner,
@@ -557,6 +556,17 @@ const fetchGame = useCallback(
       ? nextState.blockedCards
       : []
   );
+  /* =========================================
+   PUBLIC WINNER CARDS
+========================================= */
+
+setPublicWinners(
+  Array.isArray(
+    nextState?.publicWinners
+  )
+    ? nextState.publicWinners
+    : []
+);
 }
       } catch (stateError) {
         console.error(
@@ -596,17 +606,48 @@ const fetchGame = useCallback(
   }
 }
       } catch (err) {
-        console.error(
-          "Failed to load game:",
-          err.response?.data || err
-        );
 
-        setError(
-          err.response?.data?.message ||
-            err.message ||
-            "Failed to load game"
-        );
-      } finally {
+  const status =
+    err?.response?.status;
+
+  /*
+   * No game available.
+   *
+   * This is a normal UI state,
+   * not a page error.
+   */
+  if (status === 404) {
+
+    setGame(null);
+
+    setGameState(null);
+
+    setGamePlayer(null);
+
+    setBlockedPlayers([]);
+
+    setBlockedCards([]);
+
+    setPublicWinners([]);
+
+    setError("");
+
+    return;
+  }
+
+
+  console.error(
+    "Failed to load game:",
+    err.response?.data || err
+  );
+
+  setError(
+    err.response?.data?.message ||
+      err.message ||
+      "Failed to load game"
+  );
+
+} finally {
         setRefreshing(false);
       }
 
@@ -672,8 +713,21 @@ const loadPlayerInfo =
  useEffect(() => {
   let cancelled = false;
 
-  const loadInitialGame = async () => {
-    if (!gameId) return;
+  const loadInitialGame =
+  async () => {
+
+    if (!gameId) {
+
+      setGame(null);
+
+      setGameState(null);
+
+      setGamePlayer(null);
+
+      setLoading(false);
+
+      return;
+    }
 
     setLoading(true);
 
@@ -702,17 +756,55 @@ useEffect(() => {
      LIVE POLLING
   ========================================= */
 
-  useEffect(() => {
-    if (!gameId) return;
+/* =========================================
+   LIVE POLLING
+========================================= */
 
-    const interval = setInterval(() => {
+useEffect(() => {
+
+  if (!gameId) {
+    return;
+  }
+
+
+  /*
+   * Completed game no longer needs
+   * live polling.
+   *
+   * The new-game watcher will
+   * search for the next game.
+   */
+  if (
+    game?.status ===
+    "completed"
+  ) {
+    return;
+  }
+
+
+  const interval =
+    setInterval(() => {
+
       fetchGame(true);
+
     }, 2000);
 
-    return () => {
-      clearInterval(interval);
-    };
-  }, [gameId, fetchGame]);
+
+  return () => {
+
+    clearInterval(
+      interval
+    );
+
+  };
+
+}, [
+  gameId,
+  game?.status,
+  fetchGame,
+]);
+
+
 /* =========================================
    GAME SOUNDS
 ========================================= */
@@ -766,6 +858,9 @@ useEffect(() => {
     );
   };
 }, []);
+
+
+
 /* =========================================
    SOCKET.IO
    PUBLIC GAME EVENTS
@@ -849,13 +944,47 @@ useEffect(() => {
 
     }
   );
+  /* =========================================
+   WINNER FROM ANY PLAYER
+========================================= */
 
+socket.on(
+  "bingo:winner",
+  async (payload) => {
+
+    if (
+      String(
+        payload?.gameId
+      ) !==
+      String(gameId)
+    ) {
+      return;
+    }
+
+    console.log(
+      "🏆 BINGO WINNER:",
+      payload
+    );
+
+    /*
+     * Reload authoritative state.
+     * publicWinners updates for
+     * EVERY viewer.
+     */
+    await fetchGame(
+      false
+    );
+  }
+);
 
   return () => {
 
     socket.off(
       "bingo:blocked"
     );
+    socket.off(
+  "bingo:winner"
+);
 
     socket.disconnect();
 
@@ -883,13 +1012,11 @@ setShowLastCalled(false);
 
   setBlockedCards([]);
 
+  setPublicWinners([]);
+
   setCardNotification("");
 
   setMarkedNumbers([]);
-
-  setWinnerData(null);
-
-  setWinnerError("");
 
   setSelectedWinner(null);
   setSelectedBlockedCard(null);
@@ -905,11 +1032,57 @@ setShowAllBlockedCards(false);
      CALLED NUMBERS
   ========================================= */
 
+/* =========================================
+   CURRENT PLAYABLE GAME
+========================================= */
+
+const rawGameSource =
+  gameState?.game ??
+  game;
+
+
+const rawLiveGame =
+  rawGameSource
+    ? {
+        ...rawGameSource,
+
+        _id:
+          rawGameSource._id ??
+          rawGameSource.id ??
+          null,
+      }
+    : null;
+
+
+const hasGame =
+  Boolean(
+    rawLiveGame?._id
+  ) &&
+  (
+    rawLiveGame?.status ===
+      "waiting" ||
+    rawLiveGame?.status ===
+      "active"
+  );
+
+/* =========================================
+   CALLED NUMBERS
+
+   Old/completed game numbers must
+   NOT remain on the Bingo board.
+========================================= */
+
 const calledNumbers =
-  gameState?.game?.calledNumbers ??
-  gameState?.calledNumbers ??
-  game?.calledNumbers ??
-  EMPTY_NUMBERS;
+  hasGame
+    ? (
+        gameState?.game
+          ?.calledNumbers ??
+        gameState
+          ?.calledNumbers ??
+        game?.calledNumbers ??
+        EMPTY_NUMBERS
+      )
+    : EMPTY_NUMBERS;
 
   /* =========================================
    AUTO COMPLETE / AUTO MARK
@@ -957,16 +1130,76 @@ useEffect(() => {
 /* =========================================
    LIVE COUNTDOWN
 ========================================= */
+/* =========================================
+   GAME VIEW MODE
+
+   When no game exists:
+   - keep full Bingo layout visible
+   - show zero values
+   - no winning pattern
+   - cards are view-only
+========================================= */
+
 const liveGame =
-  gameState?.game ??
-  game;
-  const currentWinningPattern =
-  liveGame?.winningPatternLabel ||
-  getWinningPatternLabel(
-    liveGame?.winningPattern ||
-      game?.winningPattern ||
-      "3_lines"
-  );
+  hasGame
+    ? rawLiveGame
+    : {
+        _id: null,
+        name:
+          t("game.noActiveGame"),
+        status: "unavailable",
+        entryFee: 0,
+        gameType: 0,
+        prizeAmount: 0,
+        prizePool: 0,
+        winningPattern: null,
+        winningPatternLabel: null,
+        calledNumbers: [],
+      };
+
+
+const currentWinningPattern =
+  hasGame
+    ? (
+        liveGame?.winningPatternLabel ||
+        getWinningPatternLabel(
+          liveGame?.winningPattern ||
+            game?.winningPattern
+        )
+      )
+    : null;
+
+
+const displayEntryFee =
+  hasGame
+    ? Number(
+        liveGame?.entryFee ??
+          game?.entryFee ??
+          0
+      )
+    : 0;
+
+
+const displayGameType =
+  hasGame
+    ? Number(
+        liveGame?.gameType ??
+          game?.gameType ??
+          1
+      )
+    : 0;
+
+
+const displayPrize =
+  hasGame
+    ? Number(
+        liveGame?.prizeAmount ??
+          game?.prizeAmount ??
+          liveGame?.prizePool ??
+          game?.prizePool ??
+          0
+      )
+    : 0;
 
 const latestPlayerInfo =
   playerInfo.length > 0
@@ -1004,13 +1237,122 @@ const getRemainingSeconds = (
   );
 };
 
+/* =========================================
+   ADMIN SCHEDULED START COUNTDOWN
+========================================= */
+
 const startCountdown =
   liveGame?.status ===
-  "waiting"
+    "waiting" &&
+  liveGame?.scheduledStartAt
     ? getRemainingSeconds(
-        liveGame?.joiningEndsAt
+        liveGame.scheduledStartAt
       )
     : null;
+
+
+/*
+ * Only display countdown during
+ * the final 30 seconds.
+ */
+const showStartCountdown =
+  startCountdown !== null &&
+  startCountdown > 0 &&
+  startCountdown <= 30;
+
+
+/*
+ * Admin scheduled time reached,
+ * but backend status has not yet
+ * reached this client.
+ */
+const scheduledStartReached =
+  startCountdown !== null &&
+  startCountdown <= 0;
+
+const scheduledStartLabel =
+  liveGame?.scheduledStartAt
+    ? new Date(
+        liveGame.scheduledStartAt
+      ).toLocaleTimeString(
+        [],
+        {
+          hour: "2-digit",
+          minute: "2-digit",
+        }
+      )
+    : null;
+
+/* =========================================
+   SYNC EXACT ADMIN START TIME
+========================================= */
+
+useEffect(() => {
+
+  if (
+    !gameId ||
+    liveGame?.status !==
+      "waiting" ||
+    !liveGame?.scheduledStartAt
+  ) {
+    return;
+  }
+
+
+  const startTime =
+    new Date(
+      liveGame.scheduledStartAt
+    ).getTime();
+
+
+  if (
+    !Number.isFinite(
+      startTime
+    )
+  ) {
+    return;
+  }
+
+
+  const remainingMs =
+    Math.max(
+      0,
+      startTime -
+        Date.now()
+    );
+
+
+  /*
+   * Backend owns the actual start.
+   *
+   * Refresh shortly after the exact
+   * Admin scheduled timestamp so the
+   * player immediately receives
+   * status = active.
+   */
+  const timer =
+    setTimeout(
+      () => {
+        fetchGame(
+          false
+        );
+      },
+      remainingMs + 150
+    );
+
+
+  return () => {
+    clearTimeout(
+      timer
+    );
+  };
+
+}, [
+  gameId,
+  liveGame?.status,
+  liveGame?.scheduledStartAt,
+  fetchGame,
+]);
 
 const callCountdown =
   liveGame?.status ===
@@ -1245,6 +1587,188 @@ useEffect(() => {
 
 }, []);
 
+/* =========================================
+   WATCH CURRENT / NEW GAME
+
+   Always check the backend.
+
+   If Admin creates a new game:
+   - detect new game ID
+   - automatically navigate
+   - GameRoom reloads new data
+   - Waiting status appears
+   - player can join
+========================================= */
+
+useEffect(() => {
+
+  if (loading) {
+    return;
+  }
+
+
+  let cancelled =
+    false;
+
+
+  const checkCurrentGame =
+    async () => {
+
+      try {
+
+        const response =
+          await getCurrentGame();
+
+
+        /*
+         * Support all possible
+         * API response shapes.
+         */
+        const nextGame =
+          response?.data?.data?._id
+            ? response.data.data
+            : response?.data?._id
+            ? response.data
+            : response;
+
+
+        /*
+         * No game currently available.
+         */
+        if (
+          !nextGame?._id
+        ) {
+          return;
+        }
+
+
+        /*
+         * Only waiting / active games
+         * should become the current game.
+         */
+        if (
+          nextGame.status !==
+            "waiting" &&
+          nextGame.status !==
+            "active"
+        ) {
+          return;
+        }
+
+
+        if (cancelled) {
+          return;
+        }
+
+
+        const nextGameId =
+          String(
+            nextGame._id
+          );
+
+        const currentGameId =
+          String(
+            gameId || ""
+          );
+
+
+        /*
+         * SAME GAME:
+         *
+         * Refresh its latest data.
+         * Example:
+         * waiting -> active
+         * players changed
+         * countdown changed
+         */
+        if (
+  nextGameId ===
+  currentGameId
+) {
+  return;
+}
+
+
+        /*
+         * NEW GAME CREATED:
+         *
+         * Automatically switch
+         * every player to it.
+         */
+        console.log(
+          "[BINGO] New game detected:",
+          nextGame.name,
+          nextGame._id,
+          nextGame.status
+        );
+
+
+        navigate(
+          `/player/game/${nextGame._id}`,
+          {
+            replace:
+              true,
+          }
+        );
+
+      } catch (err) {
+
+        /*
+         * No current game is
+         * a normal state.
+         */
+        if (
+          err?.response
+            ?.status === 404
+        ) {
+          return;
+        }
+
+
+        console.error(
+          "[BINGO] Current game watch error:",
+          err
+        );
+
+      }
+
+    };
+
+
+  /*
+   * Check immediately.
+   */
+  checkCurrentGame();
+
+
+  /*
+   * Continue checking every
+   * 2 seconds even if the
+   * current game is waiting.
+   */
+  const interval =
+    setInterval(
+      checkCurrentGame,
+      2000
+    );
+
+  return () => {
+
+    cancelled =
+      true;
+
+    clearInterval(
+      interval
+    );
+
+  };
+
+}, [
+  gameId,
+  loading,
+  navigate,
+  fetchGame,
+]);
   /* =========================================
      BINGO BOARD
   ========================================= */
@@ -1279,16 +1803,32 @@ useEffect(() => {
     ],
     []
   );
-const handleMainCardButton =
+
+  const handleMainCardButton =
   () => {
 
     /*
-     * While game is waiting,
-     * + always opens card selection,
-     * even if player already owns cards.
+     * NO GAME:
+     *
+     * Allow browsing cards,
+     * but never allow joining.
+     */
+    if (!hasGame) {
+
+      setCardMenuOpen(
+        (current) =>
+          !current
+      );
+
+      return;
+    }
+
+
+    /*
+     * Waiting game.
      */
     if (
-      game?.status ===
+      liveGame?.status ===
       "waiting"
     ) {
 
@@ -1301,10 +1841,6 @@ const handleMainCardButton =
     }
 
 
-    /*
-     * Once game starts,
-     * + takes player to their cards.
-     */
     if (isJoined) {
 
       document
@@ -1312,20 +1848,15 @@ const handleMainCardButton =
           "bingo-inline-card-selection"
         )
         ?.scrollIntoView({
-          behavior:
-            "smooth",
-
-          block:
-            "start",
+          behavior: "smooth",
+          block: "start",
         });
 
       return;
     }
 
 
-    setCardOpen(
-      true
-    );
+    setCardOpen(true);
   };
 
 
@@ -1336,55 +1867,68 @@ const handleChooseCardCount =
       return;
     }
 
+
     setCardMenuOpen(false);
 
     setInlineCardsOpen(true);
+
+    setPreviewCardsError("");
+
+
+    /*
+     * Current cards already selected/joined.
+     */
+    const currentCards = [
+      ...displayCards,
+    ];
+
+
+    /*
+     * Available spaces.
+     */
+    const remainingSlots =
+      MAX_CARDS_PER_PLAYER -
+      currentCards.length;
+
+
+    if (remainingSlots <= 0) {
+
+      setPreviewCardsError(
+        `Maximum ${MAX_CARDS_PER_PLAYER} cards allowed.`
+      );
+
+      return;
+    }
+
+
+    /*
+     * Example:
+     *
+     * Player already has 20 cards.
+     * Clicks 10.
+     *
+     * Only 5 loading cards should show.
+     */
+    const amountToAdd =
+      Math.min(
+        count,
+        remainingSlots
+      );
+
+
+    /*
+     * Show loading cards immediately.
+     */
+    setLoadingCardCount(
+      amountToAdd
+    );
 
     setPreviewCardsLoading(
       true
     );
 
-    setPreviewCardsError("");
 
     try {
-
-      /* =========================
-         CURRENT CARDS
-      ========================= */
-const currentCards = [
-  ...displayCards,
-];
-
-
-const remainingSlots =
-  MAX_CARDS_PER_PLAYER -
-  currentCards.length;
-
-if (remainingSlots <= 0) {
-
-        setPreviewCardsError(
-          `Maximum ${MAX_CARDS_PER_PLAYER} cards allowed.`
-        );
-
-        return;
-      }
-
-
-      /*
-       * Example:
-       *
-       * current = 20
-       * clicked = 10
-       *
-       * only add 5
-       */
-
-      const amountToAdd =
-        Math.min(
-          count,
-          remainingSlots
-        );
-
 
       /* =========================
          LOAD AVAILABLE CARDS
@@ -1533,11 +2077,15 @@ console.log(
 
     } finally {
 
-      setPreviewCardsLoading(
-        false
-      );
+  setPreviewCardsLoading(
+    false
+  );
 
-    }
+  setLoadingCardCount(
+    0
+  );
+
+}
 
   };
 
@@ -2490,13 +3038,11 @@ const getPatternScore =
         }
       );
 
-
     const completedShapes =
       results.filter(
         (result) =>
           result.complete
       ).length;
-
 
     const bestShape =
       Math.max(
@@ -2692,108 +3238,7 @@ useEffect(() => {
   gamePlayer?.status,
 ]);
 
-/* =========================================
-   FETCH GAME WINNERS
-========================================= */
 
-const fetchGameWinners =
-  useCallback(
-    async () => {
-
-      if (
-        !gameId ||
-        !isJoined
-      ) {
-        return;
-      }
-
-      try {
-
-        setWinnerLoading(
-          true
-        );
-
-        setWinnerError(
-          ""
-        );
-
-        const response =
-          await getGameWinners(
-            gameId
-          );
-
-        if (
-          !response?.success
-        ) {
-          throw new Error(
-            response?.message ||
-              "Failed to load winner"
-          );
-        }
-
-        setWinnerData(
-          response.data ||
-            null
-        );
-
-      } catch (err) {
-
-        console.error(
-          "Failed to load winners:",
-          err
-        );
-
-        setWinnerError(
-          err.response?.data
-            ?.message ||
-            err.message ||
-            "Failed to load winner"
-        );
-
-      } finally {
-
-        setWinnerLoading(
-          false
-        );
-
-      }
-
-    },
-    [
-      gameId,
-      isJoined,
-    ]
-  );
-
-/* =========================================
-   LOAD WINNER AFTER GAME ENDS
-========================================= */
-
-useEffect(() => {
-
-  if (
-    !isJoined
-  ) {
-    return;
-  }
-
-  const gameFinished =
-  liveGame?.status ===
-    "completed";
-
-  if (
-    !gameFinished
-  ) {
-    return;
-  }
-
-  fetchGameWinners();
-
-}, [
-  liveGame?.status,
-  isJoined,
-  fetchGameWinners,
-]);
 
 const totalJoinFee =
   Number(
@@ -3235,87 +3680,6 @@ const handleClaimBingo =
     );
   }
 
-  /* =========================================
-     ERROR
-  ========================================= */
-
-  if (error && !game) {
-    return (
-      <div className="bingo-mobile-page">
-      </div>
-    );
-  }
-
-  if (!game) {
-  return (
-    <div className="bingo-mobile-page no-game-page">
-      <div className="no-game-card">
-
-        <div className="no-game-icon">
-          <Trophy size={42} />
-        </div>
-
-        <h1>
-  {t("game.noActiveGame")}
-</h1>
-
-<p className="no-game-subtitle">
-  {t(
-    "game.noActiveGameDescription"
-  )}
-</p>
-
-        <div className="no-game-divider">
-          <span />
-          <Trophy size={18} />
-          <span />
-        </div>
-
-        <div className="no-game-info">
-          <div className="no-game-info-icon">
-            <AlertCircle size={20} />
-          </div>
-
-          <strong>
-  {t("game.noGameRunning")}
-</strong>
-
-<p>
-  {t("game.newGameAutomatic")}
-</p>
-        </div>
-
-        <button
-          type="button"
-          className="no-game-retry-button"
-          onClick={() => fetchGame(true)}
-          disabled={refreshing}
-        >
-          <RefreshCw
-            size={18}
-            className={refreshing ? "spin" : ""}
-          />
-
-          {refreshing
-  ? t("game.checking")
-  : t("game.tryAgain")}
-        </button>
-
-        <div className="no-game-footer">
-          <Radio size={18} />
-
-          <span>
-  {t(
-    "game.newGamesAutomatic"
-  )}
-</span>
-        </div>
-
-      </div>
-    </div>
-  );
-}
-
   return (
     <div className="bingo-mobile-page">
 
@@ -3442,20 +3806,32 @@ const handleClaimBingo =
     {t("game.gameType")}
   </span>
 
-  <button
-    type="button"
-    className="bingo-current-pattern-button"
-    onClick={() =>
-      setPatternPreviewOpen(true)
-    }
-  >
-    <span>
-      {currentWinningPattern}
-    </span>
+ <button
+  type="button"
+  className="bingo-current-pattern-button"
+  disabled={!hasGame}
+  onClick={() => {
 
+    if (!hasGame) {
+      return;
+    }
+
+    setPatternPreviewOpen(
+      true
+    );
+  }}
+>
+  <span>
+    {hasGame
+      ? currentWinningPattern
+      : "no pattern"}
+  </span>
+
+  {hasGame && (
     <span className="bingo-pattern-help-icon">
     </span>
-  </button>
+  )}
+</button>
   
 
 </div>
@@ -3466,12 +3842,9 @@ const handleClaimBingo =
 ===================================== */}
 
 {playerInfoLoading ? (
-
   <div className="bingo-admin-info-loading">
-    {t("game.info")}:{" "}
-{latestPlayerInfo.content}
+    {t("game.info")}...
   </div>
-
 ) : latestPlayerInfo ? (
 
   <div
@@ -3489,7 +3862,7 @@ const handleClaimBingo =
   </div>
 
 ) : null}
-<div class="bingo-history-header">
+<div className="bingo-history-header">
     
 
     <div className="bingo-live-icon">
@@ -3499,48 +3872,83 @@ const handleClaimBingo =
     <div className="bingo-game-main-details">
 
       <strong>
-        {liveGame?.name ||
-          game.name}
-      </strong>
-
-      
+  {hasGame
+    ? (
+        liveGame?.name ||
+        game?.name ||
+        "-"
+      )
+    : t(
+        "game.noActiveGame"
+      )}
+</strong>
 
     </div>
     <span className="bingo-game-status">
-      {t("game.status")}:{" "}
+  {t("game.status")}:{" "}
 
-        {liveGame?.status ===
-"waiting" ? (
+  {!hasGame ? (
+
+  <span>
+    {t("game.noGameRunning")}
+  </span>
+
+) : liveGame?.status === "waiting" ? (
+
   <>
-    <span>
-      {t(
-        "game.waitingToStart"
-      )}
-    </span>
 
-    {startCountdown !==
-      null && (
-      <strong className="bingo-status-countdown">
-        {formatCountdown(
-          startCountdown
+    {showStartCountdown ? (
+
+      <>
+        <span>
+          Starting in
+        </span>
+
+        <strong className="bingo-status-countdown">
+          {formatCountdown(
+            startCountdown
+          )}
+        </strong>
+      </>
+
+    ) : scheduledStartReached ? (
+
+      <span>
+        Starting...
+      </span>
+
+    ) : (
+
+      <>
+        <span>
+          {t("game.waitingToStart")}
+        </span>
+
+        {scheduledStartLabel && (
+          <strong className="bingo-status-scheduled-time">
+            {scheduledStartLabel}
+          </strong>
         )}
-      </strong>
+      </>
+
     )}
+
   </>
-) : liveGame?.status ===
-  "active" ? (
+
+) : liveGame?.status === "active" ? (
+
   <span>
     {t("game.active")}
   </span>
-) : (
-  <span>
-    {t(
-      "game.gameCompleted"
-    )}
-  </span>
-)}
 
-      </span>
+) : (
+
+  <span>
+    {t("game.gameCompleted")}
+  </span>
+
+)}
+</span>
     
 
   </div>
@@ -3579,24 +3987,18 @@ const handleClaimBingo =
     </span>
 
     <strong
-      className={
-        Number(
-          liveGame?.gameType ??
-            game?.gameType ??
-            1
-        ) === -1
-          ? "bingo-game-type bonus"
-          : "bingo-game-type normal"
-      }
-    >
-      {Number(
-        liveGame?.gameType ??
-          game?.gameType ??
-          1
-      ) === -1
-        ? "-1"
-        : "1"}
-    </strong>
+  className={
+    !hasGame
+      ? "bingo-game-type"
+      : displayGameType === -1
+      ? "bingo-game-type bonus"
+      : "bingo-game-type normal"
+  }
+>
+  {hasGame
+    ? displayGameType
+    : 0}
+</strong>
   </div>
 
   {/* PRIZE */}
@@ -3607,127 +4009,14 @@ const handleClaimBingo =
       {t("game.prize")}
     </span>
 
-    <strong>
-      {Number(
-        liveGame?.prizeAmount ??
-          game?.prizeAmount ??
-          liveGame?.prizePool ??
-          game?.prizePool ??
-          0
-      ).toLocaleString()}{" "}
-      {t("game.birr")}
-    </strong>
+    {/* PRIZE */}
+<strong>
+  {displayPrize.toLocaleString()}{" "}
+  {t("game.birr")}
+</strong>
   </div>
 </div>
-
 </section>
-)}
-{/* =====================================
-    PUBLIC FALSE BINGO CARDS
-====================================== */}
-
-{blockedCards.length > 0 && (
-
-  <section className="bingo-winners-section bingo-blocked-cards-section">
-
-
-
-            <div className="bingo-winner-grid">
-
-      {blockedCards
-        .slice(
-  0,
-  showAllBlockedCards
-    ? blockedCards.length
-    : 4
-)
-        .map(
-          (
-            blocked,
-            index
-          ) => {
-
-            const isMyBlockedCard =
-              String(
-                blocked?.gamePlayerId
-              ) ===
-              String(
-                gamePlayer?._id
-              );
-
-
-            return (
-
-              <button
-                type="button"
-                key={
-                  blocked?.card?.id ||
-                  blocked?.card?._id ||
-                  `${blocked?.gamePlayerId}-${index}`
-                }
-                className={`bingo-winner-card-button ${
-                  isMyBlockedCard
-                    ? "mine"
-                    : ""
-                }`}
-                onClick={() =>
-                  setSelectedBlockedCard(
-                    blocked
-                  )
-                }
-              >
-
-                <AlertCircle
-                  size={14}
-                />
-
-
-                <span>
-                  {blocked?.card
-                    ?.cardNumber ||
-                    `${t("game.card")} ${index + 1}`}
-                </span>
-
-
-                {isMyBlockedCard && (
-
-                  <small>
-                    {t("game.you")}
-                  </small>
-
-                )}
-
-              </button>
-
-            );
-
-          }
-        )}
-
-    </div>
-    {blockedCards.length > 4 && (
-
-  <button
-    type="button"
-    className="bingo-show-more-button"
-    onClick={() =>
-      setShowAllBlockedCards(
-        (current) =>
-          !current
-      )
-    }
-  >
-    {showAllBlockedCards
-  ? t("game.showLess")
-  : `${t("game.showMore")} (${
-      blockedCards.length - 4
-    })`}
-  </button>
-
-)}
-
-  </section>
-
 )}
 
       {/* =====================================
@@ -3821,6 +4110,227 @@ const handleClaimBingo =
 
            </section>
            )}
+           {/* =====================================
+    PUBLIC FALSE BINGO CARDS
+====================================== */}
+
+{hasGame &&
+  blockedCards.length > 0 && (
+
+  <section className="bingo-winners-section bingo-blocked-cards-section">
+
+
+
+            <div className="bingo-winner-grid">
+
+      {blockedCards
+        .slice(
+  0,
+  showAllBlockedCards
+    ? blockedCards.length
+    : 4
+)
+        .map(
+          (
+            blocked,
+            index
+          ) => {
+
+            const isMyBlockedCard =
+              String(
+                blocked?.gamePlayerId
+              ) ===
+              String(
+                gamePlayer?._id
+              );
+
+
+            return (
+
+              <button
+                type="button"
+                key={
+                  blocked?.card?.id ||
+                  blocked?.card?._id ||
+                  `${blocked?.gamePlayerId}-${index}`
+                }
+                className={`bingo-winner-card-button ${
+                  isMyBlockedCard
+                    ? "mine"
+                    : ""
+                }`}
+                onClick={() =>
+                  setSelectedBlockedCard(
+                    blocked
+                  )
+                }
+              >
+
+                <AlertCircle
+  size={14}
+/>
+
+<span>
+  {blocked?.card
+    ?.cardNumber ||
+    `${t("game.card")} ${index + 1}`}
+</span>
+
+
+
+
+{isMyBlockedCard && (
+
+  <small>
+    {t("game.you")}
+  </small>
+
+)}
+
+              </button>
+
+            );
+
+          }
+        )}
+
+    </div>
+    {blockedCards.length > 4 && (
+
+  <button
+    type="button"
+    className="bingo-show-more-button"
+    onClick={() =>
+      setShowAllBlockedCards(
+        (current) =>
+          !current
+      )
+    }
+  >
+    {showAllBlockedCards
+  ? t("game.showLess")
+  : `${t("game.showMore")} (${
+      blockedCards.length - 4
+    })`}
+  </button>
+
+)}
+
+  </section>
+
+)}
+{/* =====================================
+    PUBLIC WINNER CARDS
+    VISIBLE TO EVERYONE
+===================================== */}
+
+{hasGame &&
+  publicWinners.length > 0 && (
+
+  <section className="bingo-winners-section">
+    <div className="bingo-winner-grid">
+
+      {publicWinners
+        .slice(
+          0,
+          showAllWinnerCards
+            ? publicWinners.length
+            : 4
+        )
+        .map(
+          (
+            winner,
+            index
+          ) => {
+
+            const isMyWinningCard =
+              String(
+                winner?.gamePlayerId
+              ) ===
+              String(
+                gamePlayer?._id
+              );
+
+
+            return (
+              <button
+                type="button"
+
+                key={
+                  winner?.card?.id ||
+                  winner?.gamePlayerId ||
+                  index
+                }
+
+                className={`bingo-winner-card ${
+                  isMyWinningCard
+                    ? "mine"
+                    : ""
+                }`}
+
+                onClick={() =>
+                  setSelectedWinner(
+                    winner
+                  )
+                }
+              >
+
+                <Trophy size={14} />
+
+                <span>
+                  {winner
+                    ?.card
+                    ?.cardNumber ||
+                    `${t("game.card")} ${
+                      index + 1
+                    }`}
+                </span>
+
+                {isMyWinningCard && (
+                  <small>
+                    {t("game.you")}
+                  </small>
+                )}
+
+              </button>
+            );
+          }
+        )}
+
+    </div>
+
+
+    {publicWinners.length > 4 && (
+
+      <button
+        type="button"
+
+        className="bingo-show-more-button"
+
+        onClick={() =>
+          setShowAllWinnerCards(
+            (current) =>
+              !current
+          )
+        }
+      >
+
+        {showAllWinnerCards
+          ? t("game.showLess")
+          : `${t(
+              "game.showMore"
+            )} (${
+              publicWinners.length -
+              4
+            })`
+        }
+
+      </button>
+
+    )}
+
+  </section>
+)}
 
 
       {/* =====================================
@@ -3927,8 +4437,11 @@ const handleClaimBingo =
 
 
                     {!cardJoined &&
-  liveGame?.status ===
-    "waiting" && (
+  (
+    liveGame?.status ===
+      "waiting" ||
+    !hasGame
+  ) && (
 
   <button
     type="button"
@@ -4047,6 +4560,10 @@ const handleClaimBingo =
 
   t("game.bingo")
 
+) : !hasGame ? (
+
+  t("game.noGameRunning")
+
 ) : (
 
   t("game.join")
@@ -4099,34 +4616,42 @@ const handleClaimBingo =
     );
   }
 )}
-{/* LOADING NEW CARD */}
+{/* =====================================
+    LOADING SELECTED CARDS
+===================================== */}
 
-{previewCardsLoading && (
+{previewCardsLoading &&
+  Array.from({
+    length:
+      loadingCardCount,
+  }).map(
+    (
+      _,
+      index
+    ) => (
 
-  <article className="bingo-inline-card-item bingo-inline-loading-card">
+      <article
+        key={`loading-card-${index}`}
+        className="bingo-inline-card-item bingo-inline-loading-card"
+      >
 
-    <div className="bingo-inline-card-loading-inner">
+        <div className="bingo-inline-card-loading-inner">
 
-      <LoaderCircle
-        size={28}
-        className="spin"
-      />
+          <LoaderCircle
+            size={30}
+            className="spin"
+          />
 
-      <strong>
-  {t("game.loadingCard")}
-</strong>
+          <strong>
+            Loading Card...
+          </strong>
 
-<span>
-  {t(
-    "game.currentCardsStayActive"
+        </div>
+
+      </article>
+
+    )
   )}
-</span>
-
-    </div>
-
-  </article>
-
-)}
 
             </div>
 
@@ -4188,10 +4713,13 @@ MAX_CARDS_PER_PLAYER && (
       1 / 2 / 3 / 5 / 10
   =============================== */}
 
-  {game?.status ===
-    "waiting" &&
-  cards.length <
-    MAX_CARDS_PER_PLAYER && (
+  {(
+  liveGame?.status ===
+    "waiting" ||
+  !hasGame
+) &&
+cards.length <
+  MAX_CARDS_PER_PLAYER && (
 
       <div className="bingo-card-speed-options">
 
@@ -4202,9 +4730,12 @@ MAX_CARDS_PER_PLAYER && (
           ) => (
 
             <button
-              key={count}
-              type="button"
-              className="bingo-card-speed-option"
+  key={count}
+  type="button"
+  className="bingo-card-speed-option"
+  disabled={
+    previewCardsLoading
+  }
               style={{
                 "--option-index":
                   index,
@@ -4259,7 +4790,7 @@ MAX_CARDS_PER_PLAYER && (
           CARD / JOIN MODAL
       ====================================== */}
 
-      {cardOpen && (
+      {cardOpen && hasGame && (
         <div
           className="bingo-modal-overlay"
           onClick={() =>
@@ -4326,198 +4857,7 @@ MAX_CARDS_PER_PLAYER && (
     {cardNotification}
   </div>
 )}
-{/* =====================================
-    WINNER CARD LIST
-====================================== */}
 
-{(
-  liveGame?.status ===
-    "completed"
-) && (
-
-  <section className="bingo-winners-section">
-
-    <div className="bingo-winners-header">
-
-      <div>
-
-        <strong>
-  {t("game.winnerCards")}
-</strong>
-
-        <span>
-  {t("game.tapWinnerCard")}
-</span>
-
-      </div>
-
-      <div className="bingo-winner-count">
-
-        <Trophy
-          size={14}
-        />
-
-        {winnerData
-          ?.winnerCount ||
-          0}
-
-      </div>
-
-    </div>
-
-
-    {winnerLoading ? (
-
-      <div className="bingo-winner-loading">
-
-        <RefreshCw
-          size={16}
-          className="spin"
-        />
-
-        {t("game.loadingWinner")}
-
-      </div>
-
-    ) : winnerError ? (
-
-      <div className="bingo-winner-error">
-
-        {winnerError}
-
-      </div>
-
- ) : winnerData
-    ?.winners
-    ?.length > 0 ? (
-
-  <>
-
-    <div className="bingo-winner-grid">
-
-      {winnerData.winners
-        .slice(
-          0,
-          showAllWinnerCards
-            ? winnerData.winners.length
-            : 4
-        )
-        .map(
-          (
-            winner,
-            index
-          ) => {
-
-            const isMyWinningCard =
-              String(
-                winner.gamePlayerId
-              ) ===
-              String(
-                gamePlayer?._id
-              );
-
-            return (
-
-              <button
-                type="button"
-                key={
-                  winner.gamePlayerId ||
-                  index
-                }
-                className={`bingo-winner-card-button ${
-                  isMyWinningCard
-                    ? "mine"
-                    : ""
-                }`}
-                onClick={() =>
-                  setSelectedWinner(
-                    winner
-                  )
-                }
-              >
-
-                <Trophy
-                  size={14}
-                />
-
-                <span>
-                  {winner.card
-                    ?.cardNumber ||
-                    t("game.winner")}
-                </span>
-
-                {isMyWinningCard && (
-                  <small>
-                    {t("game.you")}
-                  </small>
-                )}
-
-              </button>
-
-            );
-          }
-        )}
-
-    </div>
-
-
-    {winnerData.winners.length > 4 && (
-
-      <button
-        type="button"
-        className="bingo-show-more-button"
-        onClick={() =>
-          setShowAllWinnerCards(
-            (current) =>
-              !current
-          )
-        }
-      >
-
-        {showAllWinnerCards
-          ? t("game.showLess")
-          : `${t("game.showMore")} (${
-              winnerData.winners.length - 4
-            })`}
-
-      </button>
-
-    )}
-
-  </>
-
-) : (
-
-      <div className="bingo-no-winner">
-  {t("game.noClaimedWinner")}
-</div>
-
-    )}
-    {winnerData.winners.length > 4 && (
-
-  <button
-    type="button"
-    className="bingo-show-more-button"
-    onClick={() =>
-      setShowAllWinnerCards(
-        (current) => !current
-      )
-    }
-  >
-
-    {showAllWinnerCards
-      ? t("game.showLess")
-      : `${t("game.showMore")} (${
-          winnerData.winners.length - 4
-        })`}
-
-  </button>
-
-)}
-
-  </section>
-
-)}
 
 <div className="bingo-player-card-list">
 
@@ -4789,14 +5129,15 @@ MAX_CARDS_PER_PLAYER && (
            {t("game.card")}{" "}
   {selectedBlockedCard?.card?.cardNumber || "-"}
           </strong>
+         
 
 
           <small>
-            {selectedBlockedCard
-              ?.player
-              ?.fullName ||
-              t("game.player")}
-          </small>
+  {selectedBlockedCard
+    ?.player
+    ?.phone ||
+    "-"}
+</small>
 
         </div>
 
@@ -4820,73 +5161,68 @@ MAX_CARDS_PER_PLAYER && (
 
       {/* BLOCK INFORMATION */}
 
-      <div className="bingo-winner-summary">
-
-        <div>
-
-          <span>
-            {t("game.blockedCard")}
-          </span>
-
-          <strong>
-            {selectedBlockedCard
-              ?.card
-              ?.cardNumber ||
-              "-"}
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            {t("game.reason")}
-          </span>
-
-          <strong>
-            {selectedBlockedCard
-  ?.blockedReason ||
-  t("game.falseBingo")}
-          </strong>
-
-        </div>
-
-      </div>
 
 
       {/* ACTUAL BLOCKED CARD */}
 
-      {selectedBlockedCard
-        ?.card
-        ?.numbers && (
+      {/* ACTUAL BLOCKED CARD */}
 
-        <div className="bingo-winner-actual-card">
+{selectedBlockedCard
+  ?.card
+  ?.numbers && (
 
-          <BingoCard
-            numbers={
-              selectedBlockedCard
-                .card
-                .numbers
-            }
+  <div className="bingo-winner-actual-card bingo-blocked-card-preview">
 
-            calledNumbers={
-              calledNumbers
-            }
+    {/* CALL NUMBER AT MOMENT CARD WAS BLOCKED */}
 
-            markedNumbers={
-              []
-            }
+    {selectedBlockedCard?.calledNumber != null && (
 
-            manualMarkingEnabled={
-              false
-            }
-          />
+      <div className="bingo-blocked-card-current-call">
 
-        </div>
+        <span>
+          CALL
+        </span>
 
-      )}
+        <strong>
+          {getBingoBall(
+            Number(
+              selectedBlockedCard.calledNumber
+            )
+          )?.letter}
 
+          {Number(
+            selectedBlockedCard.calledNumber
+          )}
+        </strong>
+
+      </div>
+
+    )}
+
+
+    <BingoCard
+      numbers={
+        selectedBlockedCard
+          .card
+          .numbers
+      }
+
+      calledNumbers={
+        calledNumbers
+      }
+
+      markedNumbers={
+        []
+      }
+
+      manualMarkingEnabled={
+        false
+      }
+    />
+
+  </div>
+
+)}
 
       <div className="bingo-winner-detail-note">
 
@@ -4935,19 +5271,20 @@ MAX_CARDS_PER_PLAYER && (
 
           {/* PHONE ABOVE */}
 
-          <strong className="bingo-winner-phone">
-            {selectedWinner
-              .player
-              ?.phone ||
-              "-"}
-          </strong>
+         <strong className="bingo-winner-phone">
+  {t("game.card")}{" "}
+  {selectedWinner
+    ?.card
+    ?.cardNumber ||
+    "-"}
+</strong>
 
           <small>
-            {selectedWinner
-              .player
-             ?.fullName ||
-t("game.player")}
-          </small>
+  {selectedWinner
+    ?.player
+    ?.phone ||
+    "-"}
+</small>
 
         </div>
 
@@ -4966,86 +5303,6 @@ t("game.player")}
 
       </div>
 
-
-      {/* CARD / PRIZE INFO */}
-
-      <div className="bingo-winner-summary">
-
-        <div>
-
-          <span>
-             {t("game.winningCard")}
-          </span>
-
-          <strong>
-            {selectedWinner
-              .card
-              ?.cardNumber ||
-              "-"}
-          </strong>
-
-        </div>
-
-
-        <div>
-
-          <span>
-            {t("game.prize")}
-          </span>
-
-          <strong>
-  {t("game.total")}:{" "}
-  {totalJoinFee}{" "}
-  {t("game.birr")}
-</strong>
-
-        </div>
-
-      </div>
-
-
-      {/* WINNING PATTERN */}
-
-      <button
-        type="button"
-        className="bingo-winner-pattern-button"
-        onClick={() => {
-  setSelectedWinner(null);
-
-  setPatternPreviewOpen(true);
-}}
-      >
-
-        <div>
-
-          <span>
-            {t(
-    "game.winningPattern"
-  )}
-          </span>
-
-          <strong>
-            {getWinningPatternLabel(
-              selectedWinner
-                .pattern ||
-                winnerData
-                  ?.game
-                  ?.winningPattern ||
-                game
-                  ?.winningPattern ||
-                "3_lines"
-            )}
-          </strong>
-
-        </div>
-
-        <span className="bingo-winner-pattern-help">
-          ?
-        </span>
-
-      </button>
-
-
       {/* ACTUAL WINNING BINGO CARD */}
 
       {selectedWinner
@@ -5062,11 +5319,11 @@ t("game.player")}
             }
 
             calledNumbers={
-              winnerData
-                ?.game
-                ?.calledNumbers ||
-              calledNumbers
-            }
+  gameState?.game
+    ?.calledNumbers ||
+  game?.calledNumbers ||
+  []
+}
 
             markedNumbers={[]}
 
@@ -5092,25 +5349,28 @@ t("game.player")}
 
 )}
 
-      <WinningPatternPreview
-  open={
-    patternPreviewOpen
-  }
+     {hasGame && (
+  <WinningPatternPreview
+    open={
+      patternPreviewOpen
+    }
 
-  onClose={() =>
-    setPatternPreviewOpen(false)
-  }
+    onClose={() =>
+      setPatternPreviewOpen(
+        false
+      )
+    }
 
-  patternId={
-    liveGame?.winningPattern ||
-    game?.winningPattern ||
-    "3_lines"
-  }
+    patternId={
+      liveGame?.winningPattern ||
+      game?.winningPattern
+    }
 
-  patternLabel={
-    currentWinningPattern
-  }
-/>
+    patternLabel={
+      currentWinningPattern
+    }
+  />
+)}
 
     </div>
   );

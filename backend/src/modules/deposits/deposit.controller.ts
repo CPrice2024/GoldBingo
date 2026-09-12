@@ -80,29 +80,58 @@ export const getMyDeposits = async (
   res: Response
 ) => {
   try {
-    const playerId = req.user?.userId;
+    const playerId =
+      req.user?.userId;
 
     if (!playerId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message:
+            "Authentication required",
+        });
     }
 
-    const deposits =
-      await getPlayerDeposits(playerId);
+    const result =
+      await getPlayerDeposits(
+        playerId,
+        req.query
+      );
 
-    return res.status(200).json({
-      success: true,
-      data: deposits,
-    });
+    return res
+      .status(200)
+      .json({
+        success: true,
+
+        data:
+          result.data,
+
+        pagination:
+          result.pagination,
+      });
+
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to retrieve deposits",
-    });
+
+    console.error(
+      "Failed to retrieve player deposits:",
+      error
+    );
+
+    return res
+      .status(500)
+      .json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve deposits",
+      });
   }
 };
+
+
 export const getMyPaymentSettings = async (
   req: Request,
   res: Response
@@ -148,36 +177,73 @@ export const getPendingAgentDeposits = async (
   res: Response
 ) => {
   try {
-    const agentId = req.user?.userId;
+    const agentId =
+      req.user?.userId;
 
     if (!agentId) {
-      return res.status(401).json({
-        success: false,
-        message: "Authentication required",
-      });
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message:
+            "Authentication required",
+        });
     }
 
-    if (req.user?.role !== "agent") {
-      return res.status(403).json({
-        success: false,
-        message:
-          "Only agents can access pending deposits",
-      });
+    if (
+      req.user?.role !==
+      "agent"
+    ) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message:
+            "Only agents can access pending deposits",
+        });
     }
 
-    const deposits =
-      await getAgentPendingDeposits(agentId);
 
-    return res.status(200).json({
-      success: true,
-      data: deposits,
-    });
+    const result =
+      await getAgentPendingDeposits(
+        agentId,
+        req.query
+      );
+
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+
+        data:
+          result.data,
+
+        pagination:
+          result.pagination,
+
+        stats:
+          result.stats,
+      });
+
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message:
-        "Failed to retrieve pending deposits",
-    });
+
+    console.error(
+      "Failed to retrieve pending deposits:",
+      error
+    );
+
+
+    return res
+      .status(500)
+      .json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve pending deposits",
+      });
   }
 };
 

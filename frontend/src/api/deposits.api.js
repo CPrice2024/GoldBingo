@@ -9,18 +9,77 @@ export const createDeposit = async (data) => {
   return response.data;
 };
 
-export const getMyDeposits = async () => {
-  const response = await api.get(
-    "/deposits/my"
-  );
+export const getMyDeposits = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  status = "",
+  paymentMethod = "",
+} = {}) => {
+
+  const response =
+    await api.get(
+      "/deposits/my",
+      {
+        params: {
+          page,
+          limit,
+
+          ...(search
+            ? {
+                search,
+              }
+            : {}),
+
+          ...(status &&
+          status !== "all"
+            ? {
+                status,
+              }
+            : {}),
+
+          ...(paymentMethod &&
+          paymentMethod !== "all"
+            ? {
+                paymentMethod,
+              }
+            : {}),
+        },
+      }
+    );
 
   return response.data;
 };
+export const getPendingDeposits = async ({
+  page = 1,
+  limit = 10,
+  search = "",
+  paymentMethod = "",
+} = {}) => {
 
-export const getPendingDeposits = async () => {
-  const response = await api.get(
-    "/deposits/pending"
-  );
+  const response =
+    await api.get(
+      "/deposits/pending",
+      {
+        params: {
+          page,
+          limit,
+
+          ...(search
+            ? {
+                search,
+              }
+            : {}),
+
+          ...(paymentMethod &&
+          paymentMethod !== "all"
+            ? {
+                paymentMethod,
+              }
+            : {}),
+        },
+      }
+    );
 
   return response.data;
 };

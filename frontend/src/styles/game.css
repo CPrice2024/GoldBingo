@@ -2124,7 +2124,7 @@ strong {
 .bingo-inline-card-loading,
 .bingo-inline-card-error {
   min-height:
-    30px;
+    70px;
 
   display:
     flex;
@@ -2680,7 +2680,7 @@ html[data-theme="day"]
 html[data-theme="day"]
 .bingo-current-pattern-button {
   background: rgb(255 118 0 / 0%);
-    border-color: rgb(44 44 44);
+    border-color: rgba(44, 44, 44, 0.275);
     color: #000000;
 }
 
@@ -3240,6 +3240,7 @@ html[data-theme="day"]
 .bingo-history-header {
   display: flex;
   align-items: center;
+  padding: 0px 10px;
   justify-content: space-between;
 
   margin-bottom: 2px;
@@ -3251,6 +3252,7 @@ html[data-theme="day"]
 
 .bingo-history-header strong {
   color: #374151;
+      margin-left: 10px;
 }
 
 .bingo-history-list {
@@ -4039,12 +4041,7 @@ html[data-theme="day"]
 .bingo-card-header
 .bingo-column:nth-child(4) {
 
-  background:
-    linear-gradient(
-      359deg,
-      #997000,
-      #ffbe0a
-    ) !important;
+ background: linear-gradient(135deg, #ff6300, #ffa700);
 
   border-color:
     #e5bd4a !important;
@@ -5481,7 +5478,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-status-countdown {
-  background: #e4e4e4;
+  background-color: #e7e8e9;
 
   border-color:
     rgba(212, 167, 44, 0.35);
@@ -6030,7 +6027,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-history-header strong {
-  color: #334155;
+  color: #505050;
 }
 
 
@@ -6245,10 +6242,10 @@ html[data-theme="day"]
   padding: 18px;
 
   background:
-    rgba(0, 0, 0, 0.78);
+    rgba(0, 0, 0, 0.48);
 
   backdrop-filter:
-    blur(7px);
+    blur(3px);
 }
 
 
@@ -6298,12 +6295,10 @@ html[data-theme="day"]
 
 
 .bingo-winner-detail-header span {
-  color: #d4a72c;
-
-  font-size: 9px;
-  font-weight: 900;
-
-  letter-spacing: 1px;
+  color:#000d25;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1px;
 }
 
 
@@ -6316,9 +6311,9 @@ html[data-theme="day"]
 
 
 .bingo-winner-detail-header small {
-  color: #8d96a7;
-
-  font-size: 11px;
+     color: #52668b;
+    font-size: 13px;
+    font-family: monospace;
 }
 
 
@@ -6455,9 +6450,9 @@ html[data-theme="day"]
 .bingo-winner-detail-note {
   margin-top: 10px;
 
-  color: #778195;
+  color:#000d25;
 
-  font-size: 9px;
+  font-size: 10px;
 
   text-align: center;
 }
@@ -6475,11 +6470,20 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-winner-card-button {
-  background: #ffffff;
+  background: #2263b8;
+    color: #f5f5f5;
+    border-color: #e2e8f0;
+}
 
-  color: #0f172a;
-
-  border-color: #e2e8f0;
+html[data-theme="day"]
+.bingo-winner-card {
+  background: #29a600;
+    color: #ffffff;
+    border-style: solid;
+    padding: 5px;
+    border-radius: 8px;
+    margin-top: 5px;
+    border-color: #e2e8f0
 }
 
 
@@ -6566,12 +6570,7 @@ html[data-theme="day"]
 
   border-radius: 7px;
 
-  background:
-    linear-gradient(
-      135deg,
-      #b77900,
-      #e89800
-    );
+  background: linear-gradient(135deg, #ff6300, #ffa700);
 
   color: #ffffff;
 
@@ -6817,7 +6816,7 @@ html[data-theme="day"]
   .bingo-winner-detail-modal {
     padding: 14px;
 
-    border-radius: 14px;
+    border-radius: 8px;
   }
 
 
@@ -6836,7 +6835,8 @@ html[data-theme="day"]
   .bingo-cell {
     min-height: 45px;
 
-    font-size: 12px;
+    font-size: 15px;
+   font-family: none;
   }
 
 
@@ -6844,12 +6844,12 @@ html[data-theme="day"]
   .bingo-column {
     height: 34px;
 
-    font-size: 12px;
+    font-size: 18px;
   }
 
 
   .bingo-winner-phone {
-    font-size: 17px;
+    font-size: 12px;
   }
 
 }
@@ -8556,7 +8556,7 @@ top: 93% !important;
 }
 
 .bingo-inline-card-loading-inner {
-  min-height: 240px;
+  min-height: 425px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8704,4 +8704,45 @@ top: 93% !important;
 
 .bingo-show-more-button:active {
   transform: scale(0.98);
+}
+
+.bingo-blocked-card-preview {
+  position: relative;
+  padding-top: 42px;
+}
+
+.bingo-blocked-card-current-call {
+  position: absolute;
+
+  top: 7px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  z-index: 5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  height: 28px;
+  padding: 0 12px;
+
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 20px;
+
+  background: rgba(239, 68, 68, 0.1);
+
+  white-space: nowrap;
+}
+
+.bingo-blocked-card-current-call span {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.7;
+}
+
+.bingo-blocked-card-current-call strong {
+  font-size: 15px;
+  font-weight: 900;
 }

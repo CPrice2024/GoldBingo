@@ -6,8 +6,36 @@ export const getAgentProfile = async () => {
   return response.data;
 };
 
-export const getAgentPlayers = async () => {
-  const response = await api.get("/agents/players");
+export const getAgentPlayers = async ({
+  page = 1,
+  limit = 20,
+  search = "",
+  status = "",
+} = {}) => {
+
+  const response =
+    await api.get(
+      "/agents/players",
+      {
+        params: {
+          page,
+          limit,
+
+          ...(search
+            ? {
+                search,
+              }
+            : {}),
+
+          ...(status &&
+          status !== "all"
+            ? {
+                status,
+              }
+            : {}),
+        },
+      }
+    );
 
   return response.data;
 };

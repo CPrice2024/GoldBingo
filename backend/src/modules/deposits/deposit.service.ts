@@ -10,7 +10,10 @@ import {
 import {
   createDeposit,
   findPlayerDeposits,
+  countFilteredPlayerDeposits,
   findAgentPendingDeposits,
+  countAgentPendingDeposits,
+  getAgentPendingDepositAmount,
   findDepositById,
   findDepositByReference,
 } from "./deposit.repository";
@@ -22,6 +25,11 @@ import {
 import {
   PaymentMethod,
 } from "./deposit.types";
+
+import {
+  getPaginationParams,
+  buildPaginationMeta,
+} from "../../shared/pagination";
 
 interface CreateDepositInput {
   amount: number;
@@ -248,9 +256,120 @@ const deposit = await createDeposit({
 };
 
 export const getPlayerDeposits = async (
-  playerId: string
+  playerId: string,
+  query: any = {}
 ) => {
-  return findPlayerDeposits(playerId);
+
+  const {
+    page,
+    limit,
+    skip,
+  } =
+    getPaginationParams(
+      query
+    );
+
+
+  /* =========================================
+     SEARCH
+  ========================================= */
+
+  const search =
+    typeof query.search ===
+      "string"
+      ? query.search.trim()
+      : "";
+
+
+  /* =========================================
+     STATUS
+  ========================================= */
+
+  const requestedStatus =
+    typeof query.status ===
+      "string"
+      ? query.status.trim()
+      : "";
+
+
+  const status =
+    [
+      "pending",
+      "approved",
+      "rejected",
+    ].includes(
+      requestedStatus
+    )
+      ? requestedStatus
+      : "";
+
+
+  /* =========================================
+     PAYMENT METHOD
+  ========================================= */
+
+  const requestedPaymentMethod =
+    typeof query.paymentMethod ===
+      "string"
+      ? query.paymentMethod.trim()
+      : "";
+
+
+  const paymentMethod =
+    [
+      "telebirr",
+      "cbe",
+    ].includes(
+      requestedPaymentMethod
+    )
+      ? requestedPaymentMethod
+      : "";
+
+
+  /* =========================================
+     LOAD DEPOSITS + TOTAL
+  ========================================= */
+
+  const [
+    deposits,
+    total,
+  ] =
+    await Promise.all([
+
+      findPlayerDeposits(
+        playerId,
+        search,
+        status,
+        paymentMethod,
+        skip,
+        limit
+      ),
+
+      countFilteredPlayerDeposits(
+        playerId,
+        search,
+        status,
+        paymentMethod
+      ),
+
+    ]);
+
+
+  /* =========================================
+     RESULT
+  ========================================= */
+
+  return {
+    data:
+      deposits,
+
+    pagination:
+      buildPaginationMeta({
+        page,
+        limit,
+        total,
+      }),
+  };
 };
 
 export const getPlayerPaymentSettings = async (
@@ -314,9 +433,137 @@ export const getPlayerPaymentSettings = async (
   };
 };
 export const getAgentPendingDeposits = async (
-  agentId: string
+  agentId: string,
+  query: any = {}
 ) => {
-  return findAgentPendingDeposits(agentId);
+
+  /* =========================================
+     PAGINATION
+  ========================================= */
+
+  const {
+    page,
+    limit,
+    skip,
+  } =
+    getPaginationParams(
+      query
+    );
+
+
+  /* =========================================
+     SEARCH
+  ========================================= */
+
+  const search =
+    typeof query.search ===
+      "string"
+      ? query.search.trim()
+      : "";
+
+
+  /* =========================================
+     PAYMENT METHOD
+  ========================================= */
+
+  const requestedPaymentMethod =
+    typeof query.paymentMethod ===
+      "string"
+      ? query.paymentMethod.trim()
+      : "";
+
+
+  const paymentMethod =
+    [
+      "telebirr",
+      "cbe",
+    ].includes(
+      requestedPaymentMethod
+    )
+      ? requestedPaymentMethod
+      : "";
+
+
+  /* =========================================
+     LOAD DATA + COUNTS + AMOUNT
+  ========================================= */
+
+  const [
+    deposits,
+    filteredTotal,
+    pendingCount,
+    pendingAmount,
+  ] =
+    await Promise.all([
+
+      findAgentPendingDeposits(
+        agentId,
+        search,
+        paymentMethod,
+        skip,
+        limit
+      ),
+
+
+      /*
+       * Total matching current filters.
+       * Used for pagination.
+       */
+      countAgentPendingDeposits(
+        agentId,
+        search,
+        paymentMethod
+      ),
+
+
+      /*
+       * Entire pending request count.
+       * Used by top statistics card.
+       */
+      countAgentPendingDeposits(
+        agentId
+      ),
+
+
+      /*
+       * Entire pending amount.
+       * Not limited to current page.
+       */
+      getAgentPendingDepositAmount(
+        agentId
+      ),
+
+    ]);
+
+
+  /* =========================================
+     RESULT
+  ========================================= */
+
+  return {
+    data:
+      deposits,
+
+    pagination:
+      buildPaginationMeta({
+        page,
+        limit,
+        total:
+          filteredTotal,
+      }),
+
+    stats: {
+      pendingCount:
+        Number(
+          pendingCount || 0
+        ),
+
+      pendingAmount:
+        Number(
+          pendingAmount || 0
+        ),
+    },
+  };
 };
 
 export const getDeposit = async (

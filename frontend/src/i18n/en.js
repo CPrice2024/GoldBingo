@@ -716,7 +716,7 @@ game: {
     "There is no active Bingo game available right now.",
 
   noGameRunning:
-    "No game is currently running",
+    "please wait",
 
   newGameAutomatic:
     "A new Bingo game will be created automatically. Please check again shortly.",

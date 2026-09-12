@@ -1462,7 +1462,7 @@ const blockedRows =
         "playerId",
 
       select:
-        "fullName",
+        "fullName phone",
     })
     .populate({
       path:
@@ -1482,14 +1482,18 @@ const blockedRows =
         row._id,
 
       player: {
-        id:
-          row.playerId?._id ??
-          null,
+  id:
+    row.playerId?._id ??
+    null,
 
-        fullName:
-          row.playerId?.fullName ??
-          "Player",
-      },
+  fullName:
+    row.playerId?.fullName ??
+    "Player",
+
+  phone:
+    row.playerId?.phone ??
+    null,
+},
 
       blockedAt:
         row.blockedAt,
@@ -1497,6 +1501,31 @@ const blockedRows =
       blockedReason:
         row.blockedReason ??
         "False Bingo",
+
+        blockedCardClaims:
+  Array.isArray(
+    row.blockedCardClaims
+  )
+    ? row.blockedCardClaims.map(
+        (claim: any) => ({
+          cardId:
+            claim?.cardId?._id ??
+            claim?.cardId,
+
+          calledNumber:
+            claim?.calledNumber ??
+            null,
+
+          blockedAt:
+            claim?.blockedAt ??
+            null,
+
+          reason:
+            claim?.reason ??
+            "False Bingo",
+        })
+      )
+    : [],
 
       cards:
         Array.isArray(
@@ -1535,22 +1564,151 @@ const blockedCards =
           : [];
 
       return cards.map(
-        (card: any) => ({
+  (card: any) => {
+
+    const claim =
+      Array.isArray(
+        blockedPlayer
+          ?.blockedCardClaims
+      )
+        ? blockedPlayer
+            .blockedCardClaims
+            .find(
+              (item: any) =>
+                String(
+                  item?.cardId?._id ??
+                  item?.cardId
+                ) ===
+                String(
+                  card?.id ??
+                  card?._id
+                )
+            )
+        : null;
+
+
+    return {
+      gamePlayerId:
+        blockedPlayer.gamePlayerId,
+
+      player:
+        blockedPlayer.player,
+
+      blockedAt:
+        claim?.blockedAt ??
+        blockedPlayer.blockedAt,
+
+      blockedReason:
+        claim?.reason ??
+        blockedPlayer.blockedReason,
+
+      calledNumber:
+        claim?.calledNumber ??
+        null,
+
+      card: {
+        id:
+          card.id,
+
+        cardNumber:
+          card.cardNumber,
+
+        numbers:
+          card.numbers,
+      },
+    };
+
+  }
+);
+    }
+  );
+/* =========================================
+   PUBLIC WINNER CARDS
+
+   Visible to:
+   - joined players
+   - non-joined players
+   - spectators
+
+   Do NOT expose phone number here.
+========================================= */
+
+const winnerRows =
+  await GamePlayer.find({
+    gameId:
+      game._id,
+
+    status:
+      "won",
+  })
+    .populate({
+      path:
+        "playerId",
+
+      select:
+        "fullName phone",
+    })
+    .populate({
+      path:
+        "winningCardId",
+
+      select:
+        "cardNumber numbers",
+    })
+    .populate({
+      /*
+       * Legacy fallback
+       */
+      path:
+        "cardId",
+
+      select:
+        "cardNumber numbers",
+    })
+    .sort({
+      wonAt: 1,
+      createdAt: 1,
+    });
+
+
+const publicWinners =
+  winnerRows
+    .map(
+      (row: any) => {
+
+        const card =
+          row.winningCardId ||
+          row.cardId;
+
+
+        if (!card) {
+          return null;
+        }
+
+
+        return {
           gamePlayerId:
-            blockedPlayer.gamePlayerId,
+            row._id,
 
-          player:
-            blockedPlayer.player,
+          player: {
+  id:
+    row.playerId?._id ??
+    null,
 
-          blockedAt:
-            blockedPlayer.blockedAt,
+  fullName:
+    row.playerId
+      ?.fullName ??
+    "Player",
 
-          blockedReason:
-            blockedPlayer.blockedReason,
+  phone:
+    row.playerId
+      ?.phone ??
+    null,
+},
 
           card: {
             id:
-              card.id,
+              card._id,
 
             cardNumber:
               card.cardNumber,
@@ -1558,11 +1716,26 @@ const blockedCards =
             numbers:
               card.numbers,
           },
-        })
-      );
-    }
-  );
 
+          pattern:
+            row.winningPattern ||
+            game.winningPattern ||
+            null,
+
+          prizeAmount:
+            Number(
+              row.prizeAmount ||
+              0
+            ),
+
+          wonAt:
+            row.wonAt ||
+            row.updatedAt,
+        };
+
+      }
+    )
+    .filter(Boolean);
 return {
   game: {
     id:
@@ -1658,6 +1831,7 @@ payoutSettledAt:
 
   blockedPlayers,
   blockedCards,
+  publicWinners,
 };
 };
 
@@ -2596,6 +2770,17 @@ if (!matched) {
 
   const now =
     new Date();
+    /* =========================================
+   SAVE EXACT NUMBER WHEN FALSE BINGO HAPPENED
+========================================= */
+
+const blockedCallNumber =
+  currentCallNumber !== null &&
+  Number.isFinite(
+    currentCallNumber
+  )
+    ? currentCallNumber
+    : null;
 
 
   gamePlayer.bingoClaimedAt =
@@ -2644,7 +2829,53 @@ if (!matched) {
 
   gamePlayer.blockedCardIds =
     blockedIds;
+    
+  /* =========================================
+   SAVE PER-CARD FALSE BINGO DETAILS
+========================================= */
 
+const blockedClaims =
+  Array.isArray(
+    gamePlayer.blockedCardClaims
+  )
+    ? gamePlayer.blockedCardClaims
+    : [];
+
+
+const claimAlreadyExists =
+  blockedClaims.some(
+    (claim: any) =>
+      String(
+        claim?.cardId?._id ??
+        claim?.cardId
+      ) ===
+      String(
+        card._id
+      )
+  );
+
+
+if (!claimAlreadyExists) {
+
+  blockedClaims.push({
+    cardId:
+      card._id as
+        mongoose.Types.ObjectId,
+
+    calledNumber:
+      blockedCallNumber,
+
+    blockedAt:
+      now,
+
+    reason:
+      "False Bingo",
+  });
+
+}
+
+gamePlayer.blockedCardClaims =
+  blockedClaims;
 
   /*
    * Legacy player-level flag becomes

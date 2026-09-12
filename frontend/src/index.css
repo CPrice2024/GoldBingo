@@ -2947,7 +2947,7 @@ html[data-theme="day"]
   border: 1px solid #687182;
   border-radius: 5px;
 
-   background: linear-gradient(135deg, #ff9d06, #ff4700);
+       background: linear-gradient(135deg, #9c9c9c, #6b6f7a);
 
   color: white;
 
@@ -6485,8 +6485,6 @@ html[data-theme="night"]
   display: flex;
   align-items: center;
   justify-content: center;
-
-  border: 2px solid #080a0f;
   border-radius: 999px;
 
   background: #7c3aed;
@@ -11869,6 +11867,7 @@ html[data-theme="day"]
 html[data-theme="day"]
 .deposit-page .form-group label span {
   color: #475569;
+  margin-left: 10px;
 }
 
 html[data-theme="day"]
@@ -12790,6 +12789,7 @@ html[data-theme="day"]
 .player-auth-card
 .form-group label span {
   color: #3a3a3a;
+  margin-left: 10px;
 }
 
 
