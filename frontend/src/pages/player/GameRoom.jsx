@@ -110,8 +110,10 @@ function GameRoom() {
     const socketRef =
   useRef(null);
 
-  const { t } =
-    useLanguage();
+ const {
+  t,
+  language,
+} = useLanguage();
 
   const [nowMs, setNowMs] =
     useState(Date.now());
@@ -1158,14 +1160,16 @@ const liveGame =
       };
 
 
+const currentPatternValue =
+  liveGame?.winningPattern ||
+  game?.winningPattern;
+
+
 const currentWinningPattern =
   hasGame
-    ? (
-        liveGame?.winningPatternLabel ||
-        getWinningPatternLabel(
-          liveGame?.winningPattern ||
-            game?.winningPattern
-        )
+    ? getWinningPatternLabel(
+        currentPatternValue,
+        language
       )
     : null;
 
