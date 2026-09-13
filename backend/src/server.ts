@@ -40,6 +40,9 @@ const allowedSocketOrigins = [
   "https://www.goldbingo.org",
 
   "https://goldbingo-frontend.onrender.com",
+    "https://localhost",
+  "capacitor://localhost",
+  "http://localhost",
 ].filter(Boolean) as string[];
 
 

@@ -34,6 +34,11 @@ const allowedOrigins = [
   "https://www.goldbingo.org",
   "https://goldbingo-frontend.onrender.com",
   "http://localhost:5173",
+
+  // Capacitor Android
+  "https://localhost",
+  "http://localhost",
+  "capacitor://localhost",
 ];
 
 app.use(

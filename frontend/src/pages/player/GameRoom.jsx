@@ -66,7 +66,7 @@ import "../../styles/game.css";
 const EMPTY_NUMBERS = [];
 const SOCKET_URL =
   import.meta.env
-    .VITE_API_URL ||
+    .VITE_SOCKET_URL ||
   "http://localhost:5000";
 
 const isGameSoundEnabled = () =>

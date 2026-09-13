@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Required to send payment notification data to GoldBingo -->
     <uses-permission
         android:name="android.permission.INTERNET" />
 
@@ -45,24 +45,6 @@
                 android:resource="@xml/file_paths" />
 
         </provider>
-
-
-        <!-- GoldBingo payment notification listener -->
-
-        <service
-            android:name=".PaymentNotificationListener"
-            android:label="GoldBingo Payment Listener"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
-
-            <intent-filter>
-
-                <action
-                    android:name="android.service.notification.NotificationListenerService" />
-
-            </intent-filter>
-
-        </service>
 
     </application>
 
