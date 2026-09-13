@@ -8556,7 +8556,7 @@ top: 93% !important;
 }
 
 .bingo-inline-card-loading-inner {
-  min-height: 425px;
+  min-height: 280px;
   display: flex;
   flex-direction: column;
   align-items: center;
