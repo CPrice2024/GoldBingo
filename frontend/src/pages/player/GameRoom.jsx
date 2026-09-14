@@ -1944,8 +1944,6 @@ const handleChooseCardCount =
       amountToAdd,
     50
   );
-
-
 const response =
   await getAvailableCards(
     poolSize
