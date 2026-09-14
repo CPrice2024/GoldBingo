@@ -24,7 +24,7 @@ export const WINNING_PATTERNS = [
   {
     value: "half_house_diagonal",
     label: {
-      am: "ግማሽ ቤት በዲያጎናል የሚያልፍ",
+      am: "በዲያጎናል የሚያልፍ ግማሽ ቤት",
       ti: "ፍርቂ ቤት ብዲያጎናል ዝሓልፍ",
       en: "Half House with Diagonal",
     },
@@ -130,7 +130,7 @@ export const WINNING_PATTERNS = [
   },
 
   {
-    value: "3_rectangles",
+    value: "3 የማይገናኙ ሬግታንግል(3*2)",
     label: {
       am: "3 ሬግታንግል",
       ti: "3 ሬክታንግል",
@@ -141,7 +141,7 @@ export const WINNING_PATTERNS = [
   {
     value: "4_squares",
     label: {
-      am: "4 ስዃር",
+      am: "4 የማይገናኙ ስኴር 2*2",
       ti: "4 ስኴር",
       en: "4 Squares",
     },
@@ -151,7 +151,7 @@ export const WINNING_PATTERNS = [
     value:
       "3_corner_dots_2_disconnected_squares",
     label: {
-      am: "3 የማዓዝን ነጠብጣብ ከ 2 ስዃር የማይገናኙ",
+      am: "3 የማዓዝን ነጥብ ከ 2 ስኴር ሁሉም የማይገናኙ",
       ti: "3 ናይ ኩርናዕ ነጥቢ ምስ 2 ዘይራኸቡ ስኴራት",
       en: "3 Corner Dots + 2 Disconnected Squares",
     },
@@ -161,7 +161,7 @@ export const WINNING_PATTERNS = [
     value:
       "3_corner_dots_3_disconnected_squares",
     label: {
-      am: "3 የማዓዝን ነጠብጣብ ከ 3 ስዃር የማይገናኙ",
+      am: "3 የማዓዝን ነጥብ ከ 3 ስኴር ሁሉም የማይገናኙ",
       ti: "3 ናይ ኩርናዕ ነጥቢ ምስ 3 ዘይራኸቡ ስኴራት",
       en: "3 Corner Dots + 3 Disconnected Squares",
     },
@@ -180,7 +180,7 @@ export const WINNING_PATTERNS = [
   {
     value: "t_2_disconnected_squares",
     label: {
-      am: "T መስመር ከ 2 ስዄር የማይገናኙ",
+      am: "ትልቅ T ከ 2 ስኴር ሁሉም የማይገናኙ ",
       ti: "T መስመር ምስ 2 ዘይራኸቡ ስኴራት",
       en: "T + 2 Disconnected Squares",
     },
@@ -189,7 +189,7 @@ export const WINNING_PATTERNS = [
   {
     value: "t_1_diagonal_2_lines",
     label: {
-      am: "T መስመር ከ 1 ዲያጎናል እና 2 መስመር",
+      am: "ትልቅ T ከ 1 ዲያጎናል እና 2 መስመር",
       ti: "T መስመር ምስ 1 ዲያጎናልን 2 መስመራትን",
       en: "T + 1 Diagonal + 2 Lines",
     },
@@ -198,7 +198,7 @@ export const WINNING_PATTERNS = [
   {
     value: "t_1_rectangle",
     label: {
-      am: "T መስመር ከ 1 ሬግታንግል",
+      am: "ትልቅ T ከ 1 ሬግታንግል ሁሉም የማይገናኙ",
       ti: "T መስመር ምስ 1 ሬክታንግል",
       en: "T + 1 Rectangle",
     },
@@ -207,7 +207,7 @@ export const WINNING_PATTERNS = [
   {
     value: "t_3_lines",
     label: {
-      am: "T መስመር ከ 3 መስመር",
+      am: "ትልቅ T መስመር ከ 3 መስመር",
       ti: "T መስመር ምስ 3 መስመራት",
       en: "T + 3 Lines",
     },
@@ -216,7 +216,7 @@ export const WINNING_PATTERNS = [
   {
     value: "4_corner_squares",
     label: {
-      am: "4 የማዓዝን ስዄር",
+      am: "4 የማዓዝን ስኴር",
       ti: "4 ናይ ኩርናዕ ስኴራት",
       en: "4 Corner Squares",
     },
@@ -234,7 +234,7 @@ export const WINNING_PATTERNS = [
   {
     value: "1_cross_2_lines",
     label: {
-      am: "1 መሰቀል ከ 2 መስመር",
+      am: "ትልቅ መሰቀል ከ 2 መስመር",
       ti: "1 መስቀል ምስ 2 መስመራት",
       en: "1 Cross + 2 Lines",
     },
@@ -243,7 +243,7 @@ export const WINNING_PATTERNS = [
   {
     value: "3_small_t",
     label: {
-      am: "3 ትናንሽ T",
+      am: "3 ትናንሽ T የማይገናኙ",
       ti: "3 ንኣሽቱ T",
       en: "3 Small T",
     },
@@ -252,7 +252,7 @@ export const WINNING_PATTERNS = [
   {
     value: "1_rectangle_2_squares",
     label: {
-      am: "1 ሬግታንግል 2 ስዃር",
+      am: "2 ስኴር 1 ሬግታንግል የማይገናኙ",
       ti: "1 ሬክታንግል 2 ስኴራት",
       en: "1 Rectangle + 2 Squares",
     },
@@ -261,7 +261,7 @@ export const WINNING_PATTERNS = [
   {
     value: "1_line_2_squares",
     label: {
-      am: "1 መስመር ከ 2 ስዃር",
+      am: "1 መስመር ከ 2 ስኴር",
       ti: "1 መስመር ምስ 2 ስኴራት",
       en: "1 Line + 2 Squares",
     },
@@ -271,7 +271,7 @@ export const WINNING_PATTERNS = [
     value:
       "2_disconnected_lines_2_disconnected_squares",
     label: {
-      am: "2 የማይገናኙ መስመሮች ከ 2 ስዃር ሁሉም የማይገናኙ",
+      am: "2 የማይገናኙ መስመሮች ከ 2 ስኴር ሁሉም የማይገናኙ",
       ti: "2 ዘይራኸቡ መስመራት ምስ 2 ዘይራኸቡ ስኴራት",
       en: "2 Disconnected Lines + 2 Disconnected Squares",
     },
@@ -280,7 +280,7 @@ export const WINNING_PATTERNS = [
   {
     value: "2_squares_1_rectangle",
     label: {
-      am: "2 ስዃር 1 ሬግታንግል",
+      am: "2 ስኴር 1 ሬግታንግል የማይገናኙ",
       ti: "2 ስኴራት 1 ሬክታንግል",
       en: "2 Squares + 1 Rectangle",
     },
@@ -326,7 +326,7 @@ export const WINNING_PATTERNS = [
     value:
       "1_diagonal_2_disconnected_corner_squares",
     label: {
-      am: "1 ዲያጎናል ከ 2 የማዓዝን ስኴር ጋር የማይገናኙ",
+      am: "1 ዲያጎናል ከ 2 የማዓዝን ስኴር ሁሉም የማይገናኙ",
       ti: "1 ዲያጎናል ምስ 2 ዘይራኸቡ ናይ ኩርናዕ ስኴራት",
       en: "1 Diagonal + 2 Disconnected Corner Squares",
     },
