@@ -782,7 +782,8 @@ const formatMoney =
         <header className="player-topbar">
           
 
-          <div>
+          <div
+            className="player-topbar-welcome">
             <h1>
   {user?.fullName
     ? `${t("common.welcome")}, ${user.fullName}`
@@ -1081,33 +1082,31 @@ const formatMoney =
           </div>
 
 
-          <div className="player-custom-select">
+          <div className="player-profile-dropdown game-settings-dropdown">
 
   <button
     type="button"
-    className={`player-custom-select-trigger ${
-      sortDropdownOpen
-        ? "open"
-        : ""
-    }`}
-    onClick={() =>
+    className="player-profile-dropdown-trigger"
+    onClick={() => {
+
       setSortDropdownOpen(
-        (current) =>
-          !current
-      )
-    }
+        (current) => !current
+      );
+
+      setGridDropdownOpen(false);
+      setColorDropdownOpen(false);
+
+    }}
   >
 
     <span>
       {
         GAME_SORT_OPTIONS.find(
           (option) =>
-            option.id ===
-            cardSortMode
+            option.id === cardSortMode
         )?.label || "Off"
       }
     </span>
-
 
     <ChevronDown
       size={16}
@@ -1120,10 +1119,9 @@ const formatMoney =
 
   </button>
 
-
   {sortDropdownOpen && (
 
-    <div className="player-custom-select-menu">
+    <div className="player-profile-dropdown-menu game-settings-dropdown-menu">
 
       {GAME_SORT_OPTIONS.map(
         (option) => {
@@ -1132,19 +1130,16 @@ const formatMoney =
             option.id ===
             cardSortMode;
 
-
           return (
 
             <button
-              key={
-                option.id
-              }
+              key={option.id}
               type="button"
-              className={`player-custom-select-option ${
+              className={
                 selected
                   ? "selected"
                   : ""
-              }`}
+              }
               onClick={() => {
 
                 handleCardSortModeChange(
@@ -1162,13 +1157,8 @@ const formatMoney =
                 {option.label}
               </span>
 
-
               {selected && (
-
-                <Check
-                  size={15}
-                />
-
+                <Check size={16} />
               )}
 
             </button>
@@ -1204,112 +1194,92 @@ const formatMoney =
   </div>
 
 
-  <div className="player-custom-select player-grid-custom-select">
+  <div className="player-profile-dropdown game-settings-dropdown">
 
-    <button
-      type="button"
-      className={`player-custom-select-trigger ${
+  <button
+    type="button"
+    className="player-profile-dropdown-trigger"
+    onClick={() => {
+
+      setGridDropdownOpen(
+        (current) => !current
+      );
+
+      setSortDropdownOpen(false);
+      setColorDropdownOpen(false);
+
+    }}
+  >
+
+    <span>
+      {gridColumns}
+    </span>
+
+    <ChevronDown
+      size={16}
+      className={
         gridDropdownOpen
           ? "open"
           : ""
-      }`}
-      onClick={() => {
+      }
+    />
 
-        setGridDropdownOpen(
-          (current) =>
-            !current
-        );
+  </button>
 
-        setSortDropdownOpen(
-          false
-        );
+  {gridDropdownOpen && (
 
-        setColorDropdownOpen(
-          false
-        );
+    <div className="player-profile-dropdown-menu game-settings-dropdown-menu">
 
-      }}
-    >
+      {[2, 3, 4].map(
+        (columns) => {
 
-      <span>
-        {gridColumns}
-      </span>
+          const selected =
+            Number(gridColumns) ===
+            columns;
 
+          return (
 
-      <ChevronDown
-        size={16}
-        className={
-          gridDropdownOpen
-            ? "open"
-            : ""
-        }
-      />
+            <button
+              key={columns}
+              type="button"
+              className={
+                selected
+                  ? "selected"
+                  : ""
+              }
+              onClick={() => {
 
-    </button>
-
-    {gridDropdownOpen && (
-
-      <div className="player-custom-select-menu player-grid-custom-menu">
-
-        {[2, 3, 4].map(
-          (columns) => {
-
-            const selected =
-              Number(
-                gridColumns
-              ) === columns;
-
-
-            return (
-
-              <button
-                key={
+                handleGridColumnsChange(
                   columns
-                }
-                type="button"
-                className={`player-custom-select-option ${
-                  selected
-                    ? "selected"
-                    : ""
-                }`}
-                onClick={() => {
+                );
 
-                  handleGridColumnsChange(
-                    columns
-                  );
+                setGridDropdownOpen(
+                  false
+                );
 
-                  setGridDropdownOpen(
-                    false
-                  );
+              }}
+            >
 
-                }}
-              >
+              <span>
+                {columns}
+              </span>
 
-                <span>
-                  {columns}
-                </span>
+              {selected && (
+                <Check size={16} />
+              )}
 
+            </button>
 
-                {selected && (
+          );
 
-                  <Check
-                    size={15}
-                  />
+        }
+      )}
 
-                )}
+    </div>
 
-              </button>
+  )}
 
-            );
-
-          }
-        )}
-
-      </div>
-
-    )}
-
-  </div>
+</div>
 
 </div>
 
@@ -1383,136 +1353,129 @@ const formatMoney =
     />
 
 
-    <div className="player-custom-select player-color-custom-select">
+    <div className="player-profile-dropdown game-settings-dropdown">
 
-      <button
-        type="button"
-        className={`player-custom-select-trigger ${
-          colorDropdownOpen
-            ? "open"
-            : ""
-        }`}
-        onClick={() => {
+  <button
+    type="button"
+    className="player-profile-dropdown-trigger"
+    onClick={() => {
 
-          setColorDropdownOpen(
-            (current) =>
-              !current
-          );
+      setColorDropdownOpen(
+        (current) => !current
+      );
 
-          setSortDropdownOpen(
-            false
-          );
+      setSortDropdownOpen(false);
+      setGridDropdownOpen(false);
 
-          setGridDropdownOpen(
-            false
-          );
+    }}
+  >
 
+    <span className="player-color-option-left">
+
+      <span
+        className="player-color-option-dot"
+        style={{
+          background:
+            SELECTION_COLORS[
+              selectionColor
+            ],
         }}
-      >
+      />
 
-        <span>
-          {selectionColor
-            .charAt(0)
-            .toUpperCase() +
-            selectionColor.slice(1)}
-        </span>
+      <span>
+        {selectionColor
+          .charAt(0)
+          .toUpperCase() +
+          selectionColor.slice(1)}
+      </span>
 
+    </span>
 
-        <ChevronDown
-          size={16}
-          className={
-            colorDropdownOpen
-              ? "open"
-              : ""
-          }
-        />
+    <ChevronDown
+      size={16}
+      className={
+        colorDropdownOpen
+          ? "open"
+          : ""
+      }
+    />
 
-      </button>
+  </button>
 
+  {colorDropdownOpen && (
 
-      {colorDropdownOpen && (
+    <div className="player-profile-dropdown-menu game-settings-dropdown-menu">
 
-        <div className="player-custom-select-menu">
+      {Object.entries(
+        SELECTION_COLORS
+      ).map(
+        ([
+          colorName,
+          colorValue,
+        ]) => {
 
-          {Object.entries(
-            SELECTION_COLORS
-          ).map(
-            ([
-              colorName,
-              colorValue,
-            ]) => {
+          const selected =
+            selectionColor ===
+            colorName;
 
-              const selected =
-                selectionColor ===
-                colorName;
+          return (
 
+            <button
+              key={colorName}
+              type="button"
+              className={
+                selected
+                  ? "selected"
+                  : ""
+              }
+              onClick={() => {
 
-              return (
+                handleSelectionColorChange(
+                  colorName
+                );
 
-                <button
-                  key={
-                    colorName
-                  }
-                  type="button"
-                  className={`player-custom-select-option player-color-option ${
-                    selected
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() => {
+                setColorDropdownOpen(
+                  false
+                );
 
-                    handleSelectionColorChange(
-                      colorName
-                    );
+              }}
+            >
 
-                    setColorDropdownOpen(
-                      false
-                    );
+              <span className="player-color-option-left">
 
+                <span
+                  className="player-color-option-dot"
+                  style={{
+                    background:
+                      colorValue,
                   }}
-                >
+                />
 
-                  <span className="player-color-option-left">
+                <span>
+                  {colorName
+                    .charAt(0)
+                    .toUpperCase() +
+                    colorName.slice(1)}
+                </span>
 
-                    <span
-                      className="player-color-option-dot"
-                      style={{
-                        background:
-                          colorValue,
-                      }}
-                    />
+              </span>
 
-                    <span>
-                      {colorName
-                        .charAt(0)
-                        .toUpperCase() +
-                        colorName.slice(1)}
-                    </span>
+              {selected && (
+                <Check size={16} />
+              )}
 
-                  </span>
+            </button>
 
+          );
 
-                  {selected && (
-
-                    <Check
-                      size={15}
-                    />
-
-                  )}
-
-                </button>
-
-              );
-
-            }
-          )}
-
-        </div>
-
+        }
       )}
 
     </div>
 
+  )}
+
+</div>
   </div>
 
 </div>

@@ -507,13 +507,14 @@ a {
 }
 
 .player-topbar {
-  min-height: 36px;
+  min-height: 60px;
+  height:80px;
 
   display: flex;
-  align-items: center;
+  align-items: end;
   justify-content: space-between;
 
-  padding: 14px 30px;
+  padding: 15px 30px;
 
   border-bottom: 1px solid #202532;
 
@@ -542,7 +543,7 @@ a {
 
 .player-topbar-actions {
   display: flex;
-  align-items: center;
+  align-items: end;
   gap: 8px;
 }
 
@@ -1902,7 +1903,8 @@ html[data-theme="day"]
 
   .player-topbar {
 
-    padding:0px 5px;
+    padding:4px 5px;
+    margin-top: 0px;
   }
 
   .player-topbar h1 {
@@ -10141,7 +10143,7 @@ html[data-theme="day"]
 @media (max-width: 768px) {
   .player-mobile-header {
     display: flex;
-    align-items: center;
+    align-items: end;
     justify-content: flex-end;
   }
 }
@@ -11187,7 +11189,7 @@ html[data-theme="day"] body {
 
 html[data-theme="day"]
 .player-app {
-  background: #f4f7fb;
+  background: #ffffff;
   color: #0f172a;
 }
 
@@ -14545,7 +14547,7 @@ form > input:-webkit-autofill:focus {
       42px;
 
     display:
-      grid;
+      flex;
 
     grid-template-columns:
       22px
@@ -17699,4 +17701,22 @@ button.delete:hover {
 .admin-game-type-badge.bonus {
   background: rgba(212, 167, 44, 0.14);
   border-color: rgba(212, 167, 44, 0.35);
+}
+
+.game-settings-dropdown {
+  width: 180px;
+}
+
+.game-settings-dropdown .player-profile-dropdown-trigger {
+  width: 100%;
+}
+
+.game-settings-dropdown-menu {
+  width: 100%;
+  min-width: 180px;
+  z-index: 1000;
+}
+
+.game-settings-dropdown-menu button {
+  width: 100%;
 }

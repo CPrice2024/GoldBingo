@@ -5,6 +5,7 @@ import {
   findCards,
   countCards,
   updateCardStatus,
+  findRandomAvailableCards,
 } from "./card.repository";
 import {
   CardCounter,
@@ -323,7 +324,26 @@ export const getCardCount = async (
 ) => {
   return countCards(status);
 };
+export const getRandomAvailableCards =
+  async (
+    requestedLimit = 20
+  ) => {
 
+    const limit =
+      Math.min(
+        Math.max(
+          Number(requestedLimit) || 20,
+          1
+        ),
+        50
+      );
+
+
+    return findRandomAvailableCards(
+      limit
+    );
+
+  };
 export const changeCardStatus = async (
   cardId: string,
   status: CardStatus

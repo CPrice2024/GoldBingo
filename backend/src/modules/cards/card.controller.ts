@@ -11,6 +11,7 @@ import {
   getCards,
   getCardCount,
   changeCardStatus,
+  getRandomAvailableCards,
 } from "./card.service";
 
 export const createCard = async (
@@ -80,7 +81,54 @@ export const generateCard = async (
   }
 
 };
+export const listRandomAvailableCards =
+  async (
+    req: Request,
+    res: Response
+  ) => {
 
+    try {
+
+      const requestedLimit =
+        typeof req.query.limit ===
+        "string"
+          ? Number(
+              req.query.limit
+            )
+          : 20;
+
+
+      const cards =
+        await getRandomAvailableCards(
+          requestedLimit
+        );
+
+
+      return res.status(200).json({
+        success: true,
+
+        data: cards,
+
+        meta: {
+          count:
+            cards.length,
+        },
+      });
+
+    } catch (error) {
+
+      return res.status(500).json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to retrieve available cards",
+      });
+
+    }
+
+  };
 export const listCards = async (
   req: Request,
   res: Response

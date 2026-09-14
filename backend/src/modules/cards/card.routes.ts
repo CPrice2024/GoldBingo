@@ -8,6 +8,7 @@ import {
   getCardByCardNumber,
   cardCount,
   updateCardStatus,
+  listRandomAvailableCards,
 } from "./card.controller";
 
 const router = Router();
@@ -28,6 +29,10 @@ router.get("/count", cardCount);
 router.get(
   "/number/:cardNumber",
   getCardByCardNumber
+);
+router.get(
+  "/available/random",
+  listRandomAvailableCards
 );
 
 // Get card by MongoDB ID

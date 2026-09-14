@@ -43,6 +43,27 @@ export const findCards = async (
   });
 };
 
+export const findRandomAvailableCards =
+  async (
+    limit: number
+  ) => {
+
+    return Card.aggregate([
+      {
+        $match: {
+          status: "available",
+        },
+      },
+
+      {
+        $sample: {
+          size: limit,
+        },
+      },
+    ]);
+
+  };
+
 export const countCards = async (
   status?: CardStatus
 ) => {

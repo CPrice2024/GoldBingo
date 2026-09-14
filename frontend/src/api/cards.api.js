@@ -2,19 +2,17 @@ import api from "./axios";
 
 
 export const getAvailableCards =
-  async () => {
+  async (limit = 20) => {
 
     const response =
       await api.get(
-        "/cards",
+        "/cards/available/random",
         {
           params: {
-            status:
-              "available",
+            limit,
           },
         }
       );
-
 
     return response.data;
 

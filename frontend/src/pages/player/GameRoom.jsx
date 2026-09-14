@@ -1938,8 +1938,18 @@ const handleChooseCardCount =
          LOAD AVAILABLE CARDS
       ========================= */
 
-      const response =
-        await getAvailableCards();
+      const poolSize =
+  Math.min(
+    currentCards.length +
+      amountToAdd,
+    50
+  );
+
+
+const response =
+  await getAvailableCards(
+    poolSize
+  );
         console.log(
   "🔥 AVAILABLE CARDS RESPONSE:",
   response

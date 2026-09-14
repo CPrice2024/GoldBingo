@@ -2,7 +2,9 @@ import {
   getToken,
   onMessage,
 } from "firebase/messaging";
-
+import {
+  Capacitor,
+} from "@capacitor/core";
 import { messaging } from "./firebase";
 
 const VAPID_KEY =
@@ -15,6 +17,24 @@ const API_URL =
 export const requestFcmToken = async (
   accessToken
 ) => {
+
+  /*
+   * Firebase Web Messaging is only
+   * for the browser version.
+   *
+   * Android Capacitor uses
+   * @capacitor/push-notifications.
+   */
+  if (
+    Capacitor.isNativePlatform()
+  ) {
+    console.log(
+      "[FCM WEB] Skipped on native platform"
+    );
+
+    return null;
+  }
+
   try {
     const permission =
       await Notification.requestPermission();
@@ -110,6 +130,17 @@ export const requestFcmToken = async (
 export const listenForMessages = (
   callback
 ) => {
+
+  if (
+    Capacitor.isNativePlatform()
+  ) {
+    console.log(
+      "[FCM WEB] Foreground listener skipped on native platform"
+    );
+
+    return () => {};
+  }
+
   return onMessage(
     messaging,
     async (payload) => {

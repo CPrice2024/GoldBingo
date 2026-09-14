@@ -290,6 +290,7 @@ useEffect(() => {
  * BONUS GAME
  * entry fee is always 0.
  */
+
 if (
   Number(form.gameType) !== -1 &&
   (

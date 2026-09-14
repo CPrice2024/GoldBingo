@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
-    "dev": "ts-node-dev --respawn src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "seed:admin": "ts-node src/database/seedAdmin.ts",
-    "seed:wallets": "ts-node src/database/seedWallets.ts",
-    "randomize:cards": "ts-node src/database/randomizeCardNumbers.ts"
-  },
+"scripts": {
+  "dev": "ts-node-dev --respawn src/server.ts",
+  "build": "tsc",
+  "start": "node dist/server.js",
+  "seed:admin": "ts-node src/database/seedAdmin.ts",
+  "seed:wallets": "ts-node src/database/seedWallets.ts",
+  "randomize:cards": "ts-node src/database/randomizeCardNumbers.ts",
+  "cards:ensure": "ts-node src/database/ensureCardPool.ts"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
