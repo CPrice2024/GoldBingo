@@ -99,6 +99,40 @@ export default function GameDetails() {
   const [message, setMessage] =
     useState("");
 
+  /* =========================================
+   ERROR / MESSAGE DISPLAY TIMER
+   Stay visible for 20 seconds
+========================================= */
+
+useEffect(() => {
+  if (!error) {
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    setError("");
+  }, 20000);
+
+  return () => {
+    clearTimeout(timer);
+  };
+}, [error]);
+
+
+useEffect(() => {
+  if (!message) {
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    setMessage("");
+  }, 20000);
+
+  return () => {
+    clearTimeout(timer);
+  };
+}, [message]);
+
   const [
   callingNumber,
   setCallingNumber,
@@ -163,9 +197,9 @@ const toDateTimeLocal = (
   try {
 
     if (!silent) {
-      setLoading(true);
-    }
-      setError("");
+  setLoading(true);
+  setError("");
+}
 
       const response =
         await getGameById(
@@ -1181,23 +1215,17 @@ const manualCallReady =
               >
 
                 {WINNING_PATTERNS.map(
-                  (
-                    pattern
-                  ) => (
-                    <option
-                      key={
-                        pattern.value
-                      }
-                      value={
-                        pattern.value
-                      }
-                    >
-                      {
-                        pattern.label
-                      }
-                    </option>
-                  )
-                )}
+  (pattern) => (
+    <option
+      key={pattern.value}
+      value={pattern.value}
+    >
+      {getWinningPatternLabel(
+        pattern.value
+      )}
+    </option>
+  )
+)}
 
               </select>
 

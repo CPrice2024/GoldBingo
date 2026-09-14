@@ -36,6 +36,25 @@ export default function AdminGames() {
 
   const [error, setError] = useState("");
 
+  /* =========================================
+   ERROR DISPLAY TIMER
+   Keep error visible for 20 seconds
+========================================= */
+
+useEffect(() => {
+  if (!error) {
+    return;
+  }
+
+  const timer = setTimeout(() => {
+    setError("");
+  }, 20000);
+
+  return () => {
+    clearTimeout(timer);
+  };
+}, [error]);
+
   const [
   automaticGameEnabled,
   setAutomaticGameEnabled,
@@ -137,45 +156,48 @@ const [form, setForm] =
 
   };
 
-  const loadGames = async () => {
-    try {
-      setError("");
-
-      const response = await getGames(
+const loadGames = async () => {
+  try {
+    const response =
+      await getGames(
         status || undefined
       );
 
-      setGames(response?.data || []);
-    } catch (err) {
-      console.error("Failed to load games:", err);
+    setGames(
+      response?.data || []
+    );
+  } catch (err) {
+    console.error(
+      "Failed to load games:",
+      err
+    );
 
-      setError(
-        err?.response?.data?.message ||
-          "Failed to load games"
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+    setError(
+      err?.response?.data?.message ||
+        err?.message ||
+        "Failed to load games"
+    );
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
-  useEffect(() => {
-    loadGames();
-  }, [status]);
-  useEffect(() => {
 
+useEffect(() => {
+  loadGames();
+}, [status]);
+
+
+useEffect(() => {
   const interval =
     setInterval(() => {
-
       loadGames();
-
     }, 2000);
-
 
   return () => {
     clearInterval(interval);
   };
-
 }, [status]);
 
   useEffect(() => {
@@ -254,9 +276,12 @@ const [form, setForm] =
     setError("");
 
     if (!form.name.trim()) {
-      setError("Game name is required");
-      return;
-    }
+  setError(
+    "Game name is required"
+  );
+
+  return;
+}
 
     /*
  * NORMAL GAME
@@ -1036,6 +1061,11 @@ const handleCancelGame =
               </button>
 
             </div>
+            {error && (
+  <div className="admin-games-error">
+    {error}
+  </div>
+)}
 
 
             <form
@@ -1367,15 +1397,17 @@ const handleCancelGame =
     }
   >
     {WINNING_PATTERNS.map(
-      (pattern) => (
-        <option
-          key={pattern.value}
-          value={pattern.value}
-        >
-          {pattern.label}
-        </option>
-      )
-    )}
+  (pattern) => (
+    <option
+      key={pattern.value}
+      value={pattern.value}
+    >
+      {getWinningPatternLabel(
+        pattern.value
+      )}
+    </option>
+  )
+)}
   </select>
 
   <small>
