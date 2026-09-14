@@ -27,6 +27,40 @@ import {
 export default function AdminGames() {
   const [games, setGames] = useState([]);
   const [loading, setLoading] = useState(true);
+  const generateGameName = () => {
+  const letters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  const numbers =
+    "0123456789";
+
+  let result = "";
+
+
+  for (let i = 0; i < 3; i++) {
+    result +=
+      letters[
+        Math.floor(
+          Math.random() *
+            letters.length
+        )
+      ];
+  }
+
+
+  for (let i = 0; i < 3; i++) {
+    result +=
+      numbers[
+        Math.floor(
+          Math.random() *
+            numbers.length
+        )
+      ];
+  }
+
+
+  return result;
+};
   const [refreshing, setRefreshing] = useState(false);
 
   const [status, setStatus] = useState("");
@@ -74,8 +108,6 @@ const [
 
 const [form, setForm] =
   useState({
-
-    name: "",
 
     /*
      * 1  = Normal
@@ -270,185 +302,222 @@ useEffect(() => {
 
   };
 
-  const handleCreate = async (e) => {
-    e.preventDefault();
+const handleCreate = async (e) => {
+  e.preventDefault();
 
-    setError("");
-
-    if (!form.name.trim()) {
-  setError(
-    "Game name is required"
-  );
-
-  return;
-}
-
-    /*
- * NORMAL GAME
- * requires a valid entry fee.
- *
- * BONUS GAME
- * entry fee is always 0.
- */
-
-if (
-  Number(form.gameType) !== -1 &&
-  (
-    form.entryFee === "" ||
-    Number(form.entryFee) < 0
-  )
-) {
-  setError(
-    "Entry fee must be a valid number"
-  );
-
-  return;
-}
+  setError("");
 
 
-/*
- * Bonus games are funded by
- * the configured Prize Amount.
- */
-if (
-  Number(form.gameType) === -1 &&
-  (
-    form.prizeAmount === "" ||
-    !Number.isFinite(
+  /* =========================================
+     NORMAL GAME VALIDATION
+  ========================================= */
+
+  if (
+    Number(form.gameType) !== -1 &&
+    (
+      form.entryFee === "" ||
+      Number(form.entryFee) < 0
+    )
+  ) {
+
+    setError(
+      "Entry fee must be a valid number"
+    );
+
+    return;
+  }
+
+
+  /* =========================================
+     BONUS GAME VALIDATION
+  ========================================= */
+
+  if (
+    Number(form.gameType) === -1 &&
+    (
+      form.prizeAmount === "" ||
+      !Number.isFinite(
+        Number(
+          form.prizeAmount
+        )
+      ) ||
       Number(
         form.prizeAmount
+      ) <= 0
+    )
+  ) {
+
+    setError(
+      "Bonus games require a prize amount greater than zero"
+    );
+
+    return;
+  }
+
+
+  /* =========================================
+     CALL INTERVAL
+  ========================================= */
+
+  if (
+    form.callIntervalSeconds === "" ||
+    !Number.isFinite(
+      Number(
+        form.callIntervalSeconds
       )
     ) ||
     Number(
-      form.prizeAmount
-    ) <= 0
-  )
-) {
-  setError(
-    "Bonus games require a prize amount greater than zero"
-  );
-
-  return;
-}
-if (
-  form.callIntervalSeconds === "" ||
-  !Number.isFinite(
-    Number(
       form.callIntervalSeconds
-    )
-  ) ||
-  Number(
-    form.callIntervalSeconds
-  ) < 1
-) {
+    ) < 1
+  ) {
 
-  setError(
-    "Call interval must be at least 1 second"
-  );
+    setError(
+      "Call interval must be at least 1 second"
+    );
 
-  return;
-}
-    if (
-      form.maxPlayers === "" ||
-      Number(form.maxPlayers) <= 0
-    ) {
-      setError(
-        "Maximum players must be greater than zero"
-      );
-      return;
-    }
+    return;
+  }
 
-    try {
-      setCreating(true);
 
-      await createGame({
-  name:
-    form.name.trim(),
+  /* =========================================
+     MAX PLAYERS
+  ========================================= */
 
-  gameType:
-    Number(
-      form.gameType
-    ) === -1
-      ? -1
-      : 1,
-
-  entryFee:
-    Number(
-      form.gameType
-    ) === -1
-      ? 0
-      : Number(
-          form.entryFee
-        ),
-
-  maxPlayers:
+  if (
+    form.maxPlayers === "" ||
     Number(
       form.maxPlayers
-    ),
+    ) <= 0
+  ) {
 
-  winningPattern:
-    form.winningPattern,
+    setError(
+      "Maximum players must be greater than zero"
+    );
 
-  prizeAmount:
-    form.prizeAmount === ""
-      ? null
-      : Number(
-          form.prizeAmount
+    return;
+  }
+
+
+  /* =========================================
+     CREATE GAME
+  ========================================= */
+
+  try {
+
+    setCreating(true);
+
+
+    const generatedGameName =
+      generateGameName();
+
+
+    await createGame({
+
+      name:
+        generatedGameName,
+
+      gameType:
+        Number(
+          form.gameType
+        ) === -1
+          ? -1
+          : 1,
+
+      entryFee:
+        Number(
+          form.gameType
+        ) === -1
+          ? 0
+          : Number(
+              form.entryFee
+            ),
+
+      maxPlayers:
+        Number(
+          form.maxPlayers
         ),
 
-  callIntervalSeconds:
-  Number(
-    form.callIntervalSeconds
-  ),
+      winningPattern:
+        form.winningPattern,
 
-  scheduledStartAt:
-    form.scheduledStartAt
-      ? new Date(
-          form.scheduledStartAt
-        ).toISOString()
-      : null,
+      prizeAmount:
+        form.prizeAmount === ""
+          ? null
+          : Number(
+              form.prizeAmount
+            ),
 
-  callMode:
-  form.callMode,
-});
+      callIntervalSeconds:
+        Number(
+          form.callIntervalSeconds
+        ),
 
-      setForm({
-  name: "",
+      scheduledStartAt:
+        form.scheduledStartAt
+          ? new Date(
+              form.scheduledStartAt
+            ).toISOString()
+          : null,
 
-  gameType: 1,
+      callMode:
+        form.callMode,
 
-  entryFee: "",
-  maxPlayers: "",
-  winningPattern:
-    "3_lines",
+    });
 
-  prizeAmount: "",
 
-  scheduledStartAt: "",
-  callMode:
-  "automatic",
+    /* =========================================
+       RESET FORM
+    ========================================= */
 
-  callIntervalSeconds:
-  "15",
-});
+    setForm({
 
-      setShowCreate(false);
+      gameType: 1,
 
-      await loadGames();
-    } catch (err) {
-      console.error(
-        "Failed to create game:",
-        err
-      );
+      entryFee: "",
 
-      setError(
-        err?.response?.data?.message ||
-          "Failed to create game"
-      );
-    } finally {
-      setCreating(false);
-    }
-  };
+      maxPlayers: "",
+
+      winningPattern:
+        "3_lines",
+
+      prizeAmount: "",
+
+      scheduledStartAt: "",
+
+      callMode:
+        "automatic",
+
+      callIntervalSeconds:
+        "15",
+
+    });
+
+
+    setShowCreate(false);
+
+
+    await loadGames();
+
+  } catch (err) {
+
+    console.error(
+      "Failed to create game:",
+      err
+    );
+
+
+    setError(
+      err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create game"
+    );
+
+  } finally {
+
+    setCreating(false);
+
+  }
+};
 
   const handleStart = async (gameId) => {
     const confirmed = window.confirm(
@@ -1073,26 +1142,6 @@ const handleCancelGame =
               onSubmit={handleCreate}
               className="admin-create-game-form"
             >
-
-              <div className="admin-form-group">
-
-                <label>
-                  Game Name
-                </label>
-
-                <input
-                  type="text"
-                  value={form.name}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="Bingo Game #023"
-                />
-
-              </div>
               <div className="admin-form-group">
 
   <label>
@@ -1100,6 +1149,7 @@ const handleCancelGame =
   </label>
 
   <select
+  
     className="admin-winning-pattern-select"
     value={
       form.gameType
