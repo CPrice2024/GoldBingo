@@ -130,7 +130,7 @@ export const WINNING_PATTERNS = [
   },
 
   {
-    value: "3 የማይገናኙ ሬግታንግል(3*2)",
+    value: "3_rectangles",
     label: {
       am: "3 ሬግታንግል",
       ti: "3 ሬክታንግል",
@@ -321,6 +321,22 @@ export const WINNING_PATTERNS = [
       en: "6 Lines Without Diagonal",
     },
   },
+  {
+    value: "7_lines_no_diagonal",
+    label: {
+      am: "7 መስመር ያለ ድያጎናል",
+      ti: "7 መስመራት ብዘይ ዲያጎናል",
+      en: "7 Lines Without Diagonal",
+    },
+  },
+  {
+    value: "8_lines_no_diagonal",
+    label: {
+      am: "8 መስመር ያለ ድያጎናል",
+      ti: "8 መስመራት ብዘይ ዲያጎናል",
+      en: "8 Lines Without Diagonal",
+    },
+  },
 
   {
     value:
@@ -369,7 +385,7 @@ export const getWinningPatternLabel = (
         item.value === pattern
     );
 
-  return found?.label || pattern;
+  return found?.label.en || pattern;
 };
 
 
