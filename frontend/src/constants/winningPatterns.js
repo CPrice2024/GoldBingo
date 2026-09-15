@@ -126,9 +126,9 @@ export const WINNING_PATTERNS = [
   },
 
   {
-    value: "3 የማይገናኙ ሬግታንግል(3*2)",
+    value: "3_rectangles",
     label: {
-      am: "3 ሬግታንግል",
+      am: "3 የማይገናኙ ሬግታንግል(3*2)",
       ti: "3 ሬክታንግል",
       en: "3 Rectangles",
     },
