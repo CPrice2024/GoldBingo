@@ -342,7 +342,7 @@ deposit: {
   depositFunds: "Maallaqa Galchi",
 
   depositDescription:
-    "Gaaffii maallaqa galchuu gara agentii siif ramadameetti ergi.",
+    "Gaaffii maallaqa galchuu siif ramadameetti ergi.",
 
   amount: "Hanga",
   enterAmount: "Hanga maallaqaa galchi",

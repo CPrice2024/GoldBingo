@@ -9,8 +9,8 @@ import {
   RefreshCw,
   Send,
   XCircle,
-  ImagePlus,
 } from "lucide-react";
+import MobileBackHeader from "../../components/player/MobileBackHeader";
 import SearchIcon from "../../components/animated-icons/SearchIcon";
 import { useLanguage } from "../../context/LanguageContext";
 import telebirrLogo from "../../assets/payment/telebirr.png";
@@ -790,13 +790,24 @@ if (!selectedPaymentAccount) {
   }
 };
 
+ if (loading) {
+    return (
+      <div className="profile-page">
+        <div className="profile-loading">
+          <RefreshCw
+            size={20}
+            className="spin"
+          />
+          {t("Deposit.loading")}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="player-page deposit-page">
       <div className="page-header">
-        <div>
-          <h1>{t("deposit.title")}</h1>
-<p>{t("deposit.subtitle")}</p>
-        </div>
+        <MobileBackHeader title="Deposit" />
 
         <button
           type="button"

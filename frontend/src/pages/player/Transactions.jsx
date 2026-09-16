@@ -9,9 +9,8 @@ import {
   WalletCards,
   CheckCircle2,
   AlertCircle,
-  Clock,
-} from "lucide-react";
-
+} from "lucide-react"
+import MobileBackHeader from "../../components/player/MobileBackHeader";
 import { getMyTransactions } from "../../api/transactions.api";
 import { useLanguage } from "../../context/LanguageContext";
 
@@ -231,16 +230,24 @@ function Transactions() {
     );
   };
 
+   if (loading) {
+    return (
+      <div className="profile-page">
+        <div className="profile-loading">
+          <RefreshCw
+            size={20}
+            className="spin"
+          />
+          {t("Transaction.loading")}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="player-page transactions-page">
       <div className="page-header">
-        <div>
-          <h1>{t("transactions.title")}</h1>
-
-<p>
-  {t("transactions.subtitle")}
-</p>
-        </div>
+        <MobileBackHeader title="Transactions" />
 
         <button
           className="refresh-btn"

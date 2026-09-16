@@ -2715,51 +2715,103 @@ if (!card) {
 ========================================= */
 
 /* =========================================
-   CURRENT / LATEST CALLED NUMBER
+   STRICT BINGO CALL VALIDATION
 ========================================= */
 
-const currentCallNumber =
+const calledNumbers =
   Array.isArray(
     game.calledNumbers
-  ) &&
-  game.calledNumbers.length >
-    0
+  )
+    ? game.calledNumbers
+        .map((number: any) =>
+          Number(number)
+        )
+        .filter((number: number) =>
+          Number.isFinite(number)
+        )
+    : [];
 
-    ? Number(
-        game.calledNumbers[
-          game.calledNumbers.length -
-            1
-        ]
-      )
 
+const currentCallIndex =
+  calledNumbers.length - 1;
+
+
+const currentCallNumber =
+  currentCallIndex >= 0
+    ? calledNumbers[
+        currentCallIndex
+      ]
     : null;
 
 
-/* =========================================
-   WINNING REQUIREMENT
+/*
+ * Find the FIRST call where
+ * this card became a valid winner.
+ */
+let firstWinningCallIndex =
+  -1;
 
-   Must satisfy BOTH:
+let firstWinningCallNumber:
+  number | null = null;
 
-   1. normal winning pattern
-   2. current called number:
-      - exists on card
-      - belongs to winning pattern
-========================================= */
 
+for (
+  let index = 0;
+  index < calledNumbers.length;
+  index += 1
+) {
+
+  const callsAtThatMoment =
+    calledNumbers.slice(
+      0,
+      index + 1
+    );
+
+
+  const callNumber =
+    calledNumbers[index];
+
+
+  const wonAtThisCall =
+    isPatternMatched(
+      card.numbers,
+      callsAtThatMoment,
+      pattern,
+      callNumber
+    );
+
+
+  if (wonAtThisCall) {
+
+    firstWinningCallIndex =
+      index;
+
+    firstWinningCallNumber =
+      callNumber;
+
+    break;
+  }
+}
+
+
+/*
+ * Bingo is valid only on the exact
+ * call that FIRST completed the pattern.
+ */
 const matched =
-  currentCallNumber !==
-    null &&
+  firstWinningCallIndex >= 0 &&
+  firstWinningCallIndex ===
+    currentCallIndex;
 
-  Number.isFinite(
-    currentCallNumber
-  ) &&
 
-  isPatternMatched(
-    card.numbers,
-    game.calledNumbers,
-    pattern,
-    currentCallNumber
-  );
+/*
+ * Card was already a winner,
+ * but player allowed another call.
+ */
+const missedWinningCall =
+  firstWinningCallIndex >= 0 &&
+  firstWinningCallIndex <
+    currentCallIndex;
 
 /* =========================================
    FALSE BINGO
@@ -2770,6 +2822,11 @@ if (!matched) {
 
   const now =
     new Date();
+
+  const blockReason =
+  missedWinningCall
+    ? `Missed Bingo. Winning call ${firstWinningCallNumber} has already passed.`
+    : "False Bingo";
     /* =========================================
    SAVE EXACT NUMBER WHEN FALSE BINGO HAPPENED
 ========================================= */
@@ -2790,8 +2847,7 @@ const blockedCallNumber =
     now;
 
   gamePlayer.blockedReason =
-    "False Bingo";
-
+  blockReason;
 
   /*
    * Keep every previously blocked
@@ -2869,7 +2925,7 @@ if (!claimAlreadyExists) {
       now,
 
     reason:
-      "False Bingo",
+      blockReason,
   });
 
 }
@@ -2912,8 +2968,9 @@ gamePlayer.blockedCardClaims =
       "BLOCKED",
 
     message:
-      `False Bingo. Card ${card.cardNumber} has been blocked.`,
-
+  missedWinningCall
+    ? `Missed Bingo. Card ${card.cardNumber} became a winner on call ${firstWinningCallNumber}, but the game already advanced to call ${currentCallNumber}. This card has been blocked.`
+    : `False Bingo. Card ${card.cardNumber} has been blocked.`,
     blockedAt:
       now,
 
@@ -3310,15 +3367,6 @@ return {
       }/5`
     );
 
-
-    /*
-     * Short increasing delay:
-     *
-     * 50ms
-     * 100ms
-     * 150ms
-     * ...
-     */
     await wait(
       50 *
         (

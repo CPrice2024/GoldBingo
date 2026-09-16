@@ -351,7 +351,7 @@ deposit: {
 
   depositFunds: "Deposit Funds",
   depositDescription:
-    "Submit a deposit request to your assigned agent.",
+    "Submit deposit request.",
 
   amount: "Amount",
   enterAmount: "Enter amount",

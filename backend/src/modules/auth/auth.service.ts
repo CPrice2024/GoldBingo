@@ -22,10 +22,30 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not configured");
 }
 
-const generateToken = (payload: AuthPayload): string => {
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: "48h",
-  });
+const generateToken = (
+  payload: AuthPayload
+): string => {
+
+  /*
+   * PLAYER
+   * Persistent login.
+   * No JWT expiration.
+   */
+  if (payload.role === "player") {
+    return jwt.sign(
+      payload,
+      JWT_SECRET
+    );
+  }
+
+
+  return jwt.sign(
+    payload,
+    JWT_SECRET,
+    {
+      expiresIn: "48h",
+    }
+  );
 };
 
 export const registerPlayer = async (

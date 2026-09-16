@@ -12,8 +12,8 @@ import {
   VolumeX,
   Sun,
   Moon,
-  MousePointerClick,
 } from "lucide-react";
+import MobileBackHeader from "../../components/player/MobileBackHeader";
 import PlayerAvatar from "../../components/PlayerAvatar";
 
 import { getMyProfile } from "../../api/profile.api";
@@ -204,23 +204,8 @@ const handleManualMarkingToggle =
 
       {/* Header */}
       <div className="profile-header">
-        <div>
-          <h1>
-  {t("profile.title")}
-</h1>
+        <MobileBackHeader title="Profile" />
 
-<p>
-  {t("profile.subtitle")}
-</p>
-        </div>
-
-        <button
-          onClick={fetchProfile}
-          className="profile-refresh-btn"
-        >
-          <RefreshCw size={17} />
-{t("common.refresh")}
-        </button>
       </div>
 
       {/* Profile Hero */}

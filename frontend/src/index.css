@@ -531,7 +531,7 @@ a {
 .player-topbar h1 {
   margin: 0;
 
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .player-topbar p {
@@ -548,8 +548,8 @@ a {
 }
 
 .notification-button {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
 
   display: flex;
   align-items: center;
@@ -1871,8 +1871,8 @@ html[data-theme="day"]
   }
 
   .mobile-menu-button {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
 
     display: flex;
     align-items: center;
@@ -1903,12 +1903,12 @@ html[data-theme="day"]
 
   .player-topbar {
 
-    padding:4px 5px;
+    padding:4px 8px;
     margin-top: 0px;
   }
 
   .player-topbar h1 {
-    font-size: 12px;
+    font-size: 10px;
   }
 
   .player-topbar p {
@@ -2290,8 +2290,6 @@ html[data-theme="day"]
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 30px;
 }
 
 .deposit-page .page-header h1 {
@@ -2308,26 +2306,20 @@ html[data-theme="day"]
 }
 
 .refresh-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  min-height: 44px;
-  padding: 0 16px;
-  margin-bottom: 10px;
-
-  border: 1px solid #293044;
-  border-radius: 10px;
-
-  background: #11141d;
-  color: #cbd5e1;
-
-  font-size: 14px;
-  font-weight: 500;
-
-  cursor: pointer;
-  transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 28px;
+    padding: 0 6px;
+    border: 1px solid #293044;
+    border-radius: 4px;
+    background: #11141d;
+    color: #cbd5e1;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .refresh-btn:hover {
@@ -2835,7 +2827,7 @@ html[data-theme="day"]
 
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
 
   padding: 13px 14px;
 
@@ -3489,7 +3481,7 @@ html[data-theme="day"]
   margin-bottom: 24px;
 
   border: 1px solid #33245d;
-  border-radius: 18px;
+  border-radius: 8px;
 
   background:
     linear-gradient(
@@ -4107,7 +4099,7 @@ html[data-theme="day"]
 
   .withdraw-balance-card {
     padding: 20px;
-    border-radius: 14px;
+    border-radius: 8px;
   }
 
   .withdraw-balance-amount {
@@ -4444,8 +4436,8 @@ html[data-theme="day"]
 .transaction-summary {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 6px;
+  margin-bottom: 5px;
 }
 
 .transaction-summary-card {
@@ -4470,7 +4462,7 @@ html[data-theme="day"]
 
 .transaction-summary-card strong {
   color: #ffffff;
-  font-size: 20px;
+  font-size: 12px;
 }
 
 .summary-icon {
@@ -5971,7 +5963,7 @@ html[data-theme="night"]
 
 @media (max-width: 600px) {
   .transaction-summary {
-    grid-template-columns: 1fr;
+    overflow-x: auto;
   }
 
   .transactions-card-header {
@@ -6433,8 +6425,8 @@ html[data-theme="night"]
 
 .notification-button {
   position: relative;
-  width: 37px;
-  height: 37px;
+  width: 36px;
+  height: 36px;
 
   display: flex;
   align-items: center;
@@ -6507,8 +6499,8 @@ html[data-theme="night"]
 
 @media (max-width: 768px) {
   .notification-button {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
   }
 
@@ -6536,7 +6528,6 @@ html[data-theme="night"]
   align-items: center;
   justify-content: space-between;
   gap: 20px;
-  margin-bottom: 30px;
 }
 
 .profile-header h1 {
@@ -14842,8 +14833,8 @@ html[data-theme="night"]
 ===================================================== */
 
 .player-game-settings-trigger {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
 
   display: flex;
   align-items: center;
@@ -17719,4 +17710,558 @@ button.delete:hover {
 
 .game-settings-dropdown-menu button {
   width: 100%;
+}
+
+
+/* =========================================
+   PLAYER MOBILE BACK HEADER
+   DAY + NIGHT THEME
+========================================= */
+
+.player-mobile-back-header {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  .player-mobile-back-header {
+    width: 100%;
+    min-height: 52px;
+
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    margin-bottom: 2px;
+    padding: 6px 2px;
+
+    border-bottom: 1px solid
+      rgba(255, 255, 255, 0.08);
+
+    transition:
+      background 0.25s ease,
+      border-color 0.25s ease,
+      color 0.25s ease;
+  }
+
+
+  .player-mobile-back-button {
+    width: 40px;
+    height: 35px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid
+      rgba(255, 255, 255, 0.1);
+
+    border-radius: 8px;
+
+    background:
+      rgba(255, 255, 255, 0.05);
+
+    color: #ffffff;
+
+    cursor: pointer;
+
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+
+  .player-mobile-back-button:hover {
+    background:
+      rgba(255, 255, 255, 0.1);
+  }
+
+
+  .player-mobile-back-button:active {
+    transform: scale(0.94);
+  }
+
+
+  .player-mobile-back-title {
+    margin: 0;
+
+    font-size: 18px;
+    font-weight: 700;
+
+    color: #ffffff;
+
+    transition:
+      color 0.25s ease;
+  }
+
+
+  /* =====================================
+     DAY MODE
+  ===================================== */
+
+  html[data-theme="day"]
+  .player-mobile-back-header {
+    border-bottom-color:
+      #e2e8f0;
+  }
+
+
+  html[data-theme="day"]
+  .player-mobile-back-button {
+    background:
+      #f8fafc;
+
+    border-color:
+      #e2e8f0;
+
+    color:
+      #0f172a;
+
+    box-shadow:
+      0 2px 8px
+      rgba(15, 23, 42, 0.06);
+  }
+
+
+  html[data-theme="day"]
+  .player-mobile-back-button:hover {
+    background:
+      #eef2f7;
+
+    border-color:
+      #cbd5e1;
+  }
+
+
+  html[data-theme="day"]
+  .player-mobile-back-title {
+    color:
+      #0f172a;
+  }
+
+
+  /* =====================================
+     NIGHT MODE
+  ===================================== */
+
+  html[data-theme="night"]
+  .player-mobile-back-header {
+    border-bottom-color:
+      rgba(255, 255, 255, 0.08);
+  }
+
+
+  html[data-theme="night"]
+  .player-mobile-back-button {
+    background:
+      #11141c;
+
+    border-color:
+      #292e3a;
+
+    color:
+      #ffffff;
+  }
+
+
+  html[data-theme="night"]
+  .player-mobile-back-button:hover {
+    background:
+      #171b24;
+
+    border-color:
+      #3a4050;
+  }
+
+
+  html[data-theme="night"]
+  .player-mobile-back-title {
+    color:
+      #ffffff;
+  }
+}
+
+/* =========================================
+   BINGO WINNER CLAIM WINDOW
+========================================= */
+
+.bingo-winner-lock-banner {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+  padding: 2px 4px;
+}
+
+
+.bingo-winner-lock-icon {
+  width: 42px;
+  height: 42px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background:
+    rgba(212, 167, 44, 0.15);
+
+  font-size: 20px;
+}
+
+
+.bingo-winner-lock-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+
+.bingo-winner-lock-info strong {
+  color: #d4a72c;
+
+  font-size: 14px;
+}
+
+
+.bingo-winner-lock-info span {
+  color: #94a3b8;
+
+  font-size: 11px;
+}
+
+
+.bingo-winner-lock-right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.bingo-winner-lock-countdown {
+      color: #f3b200;
+    font-size: 14px;
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.bingo-winner-lock-right span {
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.bingo-winner-finalizing {
+  color: #5f5f5f;
+  font-size: 13px;
+}
+
+.bingo-winner-window-status strong {
+  color: #d4a72c;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+/* DAY MODE */
+html[data-theme="day"]
+.bingo-winner-lock-info span,
+html[data-theme="day"]
+.bingo-winner-lock-right span {
+  color: #64748b;
+}
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+  .bingo-winner-lock-banner {
+    padding: 6px;
+
+    gap: 9px;
+  }
+
+
+  .bingo-winner-lock-icon {
+    width: 36px;
+    height: 36px;
+
+    font-size: 17px;
+  }
+
+
+  .bingo-winner-lock-info strong {
+    font-size: 12px;
+  }
+
+
+  .bingo-winner-lock-info span {
+    font-size: 9px;
+  }
+
+
+  .bingo-winner-lock-countdown {
+    font-size: 15px;
+  }
+
+
+  .bingo-winner-lock-right span {
+    font-size: 9px;
+  }
+}
+
+/* =========================================
+   FINAL WINNER CARD LIST
+========================================= */
+
+.bingo-final-winners-section {
+  margin-top: 14px;
+}
+
+
+.bingo-final-winners-header {
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  margin-bottom: 12px;
+}
+
+
+.bingo-final-winners-title {
+  display: flex;
+  align-items: center;
+
+  gap: 9px;
+
+  min-width: 0;
+}
+
+
+.bingo-final-winners-title > svg {
+  flex-shrink: 0;
+
+  color: #d4a72c;
+}
+
+
+.bingo-final-winners-title > div {
+  display: flex;
+  flex-direction: column;
+
+  gap: 2px;
+}
+
+
+.bingo-final-winners-title strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+
+.bingo-final-winners-title span {
+  font-size: 10px;
+
+  opacity: 0.65;
+}
+
+
+.bingo-final-winner-count {
+  min-width: 42px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 4px;
+
+  padding: 0 10px;
+
+  border-radius: 999px;
+
+  background:
+    rgba(212, 167, 44, 0.12);
+
+  border:
+    1px solid
+    rgba(212, 167, 44, 0.35);
+
+  color: #d4a72c;
+
+  font-size: 13px;
+  font-weight: 900;
+}
+
+
+.bingo-final-winner-count span {
+  font-size: 9px;
+  font-weight: 700;
+}
+
+
+/* =========================================
+   GOLD FINAL WINNER BUTTON
+========================================= */
+
+.bingo-winner-card.bingo-final-winner-card {
+  background:
+    linear-gradient(
+      135deg,
+      #d4a72c,
+      #f0c95c
+    );
+
+  border:
+    1px solid
+    #d4a72c;
+
+  color:
+    #111827;
+
+  box-shadow:
+    0 4px 14px
+    rgba(212, 167, 44, 0.18);
+
+  animation:
+    bingo-final-winner-reveal
+    0.8s
+    ease
+    both;
+
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+.bingo-winner-card.bingo-final-winner-card svg {
+  color:
+    #ffffff;
+}
+
+
+.bingo-winner-card.bingo-final-winner-card span,
+.bingo-winner-card.bingo-final-winner-card small {
+  color:
+    #ffffff;
+}
+
+
+.bingo-winner-card.bingo-final-winner-card.mine {
+      background: linear-gradient(135deg, #ff9d06, #ff4700);
+
+
+  box-shadow:
+    0 0 0 2px
+      rgba(212, 167, 44, 0.18),
+    0 5px 16px
+      rgba(212, 167, 44, 0.25);
+}
+
+
+@media (hover: hover) {
+
+  .bingo-winner-card.bingo-final-winner-card:hover {
+    transform:
+      translateY(-2px);
+
+    box-shadow:
+      0 7px 18px
+      rgba(212, 167, 44, 0.28);
+  }
+
+}
+
+
+/* =========================================
+   WINNER REVEAL
+========================================= */
+
+@keyframes bingo-final-winner-reveal {
+
+  from {
+    opacity: 0;
+
+    transform:
+      translateY(10px)
+      scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+
+    transform:
+      translateY(0)
+      scale(1);
+  }
+
+}
+
+
+.bingo-final-winner-reveal-status {
+  margin-top: 10px;
+
+  font-size: 10px;
+
+  text-align: center;
+
+  opacity: 0.65;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  .bingo-winner-card.bingo-final-winner-card {
+    animation: none;
+    transition: none;
+  }
+
+}
+
+
+/* MOBILE */
+
+@media (max-width: 600px) {
+
+  .bingo-final-winners-header {
+    margin-bottom: 10px;
+  }
+
+
+  .bingo-final-winners-title strong {
+    font-size: 12px;
+  }
+
+
+  .bingo-final-winners-title span {
+    font-size: 9px;
+  }
+
+
+  .bingo-final-winner-count {
+    height: 28px;
+
+    padding: 0 8px;
+
+    font-size: 12px;
+  }
+
 }

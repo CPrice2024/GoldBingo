@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Bell,
   Check,
   CheckCheck,
   Trash2,
@@ -8,6 +7,7 @@ import {
   Inbox,
   X,
 } from "lucide-react";
+import MobileBackHeader from "../../components/player/MobileBackHeader";
 import { useLanguage } from "../../context/LanguageContext";
 import { useNotifications } from "../../context/NotificationContext";
 
@@ -129,60 +129,24 @@ function Notifications() {
     }
   );
 };
+ if (loading) {
+    return (
+      <div className="profile-page">
+        <div className="profile-loading">
+          <RefreshCw
+            size={20}
+            className="spin"
+          />
+          {t("Notification.loading")}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="player-notifications-page">
       <div className="notifications-header">
-        <div className="notifications-title">
-          <div className="notifications-title-icon">
-            <Bell size={22} />
-          </div>
-
-          <div>
-            <h1>
-  {t("notifications.title")}
-</h1>
-
-<p>
-  {t("notifications.subtitle")}
-</p>
-          </div>
-        </div>
-
-        <div className="notifications-actions">
-          <button
-            type="button"
-            className="notification-refresh-btn"
-            onClick={loadNotifications}
-            disabled={loading}
-            title={t("notifications.refresh")}
-          >
-            <RefreshCw
-              size={17}
-              className={
-                loading
-                  ? "notification-spin"
-                  : ""
-              }
-            />
-          </button>
-
-          {unreadCount > 0 && (
-            <button
-              type="button"
-              className="mark-all-read-btn"
-              onClick={handleMarkAllAsRead}
-              disabled={
-                actionLoading === "all"
-              }
-            >
-              <CheckCheck size={17} />
-              {actionLoading === "all"
-  ? t("notifications.marking")
-  : t("notifications.markAllRead")}
-            </button>
-          )}
-        </div>
+        <MobileBackHeader title="Notifications" />
       </div>
 
       <div className="notifications-summary">

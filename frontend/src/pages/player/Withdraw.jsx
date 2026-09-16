@@ -2,7 +2,7 @@ import {
   useEffect,
   useState,
 } from "react";
-
+import MobileBackHeader from "../../components/player/MobileBackHeader";
 import {
   ArrowDownToLine,
   Wallet,
@@ -269,18 +269,15 @@ if (numericAmount > withdrawableWinningBalance) {
 
     return <Clock3 size={16} />;
   };
-
-  if (loading) {
+   if (loading) {
     return (
-      <div className="withdraw-page">
-        <div className="withdraw-loading">
+      <div className="profile-page">
+        <div className="profile-loading">
           <RefreshCw
-            size={28}
+            size={20}
             className="spin"
           />
-          <p>
-            {t("withdraw.loading")}
-          </p>
+          {t("Withdraw.loading")}
         </div>
       </div>
     );
@@ -290,16 +287,7 @@ if (numericAmount > withdrawableWinningBalance) {
     <div className="withdraw-page">
       {/* Header */}
       <div className="page-header">
-        <div>
-          <h1>
-  {t("withdraw.title")}
-</h1>
-
-<p>
-  {t("withdraw.subtitle")}
-</p>
-        </div>
-
+        <MobileBackHeader title="Withdrawal" />
         <button
           type="button"
           className="refresh-btn"

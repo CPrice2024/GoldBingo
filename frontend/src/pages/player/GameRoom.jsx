@@ -143,6 +143,29 @@ const [
   markedNumbers,
   setMarkedNumbers,
 ] = useState([]);
+
+const [
+  multiCardSelectEnabled,
+  setMultiCardSelectEnabled,
+] = useState(
+  () =>
+    localStorage.getItem(
+      "bingoMultiCardSelectEnabled"
+    ) === "true"
+);
+
+
+const [
+  markedCardIds,
+  setMarkedCardIds,
+] = useState([]);
+
+
+const [
+  bulkJoining,
+  setBulkJoining,
+] = useState(false);
+
 /* =========================================
    INLINE CARD SELECTION
 ========================================= */
@@ -461,10 +484,18 @@ const [
 ] = useState(false);
 
 const [
+  visibleFinalWinnerCount,
+  setVisibleFinalWinnerCount,
+] = useState(0);
+
+const [
   showAllBlockedCards,
   setShowAllBlockedCards,
 ] = useState(false);
-  
+  const [
+  finishedGameCleared,
+  setFinishedGameCleared,
+] = useState(false);
   /* =========================================
      LOAD GAME
   ========================================= */
@@ -558,6 +589,9 @@ const fetchGame = useCallback(
       ? nextState.blockedCards
       : []
   );
+
+
+
   /* =========================================
    PUBLIC WINNER CARDS
 ========================================= */
@@ -810,6 +844,60 @@ useEffect(() => {
 /* =========================================
    GAME SOUNDS
 ========================================= */
+useEffect(() => {
+
+  const syncMultiCardSetting =
+    (event) => {
+
+      const enabled =
+        typeof event?.detail
+          ?.enabled === "boolean"
+          ? event.detail.enabled
+          : localStorage.getItem(
+              "bingoMultiCardSelectEnabled"
+            ) === "true";
+
+      setMultiCardSelectEnabled(
+        enabled
+      );
+
+      /*
+       * Turning mode OFF also
+       * removes existing selections.
+       */
+      if (!enabled) {
+        setMarkedCardIds([]);
+      }
+
+    };
+
+
+  window.addEventListener(
+    "storage",
+    syncMultiCardSetting
+  );
+
+  window.addEventListener(
+    "bingoMultiCardSelectChanged",
+    syncMultiCardSetting
+  );
+
+
+  return () => {
+
+    window.removeEventListener(
+      "storage",
+      syncMultiCardSetting
+    );
+
+    window.removeEventListener(
+      "bingoMultiCardSelectChanged",
+      syncMultiCardSetting
+    );
+
+  };
+
+}, []);
 
 useEffect(() => {
   callSoundRef.current =
@@ -1009,6 +1097,16 @@ setClaimingCardId(null);
 setShowAllBlockedCards(false);
 setShowAllWinnerCards(false);
 setShowLastCalled(false);
+setSelectedPreviewCards([]);
+setAvailablePreviewCards([]);
+
+setInlineCardsOpen(false);
+setCardMenuOpen(false);
+setCardOpen(false);
+
+setPreviewCardsLoading(false);
+setLoadingCardCount(0);
+setPreviewCardsError("");
 
   setBlockedPlayers([]);
 
@@ -1024,12 +1122,90 @@ setShowLastCalled(false);
   setSelectedBlockedCard(null);
   setShowAllWinnerCards(false);
 setShowAllBlockedCards(false);
-
+setFinishedGameCleared(false);
+setVisibleFinalWinnerCount(0);
+setMarkedCardIds([]);
+setBulkJoining(false);
 
   previousCalledCountRef.current =
     null;
 }, [gameId]);
 
+/* =========================================
+   CLEAR CARDS AFTER GAME COMPLETES
+========================================= */
+
+useEffect(() => {
+
+  const currentStatus =
+    gameState?.game?.status ??
+    game?.status;
+
+
+  if (
+    currentStatus !==
+    "completed"
+  ) {
+    return;
+  }
+
+
+  /*
+   * Remove cards held / previewed
+   * for the finished game.
+   */
+
+  setSelectedPreviewCards(
+    []
+  );
+
+  setAvailablePreviewCards(
+    []
+  );
+
+
+  /*
+   * Close card selection UI.
+   */
+
+  setInlineCardsOpen(
+    false
+  );
+
+  setCardMenuOpen(
+    false
+  );
+
+  setCardOpen(
+    false
+  );
+
+
+  /*
+   * Reset loading / errors.
+   */
+
+  setPreviewCardsLoading(
+    false
+  );
+
+  setLoadingCardCount(
+    0
+  );
+
+  setPreviewCardsError(
+    ""
+  );
+
+
+  setCardCount(
+    1
+  );
+
+}, [
+  gameState?.game?.status,
+  game?.status,
+]);
   /* =========================================
      CALLED NUMBERS
   ========================================= */
@@ -1067,6 +1243,20 @@ const hasGame =
       "active"
   );
 
+  const hasDisplayGame =
+  Boolean(
+    rawLiveGame?._id
+  ) &&
+  !finishedGameCleared &&
+  (
+    rawLiveGame?.status ===
+      "waiting" ||
+    rawLiveGame?.status ===
+      "active" ||
+    rawLiveGame?.status ===
+      "completed"
+  );
+
 /* =========================================
    CALLED NUMBERS
 
@@ -1075,7 +1265,7 @@ const hasGame =
 ========================================= */
 
 const calledNumbers =
-  hasGame
+  hasDisplayGame
     ? (
         gameState?.game
           ?.calledNumbers ??
@@ -1143,7 +1333,7 @@ useEffect(() => {
 ========================================= */
 
 const liveGame =
-  hasGame
+  hasDisplayGame
     ? rawLiveGame
     : {
         _id: null,
@@ -1166,7 +1356,7 @@ const currentPatternValue =
 
 
 const currentWinningPattern =
-  hasGame
+  hasDisplayGame
     ? getWinningPatternLabel(
         currentPatternValue,
         language
@@ -1175,7 +1365,7 @@ const currentWinningPattern =
 
 
 const displayEntryFee =
-  hasGame
+  hasDisplayGame
     ? Number(
         liveGame?.entryFee ??
           game?.entryFee ??
@@ -1185,7 +1375,7 @@ const displayEntryFee =
 
 
 const displayGameType =
-  hasGame
+  hasDisplayGame
     ? Number(
         liveGame?.gameType ??
           game?.gameType ??
@@ -1195,7 +1385,7 @@ const displayGameType =
 
 
 const displayPrize =
-  hasGame
+  hasDisplayGame
     ? Number(
         liveGame?.prizeAmount ??
           game?.prizeAmount ??
@@ -1253,8 +1443,6 @@ const startCountdown =
         liveGame.scheduledStartAt
       )
     : null;
-
-
 /*
  * Only display countdown during
  * the final 30 seconds.
@@ -1263,8 +1451,6 @@ const showStartCountdown =
   startCountdown !== null &&
   startCountdown > 0 &&
   startCountdown <= 30;
-
-
 /*
  * Admin scheduled time reached,
  * but backend status has not yet
@@ -1392,6 +1578,13 @@ const winnerWindowOpen =
     null &&
   winnerClaimCountdown > 0;
 
+  const winnerWindowPending =
+  liveGame?.status === "active" &&
+  Boolean(
+    liveGame?.firstWinnerAt
+  ) &&
+  !liveGame?.payoutSettledAt;
+
 
 const liveWinnerCount =
   Number(
@@ -1405,6 +1598,153 @@ const liveMaxWinners =
     liveGame?.maxWinners ??
       10
   );
+
+/* =========================================
+   FINAL WINNER RESULT
+   Show only after game settlement
+========================================= */
+
+const finalResultsReady =
+  game?.status === "completed" ||
+  gameState?.game?.status ===
+    "completed" ||
+  Boolean(
+    game?.payoutSettledAt
+  ) ||
+  Boolean(
+    gameState?.game
+      ?.payoutSettledAt
+  );
+
+const handleGameRefresh =
+  async () => {
+
+    /*
+     * Finished game:
+     * clear the retained result
+     * from this player's screen.
+     */
+    if (finalResultsReady) {
+
+      setFinishedGameCleared(
+        true
+      );
+
+      setShowLastCalled(false);
+
+      setPatternPreviewOpen(
+        false
+      );
+
+      setSelectedWinner(null);
+
+      setSelectedBlockedCard(
+        null
+      );
+
+      setInlineCardsOpen(false);
+
+      setCardMenuOpen(false);
+
+      setCardOpen(false);
+
+      setMarkedNumbers([]);
+
+      return;
+    }
+
+
+    /*
+     * Waiting / active game:
+     * normal server refresh.
+     */
+    await fetchGame(true);
+  };
+
+const showFinalWinnerList =
+  !finishedGameCleared &&
+  finalResultsReady &&
+  publicWinners.length > 0;
+
+  /* =========================================
+   REVEAL FINAL WINNERS
+   One winner every 2 seconds
+========================================= */
+
+useEffect(() => {
+
+  if (!showFinalWinnerList) {
+
+    setVisibleFinalWinnerCount(
+      0
+    );
+
+    return;
+  }
+
+
+  /*
+   * Show first winner immediately.
+   */
+
+  setVisibleFinalWinnerCount(
+    1
+  );
+
+
+  /*
+   * Only one winner:
+   * nothing else to animate.
+   */
+
+  if (
+    publicWinners.length <= 1
+  ) {
+    return;
+  }
+
+
+  let visibleCount = 1;
+
+
+  const timer =
+    setInterval(() => {
+
+      visibleCount += 1;
+
+      setVisibleFinalWinnerCount(
+        Math.min(
+          visibleCount,
+          publicWinners.length
+        )
+      );
+
+
+      if (
+        visibleCount >=
+        publicWinners.length
+      ) {
+
+        clearInterval(
+          timer
+        );
+
+      }
+
+    }, 2000);
+
+
+  return () => {
+    clearInterval(
+      timer
+    );
+  };
+
+}, [
+  showFinalWinnerList,
+  publicWinners.length,
+  gameId,
+]);
 
 const formatCountdown = (
   seconds
@@ -1691,7 +2031,15 @@ useEffect(() => {
 ) {
   return;
 }
-
+if (
+  !finishedGameCleared &&
+  finalResultsReady &&
+  publicWinners.length > 0 &&
+  visibleFinalWinnerCount <
+    publicWinners.length
+) {
+  return;
+}
 
         /*
          * NEW GAME CREATED:
@@ -1772,7 +2120,12 @@ useEffect(() => {
   loading,
   navigate,
   fetchGame,
+  finalResultsReady,
+  finishedGameCleared,
+  visibleFinalWinnerCount,
+  publicWinners.length,
 ]);
+
   /* =========================================
      BINGO BOARD
   ========================================= */
@@ -1808,42 +2161,18 @@ useEffect(() => {
     []
   );
 
-  const handleMainCardButton =
-  () => {
+  const handleMainCardButton = () => {
 
-    /*
-     * NO GAME:
-     *
-     * Allow browsing cards,
-     * but never allow joining.
-     */
-    if (!hasGame) {
-
-      setCardMenuOpen(
-        (current) =>
-          !current
-      );
-
-      return;
-    }
-
-
-    /*
-     * Waiting game.
-     */
-    if (
-      liveGame?.status ===
-      "waiting"
-    ) {
-
-      setCardMenuOpen(
-        (current) =>
-          !current
-      );
-
-      return;
-    }
-
+  /*
+   * COMPLETED GAME:
+   * only allow scrolling to
+   * retained joined cards.
+   */
+  if (
+    hasDisplayGame &&
+    liveGame?.status ===
+      "completed"
+  ) {
 
     if (isJoined) {
 
@@ -1856,12 +2185,64 @@ useEffect(() => {
           block: "start",
         });
 
-      return;
     }
 
+    return;
+  }
 
-    setCardOpen(true);
-  };
+
+  /*
+   * NO DISPLAY GAME:
+   * allow preview browsing only.
+   */
+  if (!hasDisplayGame) {
+
+    setCardMenuOpen(
+      (current) =>
+        !current
+    );
+
+    return;
+  }
+
+
+  /*
+   * WAITING GAME
+   */
+  if (
+    liveGame?.status ===
+      "waiting"
+  ) {
+
+    setCardMenuOpen(
+      (current) =>
+        !current
+    );
+
+    return;
+  }
+
+
+  /*
+   * ACTIVE + JOINED
+   */
+  if (isJoined) {
+
+    document
+      .getElementById(
+        "bingo-inline-card-selection"
+      )
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+
+    return;
+  }
+
+
+  setCardOpen(true);
+};
 
 
 const handleChooseCardCount =
@@ -2155,12 +2536,14 @@ const handleAddPreviewCard =
   ========================================= */
 
 const cards =
+  hasDisplayGame &&
   Array.isArray(
     gamePlayer?.cardIds
   ) &&
   gamePlayer.cardIds.length > 0
     ? gamePlayer.cardIds
-    : gamePlayer?.cardId
+    : hasDisplayGame &&
+      gamePlayer?.cardId
     ? [gamePlayer.cardId]
     : [];
 
@@ -2221,6 +2604,72 @@ const getCardId = (
     ""
   );
 
+const isCardMarked = (
+  card
+) => {
+
+  const cardId =
+    getCardId(card);
+
+  return markedCardIds.includes(
+    cardId
+  );
+
+};
+
+
+const handleToggleCardMark = (
+  card
+) => {
+
+  if (!multiCardSelectEnabled) {
+    return;
+  }
+
+
+  /*
+   * Already joined cards cannot
+   * be selected for remove/join.
+   */
+  if (isCardJoined(card)) {
+    return;
+  }
+
+
+  const cardId =
+    getCardId(card);
+
+  if (!cardId) {
+    return;
+  }
+
+
+  setMarkedCardIds(
+    (current) => {
+
+      if (
+        current.includes(
+          cardId
+        )
+      ) {
+
+        return current.filter(
+          (id) =>
+            id !== cardId
+        );
+
+      }
+
+
+      return [
+        ...current,
+        cardId,
+      ];
+
+    }
+  );
+
+};
 
 const isCardBlocked = (
   card
@@ -2534,6 +2983,46 @@ const isSortCellMatched =
         number
       )
     );
+
+  };
+
+const handleRemoveMarkedCards =
+  () => {
+
+    if (
+      markedCardIds.length === 0
+    ) {
+      return;
+    }
+
+
+    const markedSet =
+      new Set(
+        markedCardIds
+      );
+
+
+    setSelectedPreviewCards(
+      (current) => {
+
+        const next =
+          current.filter(
+            (card) =>
+              !markedSet.has(
+                getCardId(card)
+              )
+          );
+
+        setCardCount(
+          next.length
+        );
+
+        return next;
+      }
+    );
+
+
+    setMarkedCardIds([]);
 
   };
 
@@ -3235,6 +3724,221 @@ const sortedDisplayCards =
 
           }
         );
+
+/* =========================================
+   BULK MARK ALL / UNMARK ALL
+========================================= */
+
+const selectableCardIds =
+  (
+    liveGame?.status === "waiting" ||
+    !hasDisplayGame
+  )
+    ? sortedDisplayCards
+        .filter(
+          (card) =>
+            !isCardJoined(card)
+        )
+        .map(
+          (card) =>
+            getCardId(card)
+        )
+        .filter(Boolean)
+    : [];
+
+
+const allSelectableCardsMarked =
+  selectableCardIds.length > 0 &&
+  selectableCardIds.every(
+    (cardId) =>
+      markedCardIds.includes(
+        cardId
+      )
+  );
+
+
+const handleToggleMarkAllCards =
+  () => {
+
+    if (
+      !multiCardSelectEnabled ||
+      bulkJoining
+    ) {
+      return;
+    }
+
+
+    /*
+     * Everything selected:
+     * UNMARK ALL
+     */
+    if (
+      allSelectableCardsMarked
+    ) {
+
+      setMarkedCardIds([]);
+
+      return;
+    }
+
+
+    /*
+     * Otherwise:
+     * MARK ALL selectable
+     * preview cards.
+     */
+    setMarkedCardIds(
+      selectableCardIds
+    );
+
+  };
+
+const handleJoinMarkedCards =
+  async () => {
+
+    if (
+      bulkJoining ||
+      markedCardIds.length === 0
+    ) {
+      return;
+    }
+
+
+    if (
+      liveGame?.status !==
+        "waiting"
+    ) {
+
+      setError(
+        "This game is no longer accepting players."
+      );
+
+      return;
+    }
+
+
+    const markedSet =
+      new Set(
+        markedCardIds
+      );
+
+
+    const cardsToJoin =
+      selectedPreviewCards.filter(
+        (card) =>
+          markedSet.has(
+            getCardId(card)
+          ) &&
+          !isCardJoined(card)
+      );
+
+
+    if (
+      cardsToJoin.length === 0
+    ) {
+
+      setMarkedCardIds([]);
+
+      return;
+    }
+
+
+    try {
+
+      setBulkJoining(true);
+
+      setError("");
+      setMessage("");
+
+
+      let joinedCount = 0;
+
+
+      for (
+        const card of cardsToJoin
+      ) {
+
+        const cardId =
+          getCardId(card);
+
+
+        const response =
+          await joinGame(
+            gameId,
+            cardId
+          );
+
+
+        if (
+          !response?.success
+        ) {
+
+          throw new Error(
+            response?.message ||
+              `Failed to join card ${card.cardNumber}`
+          );
+
+        }
+
+
+        joinedCount += 1;
+
+      }
+
+
+      setMarkedCardIds([]);
+
+
+      setMessage(
+        `${joinedCount} card${
+          joinedCount === 1
+            ? ""
+            : "s"
+        } joined successfully.`
+      );
+
+
+      await fetchGame(true);
+
+
+    } catch (err) {
+
+      console.error(
+        "JOIN MARKED CARDS ERROR:",
+        err
+      );
+
+
+      setError(
+        err.response?.data
+          ?.message ||
+          err.message ||
+          "Failed to join marked cards"
+      );
+
+
+     /*
+ * Some cards may already have
+ * joined before an error happened.
+ *
+ * Clear selection so the action
+ * toolbar disappears.
+ */
+setMarkedCardIds([]);
+setMarkedCardIds([]);
+
+await fetchGame(true);
+
+
+    } finally {
+
+      setBulkJoining(false);
+
+    }
+
+  };
+
+
 /* =========================================
    MY ACCEPTED BINGO STATUS
 ========================================= */
@@ -3706,6 +4410,29 @@ const handleClaimBingo =
     <div className="bingo-history-header">
 
       <div>
+        {hasDisplayGame && (
+  <button
+    type="button"
+    className="refresh-btn"
+    onClick={
+      handleGameRefresh
+    }
+    disabled={refreshing}
+    title="Refresh / clear game"
+  > 
+  Refresh
+
+    <RefreshCw
+      size={12}
+      className={
+        refreshing
+          ? "spin"
+          : ""
+      }
+    />
+
+  </button>
+)}
 
       </div>
 
@@ -3750,8 +4477,6 @@ const handleClaimBingo =
                 getBingoBall(
                   number
                 );
-
-
               return (
 
                 <div
@@ -3762,7 +4487,6 @@ const handleClaimBingo =
                       : ""
                   }`}
                 >
-
                   <img
                     src={
                       ball.image
@@ -3821,10 +4545,10 @@ const handleClaimBingo =
  <button
   type="button"
   className="bingo-current-pattern-button"
-  disabled={!hasGame}
+  disabled={!hasDisplayGame}
   onClick={() => {
 
-    if (!hasGame) {
+    if (!hasDisplayGame) {
       return;
     }
 
@@ -3834,13 +4558,13 @@ const handleClaimBingo =
   }}
 >
   <span>
-    {hasGame
-      ? currentWinningPattern
-      : "no pattern"}
+    {hasDisplayGame
+  ? currentWinningPattern
+  : "no pattern"}
   </span>
 
-  {hasGame && (
-    <span className="bingo-pattern-help-icon">
+  {hasDisplayGame && (
+  <span className="bingo-pattern-help-icon">
     </span>
   )}
 </button>
@@ -3884,22 +4608,20 @@ const handleClaimBingo =
     <div className="bingo-game-main-details">
 
       <strong>
-  {hasGame
-    ? (
-        liveGame?.name ||
-        game?.name ||
-        "-"
-      )
-    : t(
-        "game.noActiveGame"
-      )}
+  {hasDisplayGame
+  ? (
+      liveGame?.name ||
+      game?.name ||
+      "-"
+    )
+  : t("game.noActiveGame")}
 </strong>
 
     </div>
     <span className="bingo-game-status">
   {t("game.status")}:{" "}
 
-  {!hasGame ? (
+  {!hasDisplayGame ? (
 
   <span>
     {t("game.noGameRunning")}
@@ -3949,9 +4671,34 @@ const handleClaimBingo =
 
 ) : liveGame?.status === "active" ? (
 
-  <span>
-    {t("game.active")}
-  </span>
+  winnerWindowPending ? (
+
+    <span className="bingo-winner-window-status">
+
+      {winnerClaimCountdown > 0 ? (
+        <>
+          Bingo closes in{" "}
+          <strong>
+            {formatCountdown(
+              winnerClaimCountdown
+            )}
+          </strong>
+        </>
+      ) : (
+        <strong>
+          Finalizing game...
+        </strong>
+      )}
+
+    </span>
+
+  ) : (
+
+    <span>
+      {t("game.active")}
+    </span>
+
+  )
 
 ) : (
 
@@ -3992,7 +4739,7 @@ const handleClaimBingo =
 
   {/* GAME TYPE */}
   <div>
-    <Gamepad2 size={16} />
+    <Gamepad2 size={13} />
 
     <span>
       {t("game.gameType")}
@@ -4000,14 +4747,14 @@ const handleClaimBingo =
 
     <strong
   className={
-    !hasGame
+    !hasDisplayGame
       ? "bingo-game-type"
       : displayGameType === -1
       ? "bingo-game-type bonus"
       : "bingo-game-type normal"
   }
 >
-  {hasGame
+  {hasDisplayGame
     ? displayGameType
     : 0}
 </strong>
@@ -4015,7 +4762,7 @@ const handleClaimBingo =
 
   {/* PRIZE */}
   <div>
-    <Trophy size={16} />
+    <Trophy size={13} />
 
     <span>
       {t("game.prize")}
@@ -4122,26 +4869,127 @@ const handleClaimBingo =
 
            </section>
            )}
-           {/* =====================================
-    PUBLIC FALSE BINGO CARDS
-====================================== */}
 
-{hasGame &&
+    {/* =====================================
+    LIVE WINNER CARDS
+    GREEN DURING 30-SECOND WINDOW
+===================================== */}
+
+{winnerWindowPending &&
+  publicWinners.length > 0 && (
+
+  <section
+    className="
+      bingo-winners-section
+      bingo-live-winners-section
+    "
+  >
+
+    <div className="bingo-winner-grid">
+
+      {publicWinners.map(
+        (
+          winner,
+          index
+        ) => {
+
+          const isMyWinningCard =
+            String(
+              winner?.gamePlayerId
+            ) ===
+            String(
+              gamePlayer?._id
+            );
+
+
+          return (
+
+            <button
+              type="button"
+
+              key={
+                winner?.card?.id ||
+                winner?.card?._id ||
+                winner?.gamePlayerId ||
+                index
+              }
+
+              className={[
+                "bingo-winner-card",
+                "bingo-live-winner-card",
+
+                isMyWinningCard
+                  ? "mine"
+                  : "",
+              ]
+                .filter(Boolean)
+                .join(" ")}
+
+              onClick={() =>
+                setSelectedWinner(
+                  winner
+                )
+              }
+            >
+
+              <Trophy size={15} />
+
+              <span>
+                {winner?.card
+                  ?.cardNumber ||
+                  `${t(
+                    "game.card"
+                  )} ${
+                    index + 1
+                  }`}
+              </span>
+
+
+              {isMyWinningCard && (
+
+                <small>
+                  {t("game.you")}
+                </small>
+
+              )}
+
+            </button>
+
+          );
+
+        }
+      )}
+
+    </div>
+
+  </section>
+
+)}
+
+  {/* =====================================
+    PUBLIC BLOCKED CARDS
+    VISIBLE TO ALL PLAYERS
+===================================== */}
+
+{!finishedGameCleared &&
   blockedCards.length > 0 && (
 
-  <section className="bingo-winners-section bingo-blocked-cards-section">
+  <section
+    className="
+      bingo-winners-section
+      bingo-blocked-cards-section
+    "
+  >
 
-
-
-            <div className="bingo-winner-grid">
+    <div className="bingo-winner-grid">
 
       {blockedCards
         .slice(
-  0,
-  showAllBlockedCards
-    ? blockedCards.length
-    : 4
-)
+          0,
+          showAllBlockedCards
+            ? blockedCards.length
+            : 4
+        )
         .map(
           (
             blocked,
@@ -4156,21 +5004,28 @@ const handleClaimBingo =
                 gamePlayer?._id
               );
 
-
             return (
 
               <button
                 type="button"
+
                 key={
-                  blocked?.card?.id ||
                   blocked?.card?._id ||
+                  blocked?.card?.id ||
                   `${blocked?.gamePlayerId}-${index}`
                 }
-                className={`bingo-winner-card-button ${
+
+                className={[
+                  "bingo-winner-card-button",
+                  "bingo-blocked-card-button",
+
                   isMyBlockedCard
                     ? "mine"
-                    : ""
-                }`}
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+
                 onClick={() =>
                   setSelectedBlockedCard(
                     blocked
@@ -4179,75 +5034,91 @@ const handleClaimBingo =
               >
 
                 <AlertCircle
-  size={14}
-/>
+                  size={14}
+                />
 
-<span>
-  {blocked?.card
-    ?.cardNumber ||
-    `${t("game.card")} ${index + 1}`}
-</span>
+                <span>
+                  {blocked?.card
+                    ?.cardNumber ||
+                    `${t(
+                      "game.card"
+                    )} ${
+                      index + 1
+                    }`}
+                </span>
 
+                {isMyBlockedCard && (
 
+                  <small>
+                    {t("game.you")}
+                  </small>
 
-
-{isMyBlockedCard && (
-
-  <small>
-    {t("game.you")}
-  </small>
-
-)}
+                )}
 
               </button>
 
             );
-
           }
         )}
 
     </div>
+
+
     {blockedCards.length > 4 && (
 
-  <button
-    type="button"
-    className="bingo-show-more-button"
-    onClick={() =>
-      setShowAllBlockedCards(
-        (current) =>
-          !current
-      )
-    }
-  >
-    {showAllBlockedCards
-  ? t("game.showLess")
-  : `${t("game.showMore")} (${
-      blockedCards.length - 4
-    })`}
-  </button>
+      <button
+        type="button"
 
-)}
+        className="bingo-show-more-button"
+
+        onClick={() =>
+          setShowAllBlockedCards(
+            (current) =>
+              !current
+          )
+        }
+      >
+
+        {showAllBlockedCards
+          ? t("game.showLess")
+          : `${t(
+              "game.showMore"
+            )} (${
+              blockedCards.length -
+              4
+            })`
+        }
+
+      </button>
+
+    )}
 
   </section>
 
 )}
+
+           {/* =====================================
 {/* =====================================
-    PUBLIC WINNER CARDS
-    VISIBLE TO EVERYONE
+    FINAL WINNER CARD LIST
+    SHOW ONLY AFTER GAME FINALIZES
 ===================================== */}
 
-{hasGame &&
-  publicWinners.length > 0 && (
+{showFinalWinnerList && (
 
-  <section className="bingo-winners-section">
+  <section
+    className="
+      bingo-winners-section
+      bingo-final-winners-section
+    "
+  >
+    {/* WINNER BUTTONS */}
+
     <div className="bingo-winner-grid">
 
       {publicWinners
         .slice(
           0,
-          showAllWinnerCards
-            ? publicWinners.length
-            : 4
+          visibleFinalWinnerCount
         )
         .map(
           (
@@ -4265,20 +5136,27 @@ const handleClaimBingo =
 
 
             return (
+
               <button
                 type="button"
 
                 key={
                   winner?.card?.id ||
+                  winner?.card?._id ||
                   winner?.gamePlayerId ||
                   index
                 }
 
-                className={`bingo-winner-card ${
+                className={[
+                  "bingo-winner-card",
+                  "bingo-final-winner-card",
+
                   isMyWinningCard
                     ? "mine"
-                    : ""
-                }`}
+                    : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
 
                 onClick={() =>
                   setSelectedWinner(
@@ -4287,62 +5165,57 @@ const handleClaimBingo =
                 }
               >
 
-                <Trophy size={14} />
+                <Trophy size={12} />
 
                 <span>
-                  {winner
-                    ?.card
+                  {winner?.card
                     ?.cardNumber ||
-                    `${t("game.card")} ${
+                    `${t(
+                      "game.card"
+                    )} ${
                       index + 1
                     }`}
                 </span>
 
+
                 {isMyWinningCard && (
+
                   <small>
                     {t("game.you")}
                   </small>
+
                 )}
 
               </button>
+
             );
+
           }
         )}
 
     </div>
 
 
-    {publicWinners.length > 4 && (
+    {/* REVEAL PROGRESS */}
 
-      <button
-        type="button"
+    {visibleFinalWinnerCount <
+      publicWinners.length && (
 
-        className="bingo-show-more-button"
+      <div className="bingo-final-winner-reveal-status">
 
-        onClick={() =>
-          setShowAllWinnerCards(
-            (current) =>
-              !current
-          )
-        }
-      >
+        Showing winner{" "}
+        {visibleFinalWinnerCount}
+        {" of "}
+        {publicWinners.length}
 
-        {showAllWinnerCards
-          ? t("game.showLess")
-          : `${t(
-              "game.showMore"
-            )} (${
-              publicWinners.length -
-              4
-            })`
-        }
-
-      </button>
+      </div>
 
     )}
 
   </section>
+
 )}
+
 
 
       {/* =====================================
@@ -4350,16 +5223,19 @@ const handleClaimBingo =
           DIRECTLY BELOW BINGO BOARD
       ====================================== */}
 
-     {(inlineCardsOpen ||
-    isJoined) && (
+   {(inlineCardsOpen ||
+  isJoined) && (
 
-        <section
-          id="bingo-inline-card-selection"
-          className="bingo-inline-card-section"
-        >
-          
+  <section
+    id="bingo-inline-card-selection"
+    className="bingo-inline-card-section"
+  >
 
+    {/* =====================================
+        WINNER CLAIM WINDOW
+    ===================================== */}
 
+        
           {/* ERROR */}
 
           {previewCardsError && (
@@ -4381,19 +5257,147 @@ const handleClaimBingo =
 
 {displayCards.length > 0 && (
 
-  <div
-    className="bingo-inline-card-grid"
-    style={{
-      gridTemplateColumns:
-        `repeat(${gridColumns}, minmax(0, 1fr))`,
-    }}
-  >
+  <>
 
-  {sortedDisplayCards.map(
-  (
-    card,
-    index
-  ) => {
+    {/* =====================================
+        SELECTED CARD ACTIONS
+        SHOW ABOVE CARDS
+    ===================================== */}
+
+   {multiCardSelectEnabled &&
+  selectableCardIds.length > 0 && (
+
+  <div className="bingo-bulk-card-actions">
+
+    {/* SELECTED COUNT */}
+
+    <div className="bingo-bulk-card-count">
+
+      <strong>
+        {markedCardIds.length}
+      </strong>
+
+      <span>
+        selected
+      </span>
+
+    </div>
+
+
+    {/* MARK ALL / UNMARK ALL */}
+
+    <button
+      type="button"
+
+      className="bingo-bulk-join-button"
+
+      onClick={
+        handleToggleMarkAllCards
+      }
+
+      disabled={
+        bulkJoining
+      }
+    >
+
+      {allSelectableCardsMarked
+        ? "Unmark All"
+        : "Mark All"}
+
+    </button>
+
+
+    {/* OTHER ACTIONS ONLY WHEN SOMETHING IS SELECTED */}
+
+    {markedCardIds.length > 0 && (
+      <>
+
+        <button
+          type="button"
+
+          className="bingo-bulk-join-button"
+
+          onClick={
+            handleJoinMarkedCards
+          }
+
+          disabled={
+            bulkJoining ||
+            liveGame?.status !==
+              "waiting"
+          }
+        >
+
+          {bulkJoining
+            ? "Joining..."
+            : "Join Marked"}
+
+        </button>
+
+
+        <button
+          type="button"
+
+          className="bingo-bulk-remove-button"
+
+          onClick={
+            handleRemoveMarkedCards
+          }
+
+          disabled={
+            bulkJoining
+          }
+        >
+
+          Remove Marked
+
+        </button>
+
+
+        <button
+          type="button"
+
+          className="bingo-bulk-clear-button"
+
+          onClick={() =>
+            setMarkedCardIds([])
+          }
+
+          disabled={
+            bulkJoining
+          }
+        >
+
+          Clear
+
+        </button>
+
+      </>
+    )}
+
+  </div>
+
+)}
+
+
+    {/* =====================================
+        CARD GRID
+    ===================================== */}
+
+    <div
+      className="bingo-inline-card-grid"
+      style={{
+        gridTemplateColumns:
+          `repeat(${gridColumns}, minmax(0, 1fr))`,
+      }}
+    >
+
+      {sortedDisplayCards.map(
+        (
+          card,
+          index
+        ) => {
+
 
     const cardId =
       getCardId(card);
@@ -4450,9 +5454,8 @@ const handleClaimBingo =
 
                     {!cardJoined &&
   (
-    liveGame?.status ===
-      "waiting" ||
-    !hasGame
+    liveGame?.status === "waiting" ||
+!hasDisplayGame
   ) && (
 
   <button
@@ -4478,6 +5481,56 @@ const handleClaimBingo =
 ============================= */}
 
 <div className="bingo-inline-card-actions">
+
+  {multiCardSelectEnabled &&
+    !cardJoined &&
+    (
+      liveGame?.status ===
+        "waiting" ||
+      !hasDisplayGame
+    ) && (
+
+    <button
+      type="button"
+
+      className={[
+        "bingo-card-mark-toggle",
+
+        isCardMarked(card)
+          ? "marked"
+          : "",
+      ]
+        .filter(Boolean)
+        .join(" ")}
+
+      onClick={() =>
+        handleToggleCardMark(
+          card
+        )
+      }
+
+      aria-pressed={
+        isCardMarked(card)
+      }
+
+      title={
+        isCardMarked(card)
+          ? "Unmark card"
+          : "Mark card"
+      }
+    >
+
+      <span className="bingo-card-mark-box">
+
+        {isCardMarked(card)
+          ? "✓"
+          : ""}
+
+      </span>
+    </button>
+
+  )}
+
 
   <button
     type="button"
@@ -4554,7 +5607,7 @@ const handleClaimBingo =
   <span className="bingo-confirm-content">
 
     <CircleCheckBig
-      size={22}
+      size={16}
       strokeWidth={3}
     />
 
@@ -4572,7 +5625,7 @@ const handleClaimBingo =
 
   t("game.bingo")
 
-) : !hasGame ? (
+) : !hasDisplayGame ? (
 
   t("game.noGameRunning")
 
@@ -4650,7 +5703,7 @@ const handleClaimBingo =
         <div className="bingo-inline-card-loading-inner">
 
           <LoaderCircle
-            size={30}
+            size={24}
             className="spin"
           />
 
@@ -4666,6 +5719,7 @@ const handleClaimBingo =
   )}
 
             </div>
+            </>
 
           )}
 
@@ -4675,8 +5729,12 @@ const handleClaimBingo =
 className="bingo-inline-card-grid"
 >
           {!previewCardsLoading &&
+  (
+    liveGame?.status === "waiting" ||
+    !hasDisplayGame
+  ) &&
   displayCards.length <
-MAX_CARDS_PER_PLAYER && (
+    MAX_CARDS_PER_PLAYER && (
 
             <button
               type="button"
@@ -4703,12 +5761,6 @@ MAX_CARDS_PER_PLAYER && (
 
 
 
-
-{/* =====================================
-    MY JOINED CARDS
-    INLINE BELOW BINGO BOARD
-===================================== */}
-
      {/* =====================================
     CARD SPEED DIAL
 ===================================== */}
@@ -4726,9 +5778,8 @@ MAX_CARDS_PER_PLAYER && (
   =============================== */}
 
   {(
-  liveGame?.status ===
-    "waiting" ||
-  !hasGame
+  liveGame?.status === "waiting" ||
+!hasDisplayGame
 ) &&
 cards.length <
   MAX_CARDS_PER_PLAYER && (
@@ -5049,11 +6100,6 @@ cards.length <
     {t("game.birr")} ×{" "}
     {cardCount}
   </span>
-
-  <strong className="bingo-card-total">
-  {totalJoinFee}{" "}
-  {t("game.birr")}
-</strong>
 </div>
 
     </div>
@@ -5169,13 +6215,6 @@ cards.length <
         </button>
 
       </div>
-
-
-      {/* BLOCK INFORMATION */}
-
-
-
-      {/* ACTUAL BLOCKED CARD */}
 
       {/* ACTUAL BLOCKED CARD */}
 
@@ -5361,7 +6400,7 @@ cards.length <
 
 )}
 
-     {hasGame && (
+     {hasDisplayGame && (
   <WinningPatternPreview
     open={
       patternPreviewOpen

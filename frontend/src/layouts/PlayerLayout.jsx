@@ -121,6 +121,16 @@ const [
     ) === "false"
 );
 
+const [
+  multiCardSelectEnabled,
+  setMultiCardSelectEnabled,
+] = useState(
+  () =>
+    localStorage.getItem(
+      "bingoMultiCardSelectEnabled"
+    ) === "true"
+);
+
 
 const [
   selectionColor,
@@ -419,23 +429,6 @@ const handleResetMarkedNumbers =
 
   };
 
-const handleSelectMultipleCards =
-  () => {
-
-    setGameSettingsOpen(
-      false
-    );
-
-
-    window.dispatchEvent(
-      new Event(
-        "bingoOpenMultiCardSelect"
-      )
-    );
-
-  };
-
-
 const handleGridColumnsChange =
   (columns) => {
 
@@ -468,7 +461,33 @@ const handleGridColumnsChange =
 
   };
 
+const handleMultiCardSelectToggle =
+  () => {
 
+    const next =
+      !multiCardSelectEnabled;
+
+    setMultiCardSelectEnabled(
+      next
+    );
+
+    localStorage.setItem(
+      "bingoMultiCardSelectEnabled",
+      String(next)
+    );
+
+    window.dispatchEvent(
+      new CustomEvent(
+        "bingoMultiCardSelectChanged",
+        {
+          detail: {
+            enabled: next,
+          },
+        }
+      )
+    );
+
+  };
 const handleAutoCompleteToggle =
   () => {
 
@@ -880,7 +899,7 @@ const formatMoney =
       : "Notifications"
   }
 >
-  <Bell size={20} />
+  <Bell size={18} />
 
   {unreadCount > 0 && (
     <span className="notification-badge">
@@ -908,7 +927,7 @@ const formatMoney =
 >
 
   <Settings
-    size={24}
+    size={18}
   />
 
 </button>
@@ -923,7 +942,7 @@ const formatMoney =
       )
     }
   >
-    <Menu size={22} />
+    <Menu size={18} />
   </button>
 
 </div>
@@ -1042,6 +1061,46 @@ const formatMoney =
           </button>
 
         </div>
+        {/* MULTI CARD SELECT */}
+
+<div className="player-settings-row">
+
+  <div className="player-settings-row-left">
+
+    <Check size={22} />
+
+    <div className="player-settings-row-text">
+
+      <strong>
+        Multi Card Select
+      </strong>
+
+
+    </div>
+
+  </div>
+
+
+  <button
+    type="button"
+    className={`player-settings-toggle ${
+      multiCardSelectEnabled
+        ? "active"
+        : ""
+    }`}
+    onClick={
+      handleMultiCardSelectToggle
+    }
+    aria-pressed={
+      multiCardSelectEnabled
+    }
+  >
+
+    <span />
+
+  </button>
+
+</div>
 
       </section>
 

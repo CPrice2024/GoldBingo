@@ -58,44 +58,70 @@ export const AuthProvider = ({
   };
 
   useEffect(() => {
-    if (!accessToken) {
+  if (!accessToken) {
+    return;
+  }
+
+  try {
+    const payload = JSON.parse(
+      atob(
+        accessToken.split(".")[1]
+      )
+    );
+
+
+    /*
+     * No exp means this is a
+     * persistent player token.
+     *
+     * Do not automatically logout.
+     */
+    if (!payload.exp) {
       return;
     }
 
-    try {
-      const payload = JSON.parse(
-        atob(accessToken.split(".")[1])
-      );
 
-      const expiresAt =
-        payload.exp * 1000;
+    /*
+     * Admin / Agent tokens
+     * still expire normally.
+     */
+    const expiresAt =
+      Number(payload.exp) * 1000;
 
-      const remaining =
-        expiresAt - Date.now();
+    const remaining =
+      expiresAt - Date.now();
 
-      if (remaining <= 0) {
-        logout();
-        return;
-      }
 
-      const timer = setTimeout(
+    if (remaining <= 0) {
+      logout();
+      return;
+    }
+
+
+    const timer =
+      setTimeout(
         () => {
           logout();
         },
         remaining
       );
 
-      return () =>
-        clearTimeout(timer);
-    } catch (error) {
-      console.error(
-        "Invalid access token:",
-        error
-      );
 
-      logout();
-    }
-  }, [accessToken]);
+    return () => {
+      clearTimeout(timer);
+    };
+
+  } catch (error) {
+
+    console.error(
+      "Invalid access token:",
+      error
+    );
+
+    logout();
+  }
+
+}, [accessToken]);
 
   return (
     <AuthContext.Provider

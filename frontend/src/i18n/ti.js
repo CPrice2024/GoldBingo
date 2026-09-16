@@ -348,7 +348,7 @@ deposit: {
 
   depositFunds: "ገንዘብ ምእታው",
   depositDescription:
-    "ናብ ዝተመደበልካ ኤጀንት ናይ ገንዘብ ምእታው ሕቶ ስደድ።",
+    "ናይ ገንዘብ ምእታው ሕቶ ስደድ።",
 
   amount: "መጠን",
   enterAmount: "መጠን ኣእቱ",
