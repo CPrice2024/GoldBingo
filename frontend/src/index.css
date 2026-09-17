@@ -2392,7 +2392,7 @@ html[data-theme="day"]
 .card-title h2 {
   margin: 0 0 5px;
 
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 700;
   color: #f8fafc;
 }
@@ -3380,7 +3380,7 @@ html[data-theme="day"]
   }
 
   .card-title h2 {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .deposit-row {
@@ -12387,7 +12387,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .transaction-filters button.active {
-  background: #c3c3c3;
+  background: #cacfff;
   color: #101010;
 }
 
@@ -13717,7 +13717,7 @@ form > input:-webkit-autofill:focus {
 
   .player-profile-card-title strong {
     color: #22252d;
-        font-size: 16px;
+        font-size: 14px;
         font-family: math;
   }
 
@@ -13732,7 +13732,7 @@ form > input:-webkit-autofill:focus {
   .player-profile-section-title span {
     color: #74777d;
 
-    font-size: 14px;
+    font-size: 12px;
 
     font-weight: 700;
   }
@@ -13840,7 +13840,7 @@ form > input:-webkit-autofill:focus {
 
     color: #24272d;
 
-    font-size: 14px;
+    font-size: 12px;
   }
 
 
@@ -14060,7 +14060,7 @@ form > input:-webkit-autofill:focus {
         color: #008f22;
         font-family: revert-layer;
         font-size: 12px;
-        font-weight: 700;
+        font-weight: 600;
         white-space: nowrap;
   }
 

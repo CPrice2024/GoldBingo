@@ -288,15 +288,6 @@ if (numericAmount > withdrawableWinningBalance) {
       {/* Header */}
       <div className="page-header">
         <MobileBackHeader title="Withdrawal" />
-        <button
-          type="button"
-          className="refresh-btn"
-          onClick={loadData}
-          disabled={loading}
-        >
-          <RefreshCw size={17} />
-          {t("common.refresh")}
-        </button>
       </div>
 
       {/* Alerts */}

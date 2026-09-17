@@ -1401,15 +1401,7 @@ const formatMoney =
 
   <div className="player-settings-color-control">
 
-    <span
-      className="player-settings-color-preview"
-      style={{
-        background:
-          SELECTION_COLORS[
-            selectionColor
-          ],
-      }}
-    />
+    
 
 
     <div className="player-profile-dropdown game-settings-dropdown">

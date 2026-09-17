@@ -808,22 +808,6 @@ if (!selectedPaymentAccount) {
     <div className="player-page deposit-page">
       <div className="page-header">
         <MobileBackHeader title="Deposit" />
-
-        <button
-          type="button"
-          className="refresh-btn"
-          onClick={() => {
-  loadDeposits();
-  loadPaymentSettings();
-}}
-          disabled={loading}
-        >
-          <RefreshCw
-            size={17}
-            className={loading ? "spin" : ""}
-          />
-          {t("common.refresh")}
-        </button>
       </div>
 
       <div className="deposit-layout">

@@ -248,25 +248,6 @@ function Transactions() {
     <div className="player-page transactions-page">
       <div className="page-header">
         <MobileBackHeader title="Transactions" />
-
-        <button
-          className="refresh-btn"
-          onClick={() => loadTransactions(true)}
-          disabled={refreshing}
-        >
-          <RefreshCw
-            size={17}
-            className={
-              refreshing
-                ? "refresh-spinning"
-                : ""
-            }
-          />
-
-          {refreshing
-  ? t("transactions.refreshing")
-  : t("common.refresh")}
-        </button>
       </div>
 
       <div className="transaction-summary">
