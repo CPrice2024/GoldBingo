@@ -3912,11 +3912,6 @@ html[data-theme="day"]
 .bingo-cell.bingo-cell-waiting-mark {
   cursor: pointer;
 
-  outline:
-    2px solid
-    rgba(212, 167, 44, 0.45);
-
-  outline-offset: -2px;
 }
 
 
@@ -6148,6 +6143,8 @@ html[data-theme="day"]
 
   color: #e6eaf0;
 
+  border: 1px solid
+    rgba(212, 167, 44, 0.3);
   font-size: 10px;
   font-weight: 800;
 
@@ -9068,19 +9065,55 @@ top: 93% !important;
 }
 
 .bingo-called-count {
-  min-width: 58px;
-  padding: 6px 10px;
+ min-width: 58px;
+    padding: 2px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: ui-monospace;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.bingo-blocked-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
 
+.bingo-blocked-count-card {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
 
-  border-radius: 8px;
+  min-height: 42px;
 
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
+  cursor: pointer;
+}
 
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+.bingo-blocked-count-card strong {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.bingo-blocked-count-card small {
+  font-size: 10px;
+  opacity: 0.7;
+}
+@media (max-width: 600px) {
+  .bingo-blocked-summary-grid {
+    grid-template-columns:
+      repeat(4, minmax(0, 1fr));
+
+    gap: 5px;
+  }
+
+  .bingo-blocked-summary-grid
+    .bingo-winner-card-button {
+    padding: 6px 4px;
+    font-size: 11px;
+  }
 }

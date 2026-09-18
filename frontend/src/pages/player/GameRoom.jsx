@@ -5308,117 +5308,145 @@ const handleClaimBingo =
     "
   >
 
-    <div className="bingo-winner-grid">
+    <div className="bingo-winner-grid bingo-blocked-summary-grid">
 
-      {blockedCards
-        .slice(
-          0,
-          showAllBlockedCards
-            ? blockedCards.length
-            : 4
-        )
-        .map(
-          (
-            blocked,
-            index
-          ) => {
+  {blockedCards
+    .slice(
+      0,
+      showAllBlockedCards
+        ? blockedCards.length
+        : 3
+    )
+    .map(
+      (
+        blocked,
+        index
+      ) => {
 
-            const isMyBlockedCard =
-              String(
-                blocked?.gamePlayerId
-              ) ===
-              String(
-                gamePlayer?._id
-              );
+        const isMyBlockedCard =
+          String(
+            blocked?.gamePlayerId
+          ) ===
+          String(
+            gamePlayer?._id
+          );
 
-            return (
+        return (
 
-              <button
-                type="button"
+          <button
+            type="button"
 
-                key={
-                  blocked?.card?._id ||
-                  blocked?.card?.id ||
-                  `${blocked?.gamePlayerId}-${index}`
-                }
+            key={
+              blocked?.card?._id ||
+              blocked?.card?.id ||
+              `${blocked?.gamePlayerId}-${index}`
+            }
 
-                className={[
-                  "bingo-winner-card-button",
-                  "bingo-blocked-card-button",
+            className={[
+              "bingo-winner-card-button",
+              "bingo-blocked-card-button",
 
-                  isMyBlockedCard
-                    ? "mine"
-                    : "",
-                ]
-                  .filter(Boolean)
-                  .join(" ")}
+              isMyBlockedCard
+                ? "mine"
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" ")}
 
-                onClick={() =>
-                  setSelectedBlockedCard(
-                    blocked
-                  )
-                }
-              >
+            onClick={() =>
+              setSelectedBlockedCard(
+                blocked
+              )
+            }
+          >
 
-                <AlertCircle
-                  size={14}
-                />
+            <AlertCircle
+              size={14}
+            />
 
-                <span>
-                  {blocked?.card
-                    ?.cardNumber ||
-                    `${t(
-                      "game.card"
-                    )} ${
-                      index + 1
-                    }`}
-                </span>
+            <span>
+              {blocked?.card
+                ?.cardNumber ||
+                `${t(
+                  "game.card"
+                )} ${
+                  index + 1
+                }`}
+            </span>
 
-                {isMyBlockedCard && (
+            {isMyBlockedCard && (
 
-                  <small>
-                    {t("game.you")}
-                  </small>
+              <small>
+                {t("game.you")}
+              </small>
 
-                )}
+            )}
 
-              </button>
+          </button>
 
-            );
-          }
-        )}
-
-    </div>
+        );
+      }
+    )}
 
 
-    {blockedCards.length > 4 && (
+  {!showAllBlockedCards &&
+    blockedCards.length > 3 && (
 
       <button
         type="button"
 
-        className="bingo-show-more-button"
+        className="
+          bingo-winner-card-button
+          bingo-blocked-count-card
+        "
 
         onClick={() =>
           setShowAllBlockedCards(
-            (current) =>
-              !current
+            true
           )
         }
       >
 
-        {showAllBlockedCards
-          ? t("game.showLess")
-          : `${t(
-              "game.showMore"
-            )} (${
-              blockedCards.length -
-              4
-            })`
-        }
+        <AlertCircle
+          size={15}
+        />
+
+        <strong>
+          +
+          {blockedCards.length - 3}
+        </strong>
+
+        <small>
+          Blocked
+        </small>
 
       </button>
 
     )}
+
+</div>
+
+
+   {showAllBlockedCards &&
+  blockedCards.length > 3 && (
+
+    <button
+      type="button"
+
+      className="bingo-show-more-button"
+
+      onClick={() =>
+        setShowAllBlockedCards(
+          false
+        )
+      }
+    >
+
+      {t("game.showLess")}
+
+    </button>
+
+)}
 
   </section>
 
