@@ -4759,7 +4759,7 @@ const handleClaimBingo =
       <div className="bingo-history-header-actions">
 
   <div className="bingo-called-count">
-    Called: {calledNumbers.length}
+    Called {calledNumbers.length}
   </div>
 
   <button
