@@ -1749,12 +1749,7 @@ span {
   padding:
     5px 7px 5px 9px;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgb(223, 14, 3),
-      #e94504
-    );
+      background: linear-gradient(135deg, rgb(255 0 0), #ff3d00);
 
   color:
     #ffffff;
@@ -7867,7 +7862,7 @@ top: 93% !important;
 .bingo-claim-button.bingo-button-blocked,
 .bingo-card-actions
 .bingo-claim-button.bingo-button-blocked {
-    background: linear-gradient(135deg, #0e05d79e, #5500e29c);
+      background: linear-gradient(135deg, rgb(255 0 0), #ff3d00);
 
   border-color:
     rgba(
