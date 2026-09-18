@@ -1,22 +1,16 @@
 import mongoose from "mongoose";
+
 export type GamePlayerStatus =
   | "active"
   | "won"
   | "lost"
   | "cancelled";
 
-  export interface IBlockedCardClaim {
-  cardId:
-    mongoose.Types.ObjectId;
-
-  calledNumber:
-    number | null;
-
-  blockedAt:
-    Date;
-
-  reason:
-    string;
+export interface IBlockedCardClaim {
+  cardId: mongoose.Types.ObjectId;
+  calledNumber: number | null;
+  blockedAt: Date;
+  reason: string;
 }
 
 export interface IGamePlayer {
@@ -30,38 +24,39 @@ export interface IGamePlayer {
 
   joinedAt: Date;
 
+  // Cards owned by player
   cardId?: string;
-
   cardIds: string[];
-
   cardCount: number;
+
+  // OLD single winner field
+  // Keep temporarily for backward compatibility
   winningCardId?: string;
 
-winningPattern?: string;
+  // NEW: player can win with multiple cards
+  winningCardIds?: mongoose.Types.ObjectId[];
 
-bingoClaimedAt?:
-  Date | null;
+  winningPattern?: string;
 
-bingoBlocked?:
-  boolean;
+  bingoClaimedAt?: Date | null;
 
-blockedAt?:
-  Date | null;
+  // OLD player-level block
+  // Keep temporarily
+  bingoBlocked?: boolean;
 
-blockedReason?:
-  string | null;
+  blockedAt?: Date | null;
 
-blockedCardIds?:
-  mongoose.Types.ObjectId[];
+  blockedReason?: string | null;
 
-  blockedCardClaims?:
-  IBlockedCardClaim[];
+  // Card-level blocked cards
+  blockedCardIds?: mongoose.Types.ObjectId[];
 
-wonAt?: Date;
+  blockedCardClaims?: IBlockedCardClaim[];
+
+  wonAt?: Date;
 
   prizeAmount: number;
 
   createdAt: Date;
-
   updatedAt: Date;
 }

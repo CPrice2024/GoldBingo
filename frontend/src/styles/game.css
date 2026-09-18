@@ -1224,12 +1224,7 @@ html[data-theme="day"]
 
   border-radius: 50%;
 
-  background:
-    linear-gradient(
-      135deg,
-      #e4bb4b,
-      #b88916
-    );
+ background: linear-gradient(135deg, #f38d00, #e7a400);
 
   color: #111827 !important;
 
@@ -1716,7 +1711,7 @@ span {
 
   border:
     2px solid
-    #7027c9;
+    #c92727;
 
   border-radius:
     8px;
@@ -1757,8 +1752,8 @@ span {
   background:
     linear-gradient(
       135deg,
-      #6e16d9,
-      #891fe0
+      rgb(223, 14, 3),
+      #e94504
     );
 
   color:
@@ -5401,7 +5396,7 @@ html[data-theme="day"]
    ========================================================= */
 
 html[data-theme="day"] .bingo-mobile-page {
-  background: #f4f7fb;
+  background: #ffffff;
   color: #0f172a;
 }
 
@@ -7805,7 +7800,7 @@ top: 93% !important;
     padding: 8px 16px;
     border: 1px solid rgba(212, 167, 44, 0.7);
     border-radius: 12px;
-    background: linear-gradient(135deg, #5305d7, #6e00e2);
+       background: linear-gradient(135deg, #c10000, #e24f00);
     color: #ffffff;
     font-size: 14px;
     font-family: monospace;
@@ -9069,4 +9064,28 @@ top: 93% !important;
   .bingo-bulk-card-count {
     width: 100%;
   }
+}
+
+.bingo-history-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bingo-called-count {
+  min-width: 58px;
+  padding: 6px 10px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 8px;
+
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }

@@ -17,6 +17,7 @@ export interface IGamePlayerDocument
   | "cardId"
   | "cardIds"
   | "winningCardId"
+  | "winningCardIds"
   | "blockedCardIds"
   | "blockedCardClaims"
 >,
@@ -32,6 +33,10 @@ export interface IGamePlayerDocument
   cardId?:
     | mongoose.Types.ObjectId
     | null;
+
+  // Multiple winning cards
+winningCardIds:
+  mongoose.Types.ObjectId[];
 
   // Current multiple cards
   cardIds:
@@ -250,11 +255,21 @@ const gamePlayerSchema =
   index: true,
 },
 
+// NEW: One player can win with multiple cards
+winningCardIds: {
+  type: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Card",
+    },
+  ],
+  default: [],
+},
+
 winningPattern: {
   type: String,
   default: null,
 },
-
 wonAt: {
   type: Date,
   default: null,

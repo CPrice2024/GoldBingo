@@ -650,6 +650,30 @@ if (
           });
       }
 
+      /* =========================================
+   THIS CARD ALREADY WON
+========================================= */
+
+if (
+  result.status ===
+  "WINNER_ALREADY"
+) {
+  return res
+    .status(409)
+    .json({
+      success: false,
+
+      code:
+        "CARD_ALREADY_WINNER",
+
+      message:
+        result.message,
+
+      data:
+        result,
+    });
+}
+
 
       /*
        * =========================================

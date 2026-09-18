@@ -145,6 +145,11 @@ const [
 ] = useState([]);
 
 const [
+  practiceMarkedNumbers,
+  setPracticeMarkedNumbers,
+] = useState({});
+
+const [
   multiCardSelectEnabled,
   setMultiCardSelectEnabled,
 ] = useState(
@@ -185,7 +190,67 @@ const [
 const [
   selectedPreviewCards,
   setSelectedPreviewCards,
-] = useState([]);
+] = useState(() => {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        "bingoHeldCards"
+      );
+
+    if (!saved) {
+      return [];
+    }
+
+    const parsed =
+      JSON.parse(saved);
+
+    return Array.isArray(
+      parsed
+    )
+      ? parsed
+      : [];
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load held cards:",
+      error
+    );
+
+    return [];
+  }
+
+});
+
+/* =========================================
+   SAVE HELD CARDS
+========================================= */
+
+useEffect(() => {
+
+  try {
+
+    localStorage.setItem(
+      "bingoHeldCards",
+      JSON.stringify(
+        selectedPreviewCards
+      )
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Failed to save held cards:",
+      error
+    );
+
+  }
+
+}, [
+  selectedPreviewCards,
+]);
 
 
 const [
@@ -198,10 +263,6 @@ const [
   setLoadingCardCount,
 ] = useState(0);
 
-const [
-  bingoConfirmed,
-  setBingoConfirmed,
-] = useState(false);
 
 
 const [
@@ -1052,7 +1113,7 @@ socket.on(
     }
 
     console.log(
-      "🏆 BINGO WINNER:",
+      "🏆 WINNER:",
       payload
     );
 
@@ -1089,15 +1150,23 @@ socket.on(
 ]);
 
 useEffect(() => {
-  setCardCount(1);
- setBingoConfirmed(false);
+  setGame(
+  null
+);
+
+setGameState(
+  null
+);
+
+setGamePlayer(
+  null
+);
 setConfirmedCardId(null);
 setJoiningCardId(null);
 setClaimingCardId(null);
 setShowAllBlockedCards(false);
 setShowAllWinnerCards(false);
 setShowLastCalled(false);
-setSelectedPreviewCards([]);
 setAvailablePreviewCards([]);
 
 setInlineCardsOpen(false);
@@ -1117,6 +1186,9 @@ setPreviewCardsError("");
   setCardNotification("");
 
   setMarkedNumbers([]);
+  setPracticeMarkedNumbers(
+  {}
+);
 
   setSelectedWinner(null);
   setSelectedBlockedCard(null);
@@ -1127,12 +1199,14 @@ setVisibleFinalWinnerCount(0);
 setMarkedCardIds([]);
 setBulkJoining(false);
 
+
   previousCalledCountRef.current =
     null;
 }, [gameId]);
 
+
 /* =========================================
-   CLEAR CARDS AFTER GAME COMPLETES
+   HOLD CARDS AFTER GAME COMPLETES
 ========================================= */
 
 useEffect(() => {
@@ -1150,24 +1224,103 @@ useEffect(() => {
   }
 
 
+  /* =====================================
+     KEEP FINISHED GAME CARDS AS HELD
+  ====================================== */
+
+  const finishedCards =
+    Array.isArray(
+      gamePlayer?.cardIds
+    ) &&
+    gamePlayer.cardIds.length > 0
+      ? gamePlayer.cardIds
+      : gamePlayer?.cardId
+      ? [
+          gamePlayer.cardId,
+        ]
+      : [];
+
+
+  if (
+    finishedCards.length > 0
+  ) {
+
+    setSelectedPreviewCards(
+      (current) => {
+
+        const merged = [
+          ...current,
+        ];
+
+
+        const existingIds =
+          new Set(
+            merged.map(
+              (card) =>
+                String(
+                  card?._id ??
+                  card?.id ??
+                  ""
+                )
+            )
+          );
+
+
+        finishedCards.forEach(
+          (card) => {
+
+            const id =
+              String(
+                card?._id ??
+                card?.id ??
+                ""
+              );
+
+
+            if (
+              id &&
+              !existingIds.has(
+                id
+              )
+            ) {
+
+              merged.push(
+                card
+              );
+
+              existingIds.add(
+                id
+              );
+            }
+
+          }
+        );
+
+
+        setCardCount(
+          merged.length
+        );
+
+
+        return merged;
+      }
+    );
+
+  }
+
+
   /*
-   * Remove cards held / previewed
-   * for the finished game.
+   * Old available-card pool
+   * can be cleared.
    */
-
-  setSelectedPreviewCards(
-    []
-  );
-
   setAvailablePreviewCards(
     []
   );
 
 
   /*
-   * Close card selection UI.
+   * Close temporary selection UI.
    */
-
   setInlineCardsOpen(
     false
   );
@@ -1181,10 +1334,6 @@ useEffect(() => {
   );
 
 
-  /*
-   * Reset loading / errors.
-   */
-
   setPreviewCardsLoading(
     false
   );
@@ -1196,16 +1345,14 @@ useEffect(() => {
   setPreviewCardsError(
     ""
   );
-
-
-  setCardCount(
-    1
-  );
+ 
 
 }, [
   gameState?.game?.status,
   game?.status,
+  gamePlayer,
 ]);
+
   /* =========================================
      CALLED NUMBERS
   ========================================= */
@@ -1243,7 +1390,7 @@ const hasGame =
       "active"
   );
 
-  const hasDisplayGame =
+const hasDisplayGame =
   Boolean(
     rawLiveGame?._id
   ) &&
@@ -1265,7 +1412,8 @@ const hasGame =
 ========================================= */
 
 const calledNumbers =
-  hasDisplayGame
+  hasDisplayGame &&
+  !finishedGameCleared
     ? (
         gameState?.game
           ?.calledNumbers ??
@@ -1619,46 +1767,88 @@ const finalResultsReady =
 const handleGameRefresh =
   async () => {
 
-    /*
-     * Finished game:
-     * clear the retained result
-     * from this player's screen.
-     */
     if (finalResultsReady) {
+
+      /*
+       * Keep held cards.
+       * Only clear old game markings/info.
+       */
 
       setFinishedGameCleared(
         true
       );
 
-      setShowLastCalled(false);
+      setMarkedNumbers(
+        []
+      );
+
+      setMarkedCardIds(
+        []
+      );
+
+      setConfirmedCardId(
+        null
+      );
+
+      setCardNotification(
+        ""
+      );
+
+      setMessage(
+        ""
+      );
+
+      setError(
+        ""
+      );
+
+      setShowLastCalled(
+        false
+      );
 
       setPatternPreviewOpen(
         false
       );
 
-      setSelectedWinner(null);
+      setSelectedWinner(
+        null
+      );
 
       setSelectedBlockedCard(
         null
       );
 
-      setInlineCardsOpen(false);
+      setBlockedPlayers(
+        []
+      );
 
-      setCardMenuOpen(false);
+      setBlockedCards(
+        []
+      );
 
-      setCardOpen(false);
+      setPublicWinners(
+        []
+      );
 
-      setMarkedNumbers([]);
+      setShowAllWinnerCards(
+        false
+      );
+
+      setShowAllBlockedCards(
+        false
+      );
+
+      setVisibleFinalWinnerCount(
+        0
+      );
 
       return;
     }
 
 
-    /*
-     * Waiting / active game:
-     * normal server refresh.
-     */
-    await fetchGame(true);
+    await fetchGame(
+      true
+    );
   };
 
 const showFinalWinnerList =
@@ -2031,15 +2221,6 @@ useEffect(() => {
 ) {
   return;
 }
-if (
-  !finishedGameCleared &&
-  finalResultsReady &&
-  publicWinners.length > 0 &&
-  visibleFinalWinnerCount <
-    publicWinners.length
-) {
-  return;
-}
 
         /*
          * NEW GAME CREATED:
@@ -2119,11 +2300,6 @@ if (
   gameId,
   loading,
   navigate,
-  fetchGame,
-  finalResultsReady,
-  finishedGameCleared,
-  visibleFinalWinnerCount,
-  publicWinners.length,
 ]);
 
   /* =========================================
@@ -2161,7 +2337,63 @@ if (
     []
   );
 
-  const handleMainCardButton = () => {
+ const handleMainCardButton = () => {
+
+  /*
+   * WAITING GAME:
+   * floating + must always open
+   * the 1 / 2 / 3 / 5 / 10 menu,
+   * even when held cards already exist.
+   */
+  if (
+    liveGame?.status ===
+      "waiting"
+  ) {
+
+    setCardMenuOpen(
+      (current) =>
+        !current
+    );
+
+    return;
+  }
+
+
+  /*
+   * HELD CARDS:
+   * outside a waiting game,
+   * just show existing held cards.
+   */
+  if (
+    selectedPreviewCards.length > 0 &&
+    !isJoined
+  ) {
+
+    setInlineCardsOpen(
+      true
+    );
+
+    setTimeout(
+      () => {
+
+        document
+          .getElementById(
+            "bingo-inline-card-selection"
+          )
+          ?.scrollIntoView({
+            behavior:
+              "smooth",
+
+            block:
+              "start",
+          });
+
+      },
+      0
+    );
+
+    return;
+  }
 
   /*
    * COMPLETED GAME:
@@ -2537,14 +2769,18 @@ const handleAddPreviewCard =
 
 const cards =
   hasDisplayGame &&
+  !finishedGameCleared &&
   Array.isArray(
     gamePlayer?.cardIds
   ) &&
   gamePlayer.cardIds.length > 0
     ? gamePlayer.cardIds
     : hasDisplayGame &&
+      !finishedGameCleared &&
       gamePlayer?.cardId
-    ? [gamePlayer.cardId]
+    ? [
+        gamePlayer.cardId,
+      ]
     : [];
 
 const isJoined =
@@ -2699,24 +2935,75 @@ const isCardWinner = (
   card
 ) => {
 
-    const winningCardId =
-      gamePlayer?.winningCardId?._id ??
-      gamePlayer?.winningCardId ??
-      confirmedCardId;
+  const cardId =
+    getCardId(card);
 
-    if (!winningCardId) {
-      return false;
-    }
+  if (!cardId) {
+    return false;
+  }
 
-    return (
-      String(
-        winningCardId
-      ) ===
-      getCardId(card)
+
+  /*
+   * NEW MULTI-CARD WINNERS
+   */
+  const winningCardIds =
+    Array.isArray(
+      gamePlayer?.winningCardIds
+    )
+      ? gamePlayer.winningCardIds
+      : [];
+
+
+  const foundInWinningCards =
+    winningCardIds.some(
+      (winningCard) =>
+        String(
+          winningCard?._id ??
+          winningCard
+        ) === cardId
     );
 
-  };
 
+  if (foundInWinningCards) {
+    return true;
+  }
+
+
+  /*
+   * LEGACY SINGLE WINNER
+   */
+  const legacyWinningCardId =
+    gamePlayer?.winningCardId?._id ??
+    gamePlayer?.winningCardId ??
+    null;
+
+
+  if (
+    legacyWinningCardId &&
+    String(
+      legacyWinningCardId
+    ) === cardId
+  ) {
+    return true;
+  }
+
+
+  /*
+   * Immediate local UI update
+   * before fetchGame finishes.
+   */
+  if (
+    confirmedCardId &&
+    String(
+      confirmedCardId
+    ) === cardId
+  ) {
+    return true;
+  }
+
+
+  return false;
+};
 
 /* =========================================
    DISPLAY CARDS
@@ -3731,8 +4018,9 @@ const sortedDisplayCards =
 
 const selectableCardIds =
   (
-    liveGame?.status === "waiting" ||
-    !hasDisplayGame
+    liveGame?.status ===
+      "waiting" &&
+    !finishedGameCleared
   )
     ? sortedDisplayCards
         .filter(
@@ -3925,8 +4213,6 @@ const handleJoinMarkedCards =
  * toolbar disappears.
  */
 setMarkedCardIds([]);
-setMarkedCardIds([]);
-
 await fetchGame(true);
 
 
@@ -3937,29 +4223,6 @@ await fetchGame(true);
     }
 
   };
-
-
-/* =========================================
-   MY ACCEPTED BINGO STATUS
-========================================= */
-
-useEffect(() => {
-
-  setBingoConfirmed(
-    gamePlayer?.status ===
-      "won"
-  );
-
-}, [
-  gamePlayer?.status,
-]);
-
-
-
-const totalJoinFee =
-  Number(
-    game?.entryFee || 0
-  ) * cardCount;
 
   /* =========================================
    JOIN ONE CARD
@@ -4106,7 +4369,68 @@ const handleCardNumberClick = (
   );
 };
 
+/* =========================================
+   PRACTICE MARKING FOR UNJOINED CARDS
+========================================= */
 
+const handlePracticeCardNumberClick = (
+  card,
+  number
+) => {
+
+  const cardId =
+    getCardId(card);
+
+  const numericNumber =
+    Number(number);
+
+  if (
+    !cardId ||
+    !Number.isFinite(
+      numericNumber
+    )
+  ) {
+    return;
+  }
+
+
+  setPracticeMarkedNumbers(
+    (current) => {
+
+      const currentCardMarks =
+        Array.isArray(
+          current[cardId]
+        )
+          ? current[cardId]
+          : [];
+
+
+      const nextCardMarks =
+        currentCardMarks.includes(
+          numericNumber
+        )
+          ? currentCardMarks.filter(
+              (item) =>
+                item !==
+                numericNumber
+            )
+          : [
+              ...currentCardMarks,
+              numericNumber,
+            ];
+
+
+      return {
+        ...current,
+
+        [cardId]:
+          nextCardMarks,
+      };
+
+    }
+  );
+
+};
 
 /* =========================================
    CLAIM BINGO FOR ONE CARD
@@ -4148,18 +4472,6 @@ const handleClaimBingo =
 
       setCardNotification(
         `Card ${card.cardNumber} is blocked from claiming Bingo.`
-      );
-
-      return;
-    }
-
-
-    if (
-      bingoConfirmed
-    ) {
-
-      setCardNotification(
-        "Your Bingo has already been accepted."
       );
 
       return;
@@ -4245,16 +4557,6 @@ const handleClaimBingo =
             cardId
         );
 
-
-        /*
-         * One player can only become
-         * one accepted winner.
-         */
-        setBingoConfirmed(
-          true
-        );
-
-
         const claimAudio =
           claimSoundRef.current;
 
@@ -4338,6 +4640,23 @@ const handleClaimBingo =
 
         return;
       }
+      if (
+  backendResponse?.code ===
+  "CARD_ALREADY_WINNER"
+) {
+
+  setCardNotification(
+    backendResponse?.message ||
+    `Card ${card.cardNumber} is already a winner.`
+  );
+
+
+  await fetchGame(
+    true
+  );
+
+  return;
+}
 
 
       if (
@@ -4437,22 +4756,30 @@ const handleClaimBingo =
       </div>
 
 
-      <button
-        type="button"
-        className="bingo-card-last-called-toggle"
-        onClick={() =>
-          setShowLastCalled(
-            (current) =>
-              !current
-          )
-        }
-      >
+      <div className="bingo-history-header-actions">
 
-        {showLastCalled
-  ? t("game.hide")
-  : t("game.show")}
+  <div className="bingo-called-count">
+    Called: {calledNumbers.length}
+  </div>
 
-      </button>
+  <button
+    type="button"
+    className="bingo-card-last-called-toggle"
+    onClick={() =>
+      setShowLastCalled(
+        (current) =>
+          !current
+      )
+    }
+  >
+
+    {showLastCalled
+      ? t("game.hide")
+      : t("game.show")}
+
+  </button>
+
+</div>
 
     </div>
 
@@ -5223,8 +5550,11 @@ const handleClaimBingo =
           DIRECTLY BELOW BINGO BOARD
       ====================================== */}
 
-   {(inlineCardsOpen ||
-  isJoined) && (
+   {(
+  inlineCardsOpen ||
+  isJoined ||
+  selectedPreviewCards.length > 0
+) && (
 
   <section
     id="bingo-inline-card-selection"
@@ -5454,8 +5784,15 @@ const handleClaimBingo =
 
                     {!cardJoined &&
   (
-    liveGame?.status === "waiting" ||
-!hasDisplayGame
+    liveGame?.status ===
+      "waiting" ||
+
+    liveGame?.status ===
+      "completed" ||
+
+    finishedGameCleared ||
+
+    !hasDisplayGame
   ) && (
 
   <button
@@ -5483,12 +5820,10 @@ const handleClaimBingo =
 <div className="bingo-inline-card-actions">
 
   {multiCardSelectEnabled &&
-    !cardJoined &&
-    (
-      liveGame?.status ===
-        "waiting" ||
-      !hasDisplayGame
-    ) && (
+  !cardJoined &&
+  liveGame?.status ===
+    "waiting" &&
+  !finishedGameCleared && (
 
     <button
       type="button"
@@ -5582,15 +5917,14 @@ const handleClaimBingo =
       ) ||
 
       (
-        cardJoined &&
-        (
-          liveGame?.status !==
-            "active" ||
-          cardBlocked ||
-          cardWinner ||
-          bingoConfirmed
-        )
-      )
+  cardJoined &&
+  (
+    liveGame?.status !==
+      "active" ||
+    cardBlocked ||
+    cardWinner
+  )
+)
     }
   >
 
@@ -5625,9 +5959,13 @@ const handleClaimBingo =
 
   t("game.bingo")
 
+) : finishedGameCleared ? (
+
+  "wait"
+
 ) : !hasDisplayGame ? (
 
-  t("game.noGameRunning")
+  "wait"
 
 ) : (
 
@@ -5658,19 +5996,27 @@ const handleClaimBingo =
   markedNumbers={
     cardJoined
       ? markedNumbers
-      : []
+      : (
+          practiceMarkedNumbers[
+            getCardId(card)
+          ] || []
+        )
   }
 
   manualMarkingEnabled={
     cardJoined
       ? manualMarkingEnabled
-      : false
+      : true
   }
 
   onNumberClick={
     cardJoined
       ? handleCardNumberClick
-      : undefined
+      : (number) =>
+          handlePracticeCardNumberClick(
+            card,
+            number
+          )
   }
 />
 
@@ -5729,10 +6075,9 @@ const handleClaimBingo =
 className="bingo-inline-card-grid"
 >
           {!previewCardsLoading &&
-  (
-    liveGame?.status === "waiting" ||
-    !hasDisplayGame
-  ) &&
+  liveGame?.status ===
+    "waiting" &&
+  !finishedGameCleared &&
   displayCards.length <
     MAX_CARDS_PER_PLAYER && (
 
@@ -5777,12 +6122,10 @@ className="bingo-inline-card-grid"
       1 / 2 / 3 / 5 / 10
   =============================== */}
 
-  {(
-  liveGame?.status === "waiting" ||
-!hasDisplayGame
-) &&
-cards.length <
-  MAX_CARDS_PER_PLAYER && (
+  {liveGame?.status ===
+    "waiting" &&
+  displayCards.length <
+    MAX_CARDS_PER_PLAYER && (
 
       <div className="bingo-card-speed-options">
 
@@ -6030,7 +6373,7 @@ cards.length <
         </div>
 
         <strong>
-  {selectedWinner.prizeAmount || 0}{" "}
+  {displayPrize}{" "}
   {t("game.birr")}
 </strong>
 

@@ -1656,6 +1656,13 @@ const winnerRows =
         "cardNumber numbers",
     })
     .populate({
+  path:
+    "winningCardIds",
+
+  select:
+    "cardNumber numbers",
+})
+    .populate({
       /*
        * Legacy fallback
        */
@@ -1671,71 +1678,194 @@ const winnerRows =
     });
 
 
-const publicWinners =
-  winnerRows
-    .map(
-      (row: any) => {
+/* =========================================
+   ONE PUBLIC RECORD PER WINNING CARD
+========================================= */
 
-        const card =
+const publicWinnerEntries =
+  winnerRows.flatMap(
+    (row: any) => {
+
+      let cards:
+        any[] = [];
+
+
+      /*
+       * New multi-card winners.
+       */
+      if (
+        Array.isArray(
+          row.winningCardIds
+        ) &&
+        row.winningCardIds.length > 0
+      ) {
+
+        cards =
+          row.winningCardIds;
+
+      } else {
+
+        /*
+         * Legacy fallback.
+         */
+        const legacyCard =
           row.winningCardId ||
           row.cardId;
 
-
-        if (!card) {
-          return null;
+        if (legacyCard) {
+          cards = [
+            legacyCard,
+          ];
         }
+      }
 
 
-        return {
-          gamePlayerId:
-            row._id,
+      return cards.map(
+        (card: any) => ({
+          row,
+          card,
+        })
+      );
+    }
+  );
 
-          player: {
-  id:
-    row.playerId?._id ??
-    null,
 
-  fullName:
-    row.playerId
-      ?.fullName ??
-    "Player",
+/* =========================================
+   CALCULATE PRIZE PER WINNING CARD
+========================================= */
 
-  phone:
-    row.playerId
-      ?.phone ??
-    null,
-},
+const publicWinnerCount =
+  publicWinnerEntries.length;
 
-          card: {
-            id:
-              card._id,
 
-            cardNumber:
-              card.cardNumber,
+const publicTotalPrize =
+  Number(
+    game.prizeAmount ??
+    game.prizePool ??
+    0
+  );
 
-            numbers:
-              card.numbers,
-          },
 
-          pattern:
-            row.winningPattern ||
-            game.winningPattern ||
+const publicTotalCents =
+  Math.round(
+    publicTotalPrize * 100
+  );
+
+
+const publicBaseCents =
+  publicWinnerCount > 0
+    ? Math.floor(
+        publicTotalCents /
+        publicWinnerCount
+      )
+    : 0;
+
+
+const publicRemainderCents =
+  publicWinnerCount > 0
+    ? publicTotalCents -
+      publicBaseCents *
+        publicWinnerCount
+    : 0;
+
+
+/* =========================================
+   PUBLIC WINNERS
+========================================= */
+
+const publicWinners =
+  publicWinnerEntries.map(
+    (
+      entry: any,
+      index: number
+    ) => {
+
+      const row =
+        entry.row;
+
+      const card =
+        entry.card;
+
+
+      /*
+       * During claim window payout
+       * is still pending.
+       */
+      const cardPrizeAmount =
+        game.payoutSettledAt
+          ? (
+              publicBaseCents +
+              (
+                index <
+                publicRemainderCents
+                  ? 1
+                  : 0
+              )
+            ) / 100
+          : 0;
+
+
+      return {
+        gamePlayerId:
+          row._id,
+
+        player: {
+          id:
+            row.playerId?._id ??
             null,
 
-          prizeAmount:
-            Number(
-              row.prizeAmount ||
-              0
-            ),
+          fullName:
+            row.playerId
+              ?.fullName ??
+            "Player",
 
-          wonAt:
-            row.wonAt ||
-            row.updatedAt,
-        };
+          phone:
+            row.playerId
+              ?.phone ??
+            null,
+        },
 
-      }
-    )
-    .filter(Boolean);
+        card: {
+          id:
+            card._id,
+
+          cardNumber:
+            card.cardNumber,
+
+          numbers:
+            card.numbers,
+        },
+
+        pattern:
+          row.winningPattern ||
+          game.winningPattern ||
+          null,
+
+        /*
+         * Prize belonging to THIS card.
+         */
+        prizeAmount:
+          cardPrizeAmount,
+
+        /*
+         * Total amount earned by this
+         * player from all winning cards.
+         */
+        playerTotalPrizeAmount:
+          Number(
+            row.prizeAmount ||
+            0
+          ),
+
+        prizePending:
+          !game.payoutSettledAt,
+
+        wonAt:
+          row.wonAt ||
+          row.updatedAt,
+      };
+    }
+  );
 return {
   game: {
     id:
@@ -2094,38 +2224,98 @@ export const finalizeWinnerWindow =
        * Winners were accepted during
        * the 30-second claim window.
        */
-      const winners =
-        await GamePlayer.find({
-          gameId:
-            game._id,
+      const winnerRows =
+  await GamePlayer.find({
+    gameId:
+      game._id,
 
-          status:
-            "won",
+    status:
+      "won",
+  })
+    .sort({
+      wonAt: 1,
+      _id: 1,
+    })
+    .session(
+      session
+    );
+
+
+/* =========================================
+   ONE ENTRY = ONE WINNING CARD
+========================================= */
+
+const winningCardEntries =
+  winnerRows.flatMap(
+    (winner: any) => {
+
+      const cardIds:
+        any[] = [];
+
+
+      /*
+       * New multi-card winners.
+       */
+      if (
+        Array.isArray(
+          winner.winningCardIds
+        ) &&
+        winner.winningCardIds.length > 0
+      ) {
+
+        cardIds.push(
+          ...winner.winningCardIds
+        );
+
+      } else if (
+        winner.winningCardId
+      ) {
+
+        /*
+         * Legacy fallback.
+         */
+        cardIds.push(
+          winner.winningCardId
+        );
+      }
+
+
+      return cardIds.map(
+        (cardId: any) => ({
+          winner,
+
+          cardId:
+            cardId?._id ??
+            cardId,
         })
-          .sort({
-            wonAt: 1,
-            _id: 1,
-          })
-          .session(
-            session
-          );
+      );
+    }
+  )
+  .filter(
+    (entry: any) =>
+      Boolean(
+        entry.cardId
+      )
+  );
 
-      if (
-        winners.length === 0
-      ) {
-        throw new Error(
-          "Cannot finalize game without a winner"
-        );
-      }
 
-      if (
-        winners.length >
-        MAX_GAME_WINNERS
-      ) {
-        throw new Error(
-          `Winner count exceeds maximum of ${MAX_GAME_WINNERS}`
-        );
-      }
+if (
+  winningCardEntries.length === 0
+) {
+  throw new Error(
+    "Cannot finalize game without a winning card"
+  );
+}
+
+
+if (
+  winningCardEntries.length >
+  MAX_GAME_WINNERS
+) {
+  throw new Error(
+    `Winning card count exceeds maximum of ${MAX_GAME_WINNERS}`
+  );
+}
 
       const totalPrize =
         Number(
@@ -2160,129 +2350,216 @@ export const finalizeWinnerWindow =
           totalPrize * 100
         );
 
-      const baseCents =
-        Math.floor(
-          totalCents /
-            winners.length
-        );
+      const totalWinningCards =
+  winningCardEntries.length;
 
-      const remainderCents =
-        totalCents -
-        baseCents *
-          winners.length;
+const baseCents =
+  Math.floor(
+    totalCents /
+      totalWinningCards
+  );
 
 
-      /* =========================================
-         PAY EVERY WINNER
-      ========================================= */
+const remainderCents =
+  totalCents -
+  baseCents *
+    totalWinningCards;
 
-      for (
-        let index = 0;
-        index <
-        winners.length;
-        index++
-      ) {
-        const winner =
-          winners[index];
 
-        const winnerCents =
-          baseCents +
-          (
-            index <
-            remainderCents
-              ? 1
-              : 0
-          );
+   /* =========================================
+   CALCULATE PAYOUT PER PLAYER
 
-        const winnerPrize =
-          winnerCents /
-          100;
+   Prize is divided PER WINNING CARD,
+   then combined for each player's wallet.
+========================================= */
 
-        const wallet =
-          await Wallet.findOne({
-            userId:
-              winner.playerId,
+const payoutByPlayer =
+  new Map<
+    string,
+    {
+      winner: any;
+      totalCents: number;
+      winningCardCount: number;
+    }
+  >();
 
-            status:
-              "active",
-          }).session(
-            session
-          );
 
-        if (!wallet) {
-          throw new Error(
-            `Winner wallet not found for ${winner.playerId}`
-          );
-        }
+for (
+  let index = 0;
+  index <
+  winningCardEntries.length;
+  index++
+) {
 
-        const balanceBefore =
-          Number(
-            wallet.winningBalance ??
-              0
-          );
+  const entry =
+    winningCardEntries[index];
 
-        const balanceAfter =
-          balanceBefore +
-          winnerPrize;
 
-        wallet.winningBalance =
-          balanceAfter;
+  /*
+   * Each winning card receives
+   * one equal prize share.
+   */
+  const cardPrizeCents =
+    baseCents +
+    (
+      index <
+      remainderCents
+        ? 1
+        : 0
+    );
 
-        await wallet.save({
-          session,
-        });
 
-        /*
-         * Prize is assigned only now,
-         * after all winners are known.
-         */
-        winner.prizeAmount =
-          winnerPrize;
+  const playerKey =
+    String(
+      entry.winner._id
+    );
 
-        await winner.save({
-          session,
-        });
 
-        await Transaction.create(
-          [
-            {
-              userId:
-                winner.playerId,
+  const existing =
+    payoutByPlayer.get(
+      playerKey
+    );
 
-              type:
-                "game_win",
 
-              amount:
-                winnerPrize,
+  if (existing) {
 
-              balanceBefore,
+    existing.totalCents +=
+      cardPrizeCents;
 
-              balanceAfter,
+    existing.winningCardCount +=
+      1;
 
-              currency:
-                "ETB",
+  } else {
 
-              status:
-                "completed",
+    payoutByPlayer.set(
+      playerKey,
+      {
+        winner:
+          entry.winner,
 
-              requestId:
-                winner._id,
+        totalCents:
+          cardPrizeCents,
 
-              description:
-                `Prize for ${game.name} - shared between ${winners.length} winner${
-                  winners.length === 1
-                    ? ""
-                    : "s"
-                }`,
-            },
-          ],
-          {
-            session,
-          }
-        );
+        winningCardCount:
+          1,
       }
+    );
+
+  }
+}
 
 
+/* =========================================
+   CREDIT PLAYER WALLETS
+========================================= */
+
+for (
+  const payout of
+  payoutByPlayer.values()
+) {
+
+  const winner =
+    payout.winner;
+
+
+  const winnerPrize =
+    payout.totalCents /
+    100;
+
+
+  const wallet =
+    await Wallet.findOne({
+      userId:
+        winner.playerId,
+
+      status:
+        "active",
+    }).session(
+      session
+    );
+
+
+  if (!wallet) {
+    throw new Error(
+      `Winner wallet not found for ${winner.playerId}`
+    );
+  }
+
+
+  const balanceBefore =
+    Number(
+      wallet.winningBalance ??
+        0
+    );
+
+
+  const balanceAfter =
+    balanceBefore +
+    winnerPrize;
+
+
+  wallet.winningBalance =
+    balanceAfter;
+
+
+  await wallet.save({
+    session,
+  });
+
+
+  /*
+   * prizeAmount now means:
+   *
+   * total prize won by this player
+   * from all winning cards.
+   */
+  winner.prizeAmount =
+    winnerPrize;
+
+
+  await winner.save({
+    session,
+  });
+
+
+  await Transaction.create(
+    [
+      {
+        userId:
+          winner.playerId,
+
+        type:
+          "game_win",
+
+        amount:
+          winnerPrize,
+
+        balanceBefore,
+
+        balanceAfter,
+
+        currency:
+          "ETB",
+
+        status:
+          "completed",
+
+        requestId:
+          winner._id,
+
+        description:
+          `Prize for ${game.name} - ${payout.winningCardCount} winning card${
+            payout.winningCardCount === 1
+              ? ""
+              : "s"
+          } out of ${winningCardEntries.length} total winning cards`,
+      },
+    ],
+    {
+      session,
+    }
+  );
+}
       /* =========================================
          MARK NON-WINNERS LOST
       ========================================= */
@@ -2412,7 +2689,7 @@ export const finalizeWinnerWindow =
         settledAt;
 
       game.winnerCount =
-        winners.length;
+  winningCardEntries.length;
 
       game.payoutSettledAt =
         settledAt;
@@ -2435,20 +2712,20 @@ export const finalizeWinnerWindow =
       );
 
       console.log(
-        `[BINGO] ${game.name} finalized with ${winners.length} winner${
-          winners.length === 1
-            ? ""
-            : "s"
-        }`
-      );
+  `[BINGO] ${game.name} finalized with ${winningCardEntries.length} winning card${
+    winningCardEntries.length === 1
+      ? ""
+      : "s"
+  }`
+);
 
       console.log(
-        `[BINGO] Prize ${totalPrize} ETB divided between ${winners.length} winner${
-          winners.length === 1
-            ? ""
-            : "s"
-        }`
-      );
+  `[BINGO] Prize ${totalPrize} ETB divided between ${winningCardEntries.length} winning card${
+    winningCardEntries.length === 1
+      ? ""
+      : "s"
+  }`
+);
 
       /*
        * Only after settlement is
@@ -2459,13 +2736,13 @@ export const finalizeWinnerWindow =
       );
 
       return {
-        game,
+  game,
 
-        winnerCount:
-          winners.length,
+  winnerCount:
+    winningCardEntries.length,
 
-        totalPrize,
-      };
+  totalPrize,
+};
 
     } catch (error: any) {
 
@@ -2573,12 +2850,12 @@ if (
       );
     }
 
-    if (
-  gamePlayer.status !==
-  "active"
+if (
+  gamePlayer.status !== "active" &&
+  gamePlayer.status !== "won"
 ) {
   throw new Error(
-    "Player is not active in this game"
+    "Player is not eligible to claim Bingo in this game"
   );
 }
 
@@ -2640,7 +2917,48 @@ if (!ownsCard) {
     "This Bingo card does not belong to this player"
   );
 }
+/* =========================================
+   CHECK IF THIS CARD ALREADY WON
+========================================= */
 
+const currentWinningCardIds =
+  Array.isArray(
+    gamePlayer.winningCardIds
+  )
+    ? gamePlayer.winningCardIds
+    : [];
+
+
+const cardAlreadyWon =
+  currentWinningCardIds.some(
+    (winningId: any) =>
+      String(
+        winningId?._id ??
+          winningId
+      ) ===
+      String(cardId)
+  );
+
+
+if (cardAlreadyWon) {
+
+  await session.abortTransaction();
+
+  return {
+    status:
+      "WINNER_ALREADY",
+
+    message:
+      "This Bingo card has already been accepted as a winner.",
+
+    playerId,
+
+    gamePlayerId:
+      gamePlayer._id,
+
+    cardId,
+  };
+}
 
 /* =========================================
    CHECK IF THIS CARD IS ALREADY BLOCKED
@@ -3188,15 +3506,15 @@ if (firstWinner) {
       status:
         "GAME_FINISHED",
 
-      message:
-        "The Bingo winner window is closed or the maximum of 10 winners has been reached.",
+     message:
+  "The Bingo winner window is closed or the maximum of 10 winning cards has been reached.",
     };
   }
 }
 
 
 /* =========================================
-   MARK PLAYER AS WINNER
+   MARK THIS CARD AS WINNER
 ========================================= */
 
 gamePlayer.status =
@@ -3205,8 +3523,60 @@ gamePlayer.status =
 gamePlayer.prizeAmount =
   0;
 
-gamePlayer.winningCardId =
-  card._id;
+
+/*
+ * Store every winning card.
+ */
+const winningIds =
+  Array.isArray(
+    gamePlayer.winningCardIds
+  )
+    ? gamePlayer.winningCardIds
+    : [];
+
+
+const winningCardAlreadyExists =
+  winningIds.some(
+    (winningId: any) =>
+      String(
+        winningId?._id ??
+          winningId
+      ) ===
+      String(
+        card._id
+      )
+  );
+
+
+if (
+  !winningCardAlreadyExists
+) {
+  winningIds.push(
+    card._id as
+      mongoose.Types.ObjectId
+  );
+}
+
+
+gamePlayer.winningCardIds =
+  winningIds;
+
+
+/*
+ * Keep legacy winningCardId.
+ *
+ * Important:
+ * only set it for the FIRST
+ * winning card.
+ */
+if (
+  !gamePlayer.winningCardId
+) {
+  gamePlayer.winningCardId =
+    card._id as
+      mongoose.Types.ObjectId;
+}
+
 
 gamePlayer.winningPattern =
   String(
@@ -3214,11 +3584,20 @@ gamePlayer.winningPattern =
       pattern
   );
 
+
 gamePlayer.bingoClaimedAt =
   winTime;
 
-gamePlayer.wonAt =
-  winTime;
+
+/*
+ * Keep first winning time.
+ */
+if (
+  !gamePlayer.wonAt
+) {
+  gamePlayer.wonAt =
+    winTime;
+}
 
 
 await gamePlayer.save({
@@ -3529,75 +3908,196 @@ export const getGameWinners =
     /*
      * 4. Shape safe response
      */
-    const winners =
-      winnerRows.map(
-        (
-          row: any
-        ) => {
+    /* =========================================
+   ONE WINNER ENTRY PER WINNING CARD
+========================================= */
 
-          const player =
-            row.playerId;
+const winnerEntries =
+  winnerRows.flatMap(
+    (row: any) => {
 
-          /*
-           * Prefer the exact persisted
-           * winning card.
-           *
-           * cardId is only fallback for
-           * older game records.
-           */
-          const card =
-            row.winningCardId ||
-            row.cardId;
+      let cards:
+        any[] = [];
 
 
-          return {
-            gamePlayerId:
-              row._id,
+      /*
+       * New multi-card winners.
+       */
+      if (
+        Array.isArray(
+          row.winningCardIds
+        ) &&
+        row.winningCardIds.length > 0
+      ) {
 
-            player: {
-              id:
-                player?._id ||
-                null,
+        cards =
+          row.winningCardIds;
 
-              fullName:
-                player?.fullName ||
-                "Player",
+      } else {
 
-              phone:
-                player?.phone ||
-                "",
-            },
+        /*
+         * Legacy fallback.
+         */
+        const legacyCard =
+          row.winningCardId ||
+          row.cardId;
 
-            card: card
-              ? {
-                  id:
-                    card._id,
 
-                  cardNumber:
-                    card.cardNumber,
-
-                  numbers:
-                    card.numbers,
-                }
-              : null,
-
-            pattern:
-              row.winningPattern ||
-              game.winningPattern ||
-              null,
-
-            prizeAmount:
-              Number(
-                row.prizeAmount ||
-                  0
-              ),
-
-            wonAt:
-              row.wonAt ||
-              row.updatedAt,
-          };
+        if (legacyCard) {
+          cards = [
+            legacyCard,
+          ];
         }
+      }
+
+
+      return cards.map(
+        (card: any) => ({
+          row,
+          card,
+        })
       );
+    }
+  );
+
+
+/* =========================================
+   PRIZE PER WINNING CARD
+========================================= */
+
+const totalWinningCards =
+  winnerEntries.length;
+
+
+const totalPrize =
+  Number(
+    game.prizeAmount ??
+    game.prizePool ??
+    0
+  );
+
+
+const totalCents =
+  Math.round(
+    totalPrize * 100
+  );
+
+
+const baseCents =
+  totalWinningCards > 0
+    ? Math.floor(
+        totalCents /
+        totalWinningCards
+      )
+    : 0;
+
+
+const remainderCents =
+  totalWinningCards > 0
+    ? totalCents -
+      baseCents *
+        totalWinningCards
+    : 0;
+
+
+/* =========================================
+   WINNERS RESPONSE
+========================================= */
+
+const winners =
+  winnerEntries.map(
+    (
+      entry: any,
+      index: number
+    ) => {
+
+      const row =
+        entry.row;
+
+      const card =
+        entry.card;
+
+      const player =
+        row.playerId;
+
+
+      /*
+       * Only show final card prize
+       * after payout settlement.
+       */
+      const cardPrizeAmount =
+        game.payoutSettledAt
+          ? (
+              baseCents +
+              (
+                index <
+                remainderCents
+                  ? 1
+                  : 0
+              )
+            ) / 100
+          : 0;
+
+
+      return {
+        gamePlayerId:
+          row._id,
+
+        player: {
+          id:
+            player?._id ||
+            null,
+
+          fullName:
+            player?.fullName ||
+            "Player",
+
+          phone:
+            player?.phone ||
+            "",
+        },
+
+        card: {
+          id:
+            card._id,
+
+          cardNumber:
+            card.cardNumber,
+
+          numbers:
+            card.numbers,
+        },
+
+        pattern:
+          row.winningPattern ||
+          game.winningPattern ||
+          null,
+
+        /*
+         * Prize for THIS winning card.
+         */
+        prizeAmount:
+          cardPrizeAmount,
+
+        /*
+         * Total prize earned by this player
+         * from all of their winning cards.
+         */
+        playerTotalPrizeAmount:
+          Number(
+            row.prizeAmount ||
+            0
+          ),
+
+        prizePending:
+          !game.payoutSettledAt,
+
+        wonAt:
+          row.wonAt ||
+          row.updatedAt,
+      };
+    }
+  );
 
 
     return {
