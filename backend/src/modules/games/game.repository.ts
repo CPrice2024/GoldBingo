@@ -114,25 +114,68 @@ export const startGame = async (
 
 export const callNumber = async (
   gameId: string,
-  number: number
+  number: number,
+  expectedNextCallAt:
+    Date | null
 ) => {
+
   return Game.findOneAndUpdate(
     {
-      _id: gameId,
-      status: "active",
+      _id:
+        gameId,
+
+      status:
+        "active",
+
+      firstWinnerAt:
+        null,
+
+      payoutSettledAt:
+        null,
+
+      /*
+       * DISTRIBUTED CALL LOCK
+       *
+       * The game must still contain
+       * the exact deadline that this
+       * caller originally read.
+       *
+       * If another server already
+       * called the number, this value
+       * will no longer match.
+       */
+      nextCallAt:
+        expectedNextCallAt,
+
       calledNumbers: {
-        $ne: number,
+        $ne:
+          number,
       },
     },
     {
       $push: {
-        calledNumbers: number,
+        calledNumbers:
+          number,
+      },
+
+      /*
+       * Consume the current call slot
+       * atomically with the number.
+       *
+       * No second caller can consume
+       * the same deadline.
+       */
+      $set: {
+        nextCallAt:
+          null,
       },
     },
     {
-      new: true,
+      new:
+        true,
     }
   );
+
 };
 export const getGameState = async (
   gameId: string

@@ -18,13 +18,122 @@ import { Card } from "../cards/card.model";
 import {
   GamePlayer,
 } from "./gamePlayer.model";
+/* =========================================================
+   JOIN TRANSACTION RETRY
+========================================================= */
 
+const JOIN_MAX_RETRIES =
+  10;
+
+
+const isRetryableJoinError = (
+  error: any
+): boolean => {
+
+  return (
+    error?.code === 112 ||
+    error?.codeName ===
+      "WriteConflict" ||
+
+    error?.hasErrorLabel?.(
+      "TransientTransactionError"
+    ) === true ||
+
+    String(
+      error?.message || ""
+    ).includes(
+      "Write conflict"
+    )
+  );
+
+};
+
+
+const isDuplicatePlayerRace = (
+  error: any
+): boolean => {
+
+  if (
+    error?.code !== 11000
+  ) {
+    return false;
+  }
+
+
+  const keyPattern =
+    error?.keyPattern ?? {};
+
+
+  return (
+    (
+      keyPattern.gameId &&
+      keyPattern.playerId
+    ) ||
+    String(
+      error?.message || ""
+    ).includes(
+      "gameId_1_playerId_1"
+    )
+  );
+
+};
+
+
+const waitBeforeJoinRetry = (
+  retryAttempt: number
+) => {
+
+  /*
+   * Increasing delay:
+   *
+   * ~50ms
+   * ~100ms
+   * ~200ms
+   * ~400ms
+   * ...
+   *
+   * Small jitter prevents hundreds
+   * of players retrying at exactly
+   * the same millisecond.
+   */
+  const baseDelay =
+    Math.min(
+      1000,
+      50 *
+        Math.pow(
+          2,
+          retryAttempt
+        )
+    );
+
+
+  const jitter =
+    Math.floor(
+      Math.random() *
+        100
+    );
+
+
+  return new Promise<void>(
+    (resolve) => {
+
+      setTimeout(
+        resolve,
+        baseDelay +
+          jitter
+      );
+
+    }
+  );
+
+};
 export const joinGame =
   async (
     playerId: string,
     gameId: string,
-    cardId: string
-  ) => {
+    cardId: string,
+    retryAttempt = 0
+  ): Promise<any> => {
 
 
     /* =========================
@@ -685,39 +794,123 @@ if (
       }
 
 
-      /* =========================
-         11. UPDATE GAME
-      ========================= */
+   /* =========================
+   11. FINAL GAME JOIN GATE
+========================= */
+
+/*
+ * IMPORTANT:
+ *
+ * We checked "waiting" earlier,
+ * but the game may have started
+ * while this request was:
+ *
+ * - checking wallet
+ * - assigning card
+ * - updating participation
+ *
+ * Therefore we MUST touch the
+ * Game document again atomically
+ * before commit.
+ */
+
+
+const gameIncrements: {
+  currentPlayers?: number;
+  prizePool: number;
+} = {
+
+  prizePool:
+    totalEntryFee,
+
+};
+
+
+if (isNewPlayer) {
+
+  /*
+   * currentPlayers counts PEOPLE,
+   * not cards.
+   */
+  gameIncrements.currentPlayers =
+    1;
+
+}
+
+
+/*
+ * MongoDB must still see:
+ *
+ * status = waiting
+ *
+ * For a NEW player there must
+ * also still be player capacity.
+ */
+const updatedGame =
+  await Game.findOneAndUpdate(
+    {
+      _id:
+        gameId,
+
+      status:
+        "waiting",
+
+      ...(isNewPlayer
+        ? {
+            $expr: {
+              $lt: [
+                "$currentPlayers",
+                "$maxPlayers",
+              ],
+            },
+          }
+        : {}),
+    },
+    {
+      $inc:
+        gameIncrements,
 
       /*
-       * currentPlayers counts PEOPLE,
-       * not cards.
+       * This guarantees the Game
+       * document is actually written
+       * even for a BONUS card where
+       * prizePool += 0.
+       *
+       * That makes the waiting→active
+       * race detectable by MongoDB.
        */
-      if (isNewPlayer) {
+      $set: {
+        updatedAt:
+          new Date(),
+      },
+    },
+    {
+      new:
+        true,
 
-        game.currentPlayers =
-          Number(
-            game.currentPlayers ||
-              0
-          ) + 1;
-      }
-
-
-      /*
-       * Every individual card adds
-       * one entry fee to prize pool.
-       */
-      game.prizePool =
-        Number(
-          game.prizePool ||
-            0
-        ) +
-        totalEntryFee;
+      session,
+    }
+  );
 
 
-      await game.save({
-        session,
-      });
+if (!updatedGame) {
+
+  /*
+   * Everything already performed
+   * in this transaction will roll
+   * back:
+   *
+   * - card assignment
+   * - wallet deduction
+   * - GamePlayer changes
+   */
+  throw new Error(
+    isNewPlayer
+      ? "The game started or became full while you were joining. No balance was charged."
+      : "The game started while you were adding this card. No balance was charged."
+  );
+
+}
 
 
       /* =========================
@@ -871,24 +1064,77 @@ if (
       };
 
 
-    } catch (error) {
+    } catch (error: any) {
 
-      if (
-        session.inTransaction()
-      ) {
+  /* =========================================
+     ABORT CURRENT ATTEMPT
+  ========================================= */
 
-        await session.abortTransaction();
-      }
+  if (
+    session.inTransaction()
+  ) {
+
+    await session.abortTransaction();
+
+  }
 
 
-      throw error;
+  /* =========================================
+     CONCURRENT JOIN RETRY
+
+     Common when many players update:
+     - currentPlayers
+     - prizePool
+     - cards
+     - wallets
+     simultaneously.
+  ========================================= */
+
+  const shouldRetry =
+    isRetryableJoinError(
+      error
+    ) ||
+    isDuplicatePlayerRace(
+      error
+    );
 
 
-    } finally {
+  if (
+    shouldRetry &&
+    retryAttempt <
+      JOIN_MAX_RETRIES
+  ) {
 
-      await session.endSession();
+    console.warn(
+      `[BINGO] Join conflict for player ${playerId}. Retry ${
+        retryAttempt + 1
+      }/${JOIN_MAX_RETRIES}`
+    );
 
-    }
+
+    await waitBeforeJoinRetry(
+      retryAttempt
+    );
+
+
+    return joinGame(
+      playerId,
+      gameId,
+      cardId,
+      retryAttempt + 1
+    );
+
+  }
+
+
+  throw error;
+
+
+} finally {
+
+  await session.endSession();
+
+}
 
   };
 export const getGamePlayers =

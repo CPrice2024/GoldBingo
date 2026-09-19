@@ -1085,21 +1085,82 @@ if (
 
 }
 
-
 /* =========================================
    AUTOMATIC MODE
 ========================================= */
 
 if (
   callMode ===
-    "automatic" &&
-  requestedNumber !==
-    undefined
+  "automatic"
 ) {
 
-  throw new Error(
-    "Manual number selection is disabled for automatic games"
-  );
+  /*
+   * Automatic games must never
+   * accept a manually selected number.
+   */
+  if (
+    requestedNumber !==
+    undefined
+  ) {
+
+    throw new Error(
+      "Manual number selection is disabled for automatic games"
+    );
+
+  }
+
+
+  /* =========================================
+     VERIFY CALL DEADLINE
+
+     This is important when several
+     Node processes are running.
+
+     A process may call a number only
+     when the persisted DB deadline
+     has actually arrived.
+  ========================================= */
+
+  const scheduledCallTime =
+    game.nextCallAt
+      ? new Date(
+          game.nextCallAt
+        ).getTime()
+      : 0;
+
+
+  if (
+    !Number.isFinite(
+      scheduledCallTime
+    ) ||
+    scheduledCallTime <= 0
+  ) {
+
+    throw new Error(
+      "Automatic number call is not scheduled"
+    );
+
+  }
+
+
+  const now =
+    Date.now();
+
+
+  /*
+   * Small 500ms tolerance handles
+   * normal timer/clock differences.
+   */
+  if (
+    scheduledCallTime >
+    now + 500
+  ) {
+
+    throw new Error(
+      "Automatic number call is not due yet"
+    );
+
+  }
 
 }
 
@@ -1151,10 +1212,26 @@ if (requestedNumber !== undefined) {
   number = availableNumbers[randomIndex];
 }
 
-  const updatedGame =
+  /* =========================================
+   EXACT CALL SLOT
+
+   MongoDB compares this value before
+   accepting the number.
+========================================= */
+
+const expectedNextCallAt =
+  game.nextCallAt
+    ? new Date(
+        game.nextCallAt
+      )
+    : null;
+
+
+const updatedGame =
   await callNumberRepository(
     gameId,
-    number
+    number,
+    expectedNextCallAt
   );
 
 if (!updatedGame) {
@@ -2256,7 +2333,8 @@ const WINNER_CLAIM_WINDOW_MS =
 
 const MAX_GAME_WINNERS =
   10;
-
+const WINNER_FINALIZATION_RETRY_MS =
+  5 * 1000;
 const winnerClaimTimers =
   new Map<
     string,
@@ -2346,23 +2424,173 @@ export const scheduleWinnerClaimFinalization =
           Date.now()
       );
 
-    const settle =
-      async () => {
-        winnerClaimTimers.delete(
+   const settle =
+  async () => {
+
+    winnerClaimTimers.delete(
+      gameId
+    );
+
+
+    try {
+
+      const result =
+        await finalizeWinnerWindow(
           gameId
         );
 
-        try {
-          await finalizeWinnerWindow(
-            gameId
-          );
-        } catch (error) {
-          console.error(
-            `[BINGO] Failed to finalize winner window for ${gameId}:`,
-            error
-          );
-        }
-      };
+
+      /*
+       * null normally means:
+       *
+       * - another request already finalized
+       * - game was cancelled
+       * - game is no longer active
+       *
+       * Nothing else to retry.
+       */
+      if (!result) {
+
+        console.log(
+          `[BINGO] Winner finalization no longer required for ${gameId}`
+        );
+
+        return;
+      }
+
+
+      console.log(
+        `[BINGO] Winner finalization completed for ${gameId}`
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        `[BINGO] Failed to finalize winner window for ${gameId}:`,
+        error
+      );
+
+
+      /* =========================================
+         RECHECK DATABASE BEFORE RETRYING
+
+         Never retry settlement blindly.
+      ========================================= */
+
+      const latestGame =
+        await Game.findById(
+          gameId
+        ).select(
+          [
+            "status",
+            "firstWinnerAt",
+            "winnerClaimEndsAt",
+            "payoutSettledAt",
+          ].join(" ")
+        );
+
+
+      if (!latestGame) {
+
+        console.log(
+          `[BINGO] Finalization retry stopped. Game ${gameId} no longer exists.`
+        );
+
+        return;
+      }
+
+
+      /*
+       * Game already finished/cancelled.
+       */
+      if (
+        latestGame.status !==
+        "active"
+      ) {
+
+        console.log(
+          `[BINGO] Finalization retry stopped. Game ${gameId} is ${latestGame.status}.`
+        );
+
+        return;
+      }
+
+
+      /*
+       * Prize already paid.
+       */
+      if (
+        latestGame.payoutSettledAt
+      ) {
+
+        console.log(
+          `[BINGO] Finalization retry stopped. Game ${gameId} is already settled.`
+        );
+
+        return;
+      }
+
+
+      /*
+       * No winner means there is
+       * nothing to settle.
+       */
+      if (
+        !latestGame.firstWinnerAt
+      ) {
+
+        console.log(
+          `[BINGO] Finalization retry stopped. Game ${gameId} has no winner lock.`
+        );
+
+        return;
+      }
+
+
+      /* =========================================
+         RETRY AFTER 5 SECONDS
+
+         Important:
+         Do NOT resume number calling.
+         The game stays frozen until
+         settlement succeeds.
+      ========================================= */
+
+      console.warn(
+        `[BINGO] Retrying winner finalization for ${gameId} in ${
+          WINNER_FINALIZATION_RETRY_MS /
+          1000
+        } seconds`
+      );
+
+
+      const retryTimer =
+        setTimeout(
+          () => {
+
+            winnerClaimTimers.delete(
+              gameId
+            );
+
+
+            void scheduleWinnerClaimFinalization(
+              gameId
+            );
+
+          },
+          WINNER_FINALIZATION_RETRY_MS
+        );
+
+
+      winnerClaimTimers.set(
+        gameId,
+        retryTimer
+      );
+
+    }
+
+  };
 
     /*
      * Deadline already passed.

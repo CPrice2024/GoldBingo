@@ -418,9 +418,17 @@ export const startAutomaticCaller =
   async (
     gameId: string
   ) => {
+
+    /* =========================================
+       PREVENT DUPLICATE LOCAL TIMER
+    ========================================= */
+
     if (
-      timers.has(gameId)
+      timers.has(
+        gameId
+      )
     ) {
+
       console.log(
         `[BINGO] Caller already running for ${gameId}`
       );
@@ -428,70 +436,94 @@ export const startAutomaticCaller =
       return;
     }
 
+
+    /* =========================================
+       LOAD GAME
+    ========================================= */
+
     const game =
       await findGameById(
         gameId
       );
 
+
     if (!game) {
       return;
     }
 
+
     if (
-  game.status !== "active"
-) {
-  return;
-}
-
-/* =========================================
-   MANUAL GAMES DO NOT USE AUTO CALLER
-========================================= */
-
-if (
-  (
-    game.callMode ??
-    "automatic"
-  ) !== "automatic"
-) {
-
-  console.log(
-    `[BINGO] ${game.name} is using manual number calling`
-  );
-
-  return;
-
-}
+      game.status !==
+      "active"
+    ) {
+      return;
+    }
 
 
-/* =========================================
-   WINNER WINDOW OPEN
-========================================= */
+    /* =========================================
+       ONLY AUTOMATIC GAME
+    ========================================= */
 
-if (
-  game.firstWinnerAt
-) {
+    if (
+      (
+        game.callMode ??
+        "automatic"
+      ) !==
+      "automatic"
+    ) {
 
-  console.log(
-    `[BINGO] Winner claim window open for ${game.name}. Number caller is frozen.`
-  );
+      console.log(
+        `[BINGO] ${game.name} is using manual number calling`
+      );
 
-  if (
-    game.nextCallAt
-  ) {
-    game.nextCallAt =
-      null;
-
-    await game.save();
-  }
-
-  return;
-}
+      return;
+    }
 
 
-if (
-  game.calledNumbers.length >=
-  75
-) {
+    /* =========================================
+       WINNER / SETTLEMENT LOCK
+
+       Once first Bingo exists,
+       caller must NEVER resume.
+    ========================================= */
+
+    if (
+      game.firstWinnerAt ||
+      game.payoutSettledAt
+    ) {
+
+      await Game.updateOne(
+        {
+          _id:
+            gameId,
+        },
+        {
+          $set: {
+            nextCallAt:
+              null,
+          },
+        }
+      );
+
+
+      console.log(
+        `[BINGO] Winner flow active for ${game.name}. Number caller frozen.`
+      );
+
+
+      return;
+    }
+
+
+    /* =========================================
+       ALL NUMBERS FINISHED
+    ========================================= */
+
+    if (
+      game.calledNumbers.length >=
+      75
+    ) {
+
       await finishGame(
         gameId
       );
@@ -499,14 +531,36 @@ if (
       return;
     }
 
+
+    /* =========================================
+       GAME INTERVAL
+    ========================================= */
+
     const intervalSeconds =
       getDurationSeconds(
         game.callIntervalSeconds,
         DEFAULT_CALL_INTERVAL_SECONDS
       );
 
+
+    const intervalMs =
+      intervalSeconds *
+      1000;
+
+
     const now =
       Date.now();
+
+
+    /* =========================================
+       USE PERSISTED ABSOLUTE DEADLINE
+
+       Do NOT automatically create
+       "15 seconds after all DB work".
+
+       The DB deadline is the source
+       of truth.
+    ========================================= */
 
     let nextCallTime =
       game.nextCallAt
@@ -515,22 +569,65 @@ if (
           ).getTime()
         : 0;
 
+
     if (
-      !nextCallTime ||
-      nextCallTime <= now
+      !Number.isFinite(
+        nextCallTime
+      ) ||
+      nextCallTime <=
+        now
     ) {
+
       nextCallTime =
         now +
-        intervalSeconds *
-          1000;
+        intervalMs;
 
-      game.nextCallAt =
-        new Date(
-          nextCallTime
+
+      /*
+       * Atomic protection:
+       *
+       * Do not schedule another number
+       * if Bingo locked the game while
+       * this function was running.
+       */
+      const scheduledGame =
+        await Game.findOneAndUpdate(
+          {
+            _id:
+              gameId,
+
+            status:
+              "active",
+
+            firstWinnerAt:
+              null,
+
+            payoutSettledAt:
+              null,
+          },
+          {
+            $set: {
+              nextCallAt:
+                new Date(
+                  nextCallTime
+                ),
+            },
+          },
+          {
+            new:
+              true,
+          }
         );
 
-      await game.save();
+
+      if (
+        !scheduledGame
+      ) {
+        return;
+      }
+
     }
+
 
     const remainingMs =
       Math.max(
@@ -539,99 +636,309 @@ if (
           Date.now()
       );
 
+
     console.log(
-      `[ID] ${game.name} next number in ${Math.ceil(
-        remainingMs / 1000
+      `[BINGO] ${game.name} next number in ${Math.ceil(
+        remainingMs /
+          1000
       )} seconds`
     );
+
+
+    /* =========================================
+       CREATE TIMER
+    ========================================= */
 
     const timer =
       setTimeout(
         async () => {
+
           timers.delete(
             gameId
           );
 
+
           try {
+
+            /* =================================
+               RELOAD CURRENT GAME
+
+               Never trust the old object.
+            ================================= */
+
             const currentGame =
-  await findGameById(
-    gameId
-  );
-
-if (!currentGame) {
-  return;
-}
-
-if (
-  currentGame.status !==
-  "active"
-) {
-  return;
-}
-
-if (
-  (
-    currentGame.callMode ??
-    "automatic"
-  ) !== "automatic"
-) {
-  return;
-}
+              await findGameById(
+                gameId
+              );
 
 
-/* =========================================
-   WINNER WINDOW OPEN
-========================================= */
-
-if (
-  currentGame.firstWinnerAt
-) {
-
-  await Game.updateOne(
-    {
-      _id:
-        gameId,
-    },
-    {
-      $set: {
-        nextCallAt:
-          null,
-      },
-    }
-  );
-
-  console.log(
-    `[BINGO] Winner claim window open for ${currentGame.name}. Pending number call cancelled.`
-  );
-
-  return;
-}
+            if (
+              !currentGame
+            ) {
+              return;
+            }
 
 
-if (
-  currentGame.calledNumbers
-    .length >= 75
-) {
+            if (
+              currentGame.status !==
+              "active"
+            ) {
+              return;
+            }
+
+
+            if (
+              (
+                currentGame.callMode ??
+                "automatic"
+              ) !==
+              "automatic"
+            ) {
+              return;
+            }
+
+
+            /* =================================
+               WINNER LOCK
+
+               Important protection against
+               timer/Bingo race.
+            ================================= */
+
+            if (
+              currentGame.firstWinnerAt ||
+              currentGame.payoutSettledAt
+            ) {
+
+              await Game.updateOne(
+                {
+                  _id:
+                    gameId,
+                },
+                {
+                  $set: {
+                    nextCallAt:
+                      null,
+                  },
+                }
+              );
+
+
+              console.log(
+                `[BINGO] Winner flow active for ${currentGame.name}. Pending number cancelled.`
+              );
+
+
+              return;
+            }
+
+
+            /* =================================
+               75 NUMBERS
+            ================================= */
+
+            if (
+              currentGame
+                .calledNumbers
+                .length >=
+              75
+            ) {
+
               await finishGame(
                 gameId
               );
 
               return;
             }
+
+
+            /*
+             * Record the exact moment this
+             * call cycle started.
+             *
+             * The NEXT deadline is calculated
+             * from here, not after all MongoDB
+             * work finishes.
+             */
+            const callStartedAt =
+              Date.now();
+
+
+            /* =================================
+               CALL NUMBER
+            ================================= */
 
             const result =
               await callGameNumber(
                 gameId
               );
 
+
             console.log(
               `[BINGO] ${currentGame.name} → ${result.number}`
             );
 
+
+            /* =================================
+               GAME MAY HAVE COMPLETED AT 75
+            ================================= */
+
             if (
               result.calledNumbers
+                .length >= 75 ||
+              result.game?.status ===
+                "completed"
+            ) {
+
+              /*
+               * callGameNumber() already
+               * handles normal completion.
+               */
+              return;
+            }
+
+
+            /* =================================
+               NEXT ABSOLUTE DEADLINE
+
+               Example:
+               call begins 10:00:00
+               next = 10:00:15
+
+               MongoDB work does NOT create
+               15 + processing time.
+            ================================= */
+
+            const nextDeadline =
+              new Date(
+                callStartedAt +
+                  intervalMs
+              );
+
+
+            /*
+             * Set next call ONLY if the
+             * game is still call-able.
+             */
+            const nextScheduledGame =
+              await Game.findOneAndUpdate(
+                {
+                  _id:
+                    gameId,
+
+                  status:
+                    "active",
+
+                  firstWinnerAt:
+                    null,
+
+                  payoutSettledAt:
+                    null,
+                },
+                {
+                  $set: {
+                    nextCallAt:
+                      nextDeadline,
+                  },
+                },
+                {
+                  new:
+                    true,
+                }
+              );
+
+
+            /*
+             * A Bingo may have happened
+             * while this call was being
+             * processed.
+             */
+            if (
+              !nextScheduledGame
+            ) {
+
+              console.log(
+                `[BINGO] ${currentGame.name} became locked before next number scheduling`
+              );
+
+              return;
+            }
+
+
+            /* =================================
+               SCHEDULE NEXT CALL
+            ================================= */
+
+            await startAutomaticCaller(
+              gameId
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              `[BINGO] Automatic caller error for ${gameId}:`,
+              error
+            );
+
+
+            /*
+             * Re-check DB state before
+             * restarting anything.
+             *
+             * This prevents an error from
+             * accidentally restarting a game
+             * that is already in the winner
+             * settlement flow.
+             */
+            const latestGame =
+              await findGameById(
+                gameId
+              );
+
+
+            if (
+              !latestGame
+            ) {
+              return;
+            }
+
+
+            if (
+              latestGame.status !==
+                "active" ||
+              (
+                latestGame.callMode ??
+                "automatic"
+              ) !==
+                "automatic" ||
+              latestGame.firstWinnerAt ||
+              latestGame.payoutSettledAt
+            ) {
+
+              await Game.updateOne(
+                {
+                  _id:
+                    gameId,
+                },
+                {
+                  $set: {
+                    nextCallAt:
+                      null,
+                  },
+                }
+              );
+
+
+              return;
+            }
+
+
+            if (
+              latestGame.calledNumbers
                 .length >= 75
             ) {
+
               await finishGame(
                 gameId
               );
@@ -639,53 +946,60 @@ if (
               return;
             }
 
+
+            /*
+             * Temporary error:
+             *
+             * wait one normal interval.
+             * Never create a rapid retry loop.
+             */
+            const retryAt =
+              new Date(
+                Date.now() +
+                  intervalMs
+              );
+
+
             await Game.updateOne(
               {
-                _id: gameId,
+                _id:
+                  gameId,
+
+                status:
+                  "active",
+
+                firstWinnerAt:
+                  null,
+
+                payoutSettledAt:
+                  null,
               },
               {
                 $set: {
                   nextCallAt:
-                    null,
+                    retryAt,
                 },
               }
             );
 
-            await startAutomaticCaller(
-              gameId
-            );
-          } catch (error) {
-            console.error(
-              `[BINGO] Automatic caller error for ${gameId}:`,
-              error
-            );
-
-            await Game.updateOne(
-              {
-                _id: gameId,
-              },
-              {
-                $set: {
-                  nextCallAt:
-                    null,
-                },
-              }
-            );
 
             await startAutomaticCaller(
               gameId
             );
+
           }
+
         },
         remainingMs
       );
+
 
     timers.set(
       gameId,
       timer
     );
-  };
 
+  };
 
 /* =========================================================
    FINISH GAME
