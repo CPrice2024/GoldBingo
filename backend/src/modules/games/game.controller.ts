@@ -15,8 +15,8 @@ import {
   updateExistingGame,
   getGameWinners,
   cancelWaitingGame,
+  cancelActiveGame,
 } from "./game.service";
-
 export const createGame =
   async (
     req: Request,
@@ -34,8 +34,6 @@ export const createGame =
   callMode,
   callIntervalSeconds,
 } = req.body;
-
-
 const game =
   await createNewGame({
     name,
@@ -76,7 +74,6 @@ const game =
     ? "manual"
     : "automatic",
   });
-
       return res.status(201).json({
         success: true,
         message:
@@ -166,11 +163,9 @@ export const updateGameController =
     res: Response
   ) => {
     try {
-
       const {
         id,
       } = req.params;
-
 
       /* =========================================
          VALIDATE ID
@@ -189,11 +184,9 @@ export const updateGameController =
         });
       }
 
-
       /* =========================================
          BODY
       ========================================= */
-
       const {
   name,
   entryFee,
@@ -205,7 +198,6 @@ export const updateGameController =
   gameType,
   callIntervalSeconds,
 } = req.body;
-
 
       /* =========================================
          UPDATE
@@ -909,3 +901,79 @@ export const getGameWinnersController =
 
     }
   };
+
+  /* =========================================================
+   CANCEL ACTIVE GAME
+========================================================= */
+
+export const cancelActiveGameController =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+
+      if (
+        Array.isArray(id) ||
+        !id
+      ) {
+        return res.status(
+          400
+        ).json({
+          success:
+            false,
+
+          message:
+            "Invalid game ID",
+        });
+      }
+
+
+      const result =
+        await cancelActiveGame(
+          id
+        );
+
+
+      return res.status(
+        200
+      ).json({
+        success:
+          true,
+
+        message:
+          "Active game cancelled and players refunded successfully",
+
+        data:
+          result,
+      });
+
+
+    } catch (error) {
+
+  console.error(
+    "[CANCEL ACTIVE GAME CONTROLLER ERROR]",
+    error
+  );
+
+
+  return res.status(
+    400
+  ).json({
+    success:
+      false,
+
+    message:
+      error instanceof Error
+        ? error.message
+        : "Failed to cancel active game",
+  });
+
+}
+
+};

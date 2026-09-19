@@ -159,3 +159,13 @@ export const claimBingo = async (
 
   return response.data;
 };
+export const cancelActiveGame = async (
+  gameId
+) => {
+  const response =
+    await api.post(
+      `/games/${gameId}/cancel-active`
+    );
+
+  return response.data;
+};

@@ -849,10 +849,6 @@ useEffect(() => {
   loadPlayerInfo();
 }, [loadPlayerInfo]);
 
-  /* =========================================
-     LIVE POLLING
-  ========================================= */
-
 /* =========================================
    LIVE POLLING
 ========================================= */
@@ -1763,6 +1759,231 @@ const finalResultsReady =
     gameState?.game
       ?.payoutSettledAt
   );
+/* =========================================
+   AUTO CLEAR COMPLETED GAME WITHOUT WINNER
+
+   Examples:
+   - all 75 numbers called, nobody wins
+   - eventually all cards become blocked
+
+   IMPORTANT:
+   - held cards are preserved
+   - winner result screen is preserved
+========================================= */
+
+useEffect(() => {
+
+  const currentStatus =
+    gameState?.game?.status ??
+    game?.status;
+
+
+  if (
+    currentStatus !==
+    "completed"
+  ) {
+    return;
+  }
+
+
+  const currentWinnerCount =
+    Number(
+      gameState?.game
+        ?.winnerCount ??
+      game?.winnerCount ??
+      0
+    );
+
+
+  const hasWinnerResult =
+    currentWinnerCount > 0 ||
+    publicWinners.length > 0 ||
+    Boolean(
+      gameState?.game
+        ?.payoutSettledAt
+    ) ||
+    Boolean(
+      game?.payoutSettledAt
+    );
+
+
+  /*
+   * Winner game:
+   * keep result visible.
+   */
+  if (
+    hasWinnerResult
+  ) {
+    return;
+  }
+
+
+  console.log(
+    "[BINGO] Completed game without winner. Clearing old game state."
+  );
+
+
+  /* =========================================
+     HIDE OLD COMPLETED GAME
+  ========================================= */
+
+  setFinishedGameCleared(
+    true
+  );
+
+
+  /* =========================================
+     REMOVE OLD PARTICIPATION STATE
+  ========================================= */
+
+  setGamePlayer(
+    null
+  );
+
+
+  setConfirmedCardId(
+    null
+  );
+
+
+  setClaimingCardId(
+    null
+  );
+
+
+  setJoiningCardId(
+    null
+  );
+
+
+  /* =========================================
+     REMOVE BLOCKED STATE
+  ========================================= */
+
+  setBlockedPlayers(
+    []
+  );
+
+
+  setBlockedCards(
+    []
+  );
+
+
+  setSelectedBlockedCard(
+    null
+  );
+
+
+  setShowAllBlockedCards(
+    false
+  );
+
+
+  /* =========================================
+     REMOVE OLD WINNER STATE
+  ========================================= */
+
+  setPublicWinners(
+    []
+  );
+
+
+  setSelectedWinner(
+    null
+  );
+
+
+  setShowAllWinnerCards(
+    false
+  );
+
+
+  setVisibleFinalWinnerCount(
+    0
+  );
+
+
+  /* =========================================
+     RESET MARKINGS
+  ========================================= */
+
+  setMarkedNumbers(
+    []
+  );
+
+
+  setPracticeMarkedNumbers(
+    {}
+  );
+
+
+  setMarkedCardIds(
+    []
+  );
+
+
+  /* =========================================
+     CLOSE OLD GAME UI
+  ========================================= */
+
+  setInlineCardsOpen(
+    false
+  );
+
+
+  setCardMenuOpen(
+    false
+  );
+
+
+  setCardOpen(
+    false
+  );
+
+
+  setShowLastCalled(
+    false
+  );
+
+
+  setPatternPreviewOpen(
+    false
+  );
+
+
+  /* =========================================
+     CLEAR OLD MESSAGES
+  ========================================= */
+
+  setCardNotification(
+    ""
+  );
+
+
+  setMessage(
+    ""
+  );
+
+
+  setError(
+    ""
+  );
+
+
+  previousCalledCountRef.current =
+    null;
+
+
+}, [
+  gameState?.game?.status,
+  gameState?.game?.winnerCount,
+  gameState?.game?.payoutSettledAt,
+  game?.status,
+  game?.winnerCount,
+  game?.payoutSettledAt,
+  publicWinners.length,
+]);
 
 const handleGameRefresh =
   async () => {

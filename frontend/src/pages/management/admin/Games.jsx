@@ -15,10 +15,10 @@ import {
   createGame,
   startGame,
   cancelGame,
+  cancelActiveGame,
   getAutomaticGameSetting,
   updateAutomaticGameSetting,
 } from "../../../api/game.api";
-
 import {
   WINNING_PATTERNS,
   getWinningPatternLabel,
@@ -584,7 +584,62 @@ const handleCancelGame =
     }
 
   };
+/* =========================================
+   CANCEL ACTIVE GAME
+========================================= */
 
+const handleCancelActiveGame =
+  async (gameId) => {
+
+    const confirmed =
+      window.confirm(
+        "Cancel this ACTIVE game?\n\nAll player entry fees will be refunded and their cards will be released."
+      );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    try {
+
+      setError("");
+
+
+      const response =
+        await cancelActiveGame(
+          gameId
+        );
+
+
+      console.log(
+        "Active game cancelled:",
+        response
+      );
+
+
+      await loadGames();
+
+
+    } catch (err) {
+
+      console.error(
+        "Failed to cancel active game:",
+        err
+      );
+
+
+      setError(
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Failed to cancel active game"
+      );
+
+    }
+
+  };
   const getStatusClass = (gameStatus) => {
     switch (gameStatus) {
       case "active":
@@ -1082,7 +1137,20 @@ const handleCancelGame =
     )}
   </>
 )}
-
+{game.status === "active" && (
+  <button
+    type="button"
+    className="management-refresh-button"
+    onClick={() =>
+      handleCancelActiveGame(
+        game._id
+      )
+    }
+    title="Cancel active game and refund all players"
+  >
+    Cancel Active Game
+  </button>
+)}
               </div>
 
             </div>

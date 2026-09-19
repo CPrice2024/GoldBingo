@@ -17,6 +17,7 @@ import {
   getGameWinnersController,
   getCurrentGameController,
   updateGameController,
+  cancelActiveGameController,
 } from "./game.controller";
 
 const router = Router();
@@ -43,7 +44,12 @@ router.post(
 );
 // Admin: update waiting game
 /* Player: winner information */
-
+router.post(
+  "/:id/cancel-active",
+  authenticate,
+  authorize("admin"),
+  cancelActiveGameController
+);
 router.get(
   "/:id/winners",
   authenticate,

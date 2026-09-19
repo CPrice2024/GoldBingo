@@ -1425,6 +1425,253 @@ export const completeGame = async (
 
 };
 
+/* =========================================================
+   COMPLETE GAME IF EVERY CARD IS BLOCKED
+
+   Rules:
+   - game must still be active
+   - no winner window may already exist
+   - every joined card must be blocked
+   - stop caller
+   - complete game
+   - schedule next game
+========================================================= */
+
+const completeGameIfAllCardsBlocked =
+  async (
+    gameId: string
+  ): Promise<boolean> => {
+
+    try {
+
+      const liveGame =
+        await Game.findOne({
+          _id:
+            gameId,
+
+          status:
+            "active",
+        }).select(
+          "_id name status firstWinnerAt"
+        );
+
+
+      if (!liveGame) {
+        return false;
+      }
+
+
+      /*
+       * A winner already exists.
+       *
+       * In that case the normal
+       * winner settlement flow owns
+       * game completion.
+       */
+      if (
+        liveGame.firstWinnerAt
+      ) {
+        return false;
+      }
+
+
+      const participants =
+        await GamePlayer.find({
+          gameId:
+            liveGame._id,
+        })
+          .select(
+            "cardIds cardId blockedCardIds"
+          )
+          .lean();
+
+
+      if (
+        participants.length === 0
+      ) {
+        return false;
+      }
+
+
+      const allCardIds =
+        new Set<string>();
+
+
+      const allBlockedCardIds =
+        new Set<string>();
+
+
+      for (
+        const participant of
+        participants as any[]
+      ) {
+
+        /*
+         * Every card originally joined
+         * by this participation.
+         */
+        const participationCards =
+          getParticipationCardIds(
+            participant
+          );
+
+
+        for (
+          const cardId of
+          participationCards
+        ) {
+
+          const normalizedId =
+            String(
+              (cardId as any)?._id ??
+                cardId
+            );
+
+
+          if (
+            normalizedId
+          ) {
+            allCardIds.add(
+              normalizedId
+            );
+          }
+
+        }
+
+
+        /*
+         * Cards blocked by false /
+         * missed Bingo.
+         */
+        const blockedCards =
+          Array.isArray(
+            participant.blockedCardIds
+          )
+            ? participant.blockedCardIds
+            : [];
+
+
+        for (
+          const blockedId of
+          blockedCards
+        ) {
+
+          const normalizedId =
+            String(
+              (blockedId as any)?._id ??
+                blockedId
+            );
+
+
+          if (
+            normalizedId
+          ) {
+            allBlockedCardIds.add(
+              normalizedId
+            );
+          }
+
+        }
+
+      }
+
+
+      if (
+        allCardIds.size === 0
+      ) {
+        return false;
+      }
+
+
+      const everyCardBlocked =
+        Array.from(
+          allCardIds
+        ).every(
+          (cardId) =>
+            allBlockedCardIds.has(
+              cardId
+            )
+        );
+
+
+      if (
+        !everyCardBlocked
+      ) {
+        return false;
+      }
+
+
+      console.log(
+        `[BINGO] Every card in ${liveGame.name} is blocked. Completing game.`
+      );
+
+
+      /* =========================================
+         STOP NUMBER CALLING IMMEDIATELY
+      ========================================= */
+
+      stopGameTimers(
+        gameId
+      );
+
+
+      /* =========================================
+         NORMAL NO-WINNER COMPLETION
+
+         This already:
+         - marks active players lost
+         - releases cards
+         - sets status completed
+      ========================================= */
+
+      const completedGame =
+        await completeGame(
+          gameId
+        );
+
+
+      if (
+        !completedGame
+      ) {
+        return false;
+      }
+
+
+      /* =========================================
+         NEXT GAME
+      ========================================= */
+
+      await scheduleNextGame(
+        completedGame
+      );
+
+
+      console.log(
+        `[BINGO] ${completedGame.name} completed because no claimable cards remain`
+      );
+
+
+      return true;
+
+
+    } catch (error) {
+
+      console.error(
+        "[BINGO] Failed to check all-blocked game:",
+        error
+      );
+
+
+      /*
+       * False Bingo itself was already
+       * saved, so do not convert that
+       * successful claim request into 400.
+       */
+      return false;
+
+    }
+
+  };
 export const getGameState = async (
   gameId: string
 ) => {
@@ -3281,9 +3528,22 @@ gamePlayer.blockedCardClaims =
   await session.commitTransaction();
 
 
-  return {
-    status:
-      "BLOCKED",
+/* =========================================
+   CHECK IF ANY CLAIMABLE CARD REMAINS
+========================================= */
+
+const gameCompletedBecauseAllCardsBlocked =
+  await completeGameIfAllCardsBlocked(
+    gameId
+  );
+
+
+return {
+  status:
+    "BLOCKED",
+
+  gameCompleted:
+    gameCompletedBecauseAllCardsBlocked,
 
     message:
   missedWinningCall
@@ -4149,3 +4409,736 @@ const winners =
       winners,
     };
   };
+
+/* =========================================================
+   CANCEL ACTIVE GAME
+
+   IMPORTANT ORDER:
+   1. Stop all timers
+   2. Immediately mark game cancelled
+   3. Refund players
+   4. Release cards
+   5. Cancel GamePlayer records
+========================================================= */
+
+export const cancelActiveGame = async (
+  gameId: string
+) => {
+
+  if (
+    !mongoose.Types.ObjectId.isValid(
+      gameId
+    )
+  ) {
+    throw new Error(
+      "Invalid game ID"
+    );
+  }
+
+
+  const gameObjectId =
+    new mongoose.Types.ObjectId(
+      gameId
+    );
+
+
+  /* =========================================
+     1. FIND GAME BEFORE TRANSACTION
+  ========================================= */
+
+  const existingGame =
+    await Game.findById(
+      gameObjectId
+    );
+
+
+  if (!existingGame) {
+    throw new Error(
+      "Game not found"
+    );
+  }
+
+
+  /*
+   * Never undo an already-paid game.
+   */
+  if (
+    existingGame.payoutSettledAt
+  ) {
+    throw new Error(
+      "This game has already been settled and cannot be cancelled"
+    );
+  }
+
+
+  if (
+    existingGame.status !==
+      "active" &&
+    existingGame.status !==
+      "cancelled"
+  ) {
+    throw new Error(
+      "Only an active game can be cancelled"
+    );
+  }
+
+
+  /* =========================================
+     2. STOP EVERY TIMER FIRST
+  ========================================= */
+
+  clearWinnerClaimTimer(
+    gameId
+  );
+
+
+  stopGameTimers(
+    gameId
+  );
+
+
+  /* =========================================
+     3. IMMEDIATELY CANCEL GAME
+
+     Do this OUTSIDE the refund transaction.
+
+     This prevents automatic caller
+     write-conflict with the refund process.
+  ========================================= */
+
+  let cancelledGame =
+    existingGame;
+
+
+  if (
+    existingGame.status ===
+    "active"
+  ) {
+
+    const updatedGame =
+      await Game.findOneAndUpdate(
+        {
+          _id:
+            gameObjectId,
+
+          status:
+            "active",
+
+          payoutSettledAt:
+            null,
+        },
+
+        {
+          $set: {
+            status:
+              "cancelled",
+
+            completedAt:
+              new Date(),
+
+            nextCallAt:
+              null,
+
+            joiningEndsAt:
+              null,
+
+            firstWinnerAt:
+              null,
+
+            winnerClaimEndsAt:
+              null,
+
+            currentPlayers:
+              0,
+
+            prizePool:
+              0,
+          },
+        },
+
+        {
+          returnDocument:
+            "after",
+        }
+      );
+
+
+    if (!updatedGame) {
+
+      const latestGame =
+        await Game.findById(
+          gameObjectId
+        );
+
+
+      if (
+        !latestGame ||
+        latestGame.status !==
+          "cancelled"
+      ) {
+        throw new Error(
+          "Failed to cancel active game"
+        );
+      }
+
+
+      cancelledGame =
+        latestGame;
+
+    } else {
+
+      cancelledGame =
+        updatedGame;
+
+    }
+
+  }
+
+
+  console.log(
+    `[BINGO] ${cancelledGame.name} status changed to CANCELLED`
+  );
+
+
+  /* =========================================
+     4. START REFUND TRANSACTION
+
+     Game is already cancelled,
+     therefore caller cannot continue.
+  ========================================= */
+
+  const session =
+    await mongoose.startSession();
+
+
+  let totalRefunded =
+    0;
+
+  let refundedEntries =
+    0;
+
+  let cardsReleased =
+    0;
+
+  let playersCancelled =
+    0;
+
+
+  try {
+
+    session.startTransaction();
+
+
+    /* =========================================
+       5. GET ALL PARTICIPATIONS
+    ========================================= */
+
+    const gamePlayers =
+      await GamePlayer.find({
+        gameId:
+          gameObjectId,
+      }).session(
+        session
+      );
+
+
+    const gamePlayerIds =
+      gamePlayers.map(
+        (player) =>
+          player._id
+      );
+
+
+    /* =========================================
+       6. FIND UNREFUNDED GAME ENTRY PAYMENTS
+
+       Only "completed" transactions are
+       refunded.
+
+       After refund we change them to
+       "reversed", preventing double refund.
+    ========================================= */
+
+    const entryTransactions =
+      gamePlayerIds.length > 0
+        ? await Transaction.find({
+            type:
+              "game_entry",
+
+            requestId: {
+              $in:
+                gamePlayerIds,
+            },
+
+            status:
+              "completed",
+          }).session(
+            session
+          )
+        : [];
+
+
+    /* =========================================
+       7. REFUND EACH PLAYER
+    ========================================= */
+
+    for (
+      const entryTransaction of
+      entryTransactions
+    ) {
+
+      const refundAmount =
+        Number(
+          entryTransaction.amount ||
+            0
+        );
+
+
+      if (
+        !Number.isFinite(
+          refundAmount
+        ) ||
+        refundAmount <= 0
+      ) {
+        continue;
+      }
+
+
+      const wallet =
+        await Wallet.findOne({
+          userId:
+            entryTransaction.userId,
+
+          status:
+            "active",
+        }).session(
+          session
+        );
+
+
+      if (!wallet) {
+        throw new Error(
+          `Player wallet not found for ${entryTransaction.userId}`
+        );
+      }
+
+
+      /* =========================================
+         DETERMINE ORIGINAL PAYMENT SOURCE
+
+         Current join transaction contains:
+
+         Used X ETB winnings and
+         Y ETB deposit.
+      ========================================= */
+
+      let amountFromWinning =
+        0;
+
+      let amountFromDeposit =
+        refundAmount;
+
+
+      const transactionAny =
+        entryTransaction as any;
+
+
+      const storedWinning =
+        Number(
+          transactionAny
+            .amountFromWinning
+        );
+
+
+      const storedDeposit =
+        Number(
+          transactionAny
+            .amountFromDeposit
+        );
+
+
+      const storedSourceValid =
+        Number.isFinite(
+          storedWinning
+        ) &&
+        Number.isFinite(
+          storedDeposit
+        ) &&
+        storedWinning >= 0 &&
+        storedDeposit >= 0 &&
+        Math.abs(
+          storedWinning +
+            storedDeposit -
+            refundAmount
+        ) <= 0.01;
+
+
+      if (
+        storedSourceValid
+      ) {
+
+        amountFromWinning =
+          storedWinning;
+
+        amountFromDeposit =
+          storedDeposit;
+
+      } else {
+
+        const description =
+          String(
+            entryTransaction
+              .description ||
+              ""
+          );
+
+
+        const fundingMatch =
+          description.match(
+            /Used\s+([\d.]+)\s+ETB winnings and\s+([\d.]+)\s+ETB deposit/i
+          );
+
+
+        if (
+          fundingMatch
+        ) {
+
+          const parsedWinning =
+            Number(
+              fundingMatch[1]
+            );
+
+          const parsedDeposit =
+            Number(
+              fundingMatch[2]
+            );
+
+
+          const parsedValid =
+            Number.isFinite(
+              parsedWinning
+            ) &&
+            Number.isFinite(
+              parsedDeposit
+            ) &&
+            parsedWinning >= 0 &&
+            parsedDeposit >= 0 &&
+            Math.abs(
+              parsedWinning +
+                parsedDeposit -
+                refundAmount
+            ) <= 0.01;
+
+
+          if (
+            parsedValid
+          ) {
+
+            amountFromWinning =
+              parsedWinning;
+
+            amountFromDeposit =
+              parsedDeposit;
+
+          }
+
+        }
+
+      }
+
+
+      /* =========================================
+         8. RESTORE WALLET
+      ========================================= */
+
+      const depositBefore =
+        Number(
+          wallet.balance ||
+            0
+        );
+
+
+      const winningsBefore =
+        Number(
+          wallet.winningBalance ||
+            0
+        );
+
+
+      wallet.balance =
+        depositBefore +
+        amountFromDeposit;
+
+
+      wallet.winningBalance =
+        winningsBefore +
+        amountFromWinning;
+
+
+      await wallet.save({
+        session,
+      });
+
+
+      /* =========================================
+         9. MARK ORIGINAL ENTRY REVERSED
+
+         For now DO NOT create another
+         game_entry_reversal document.
+
+         This removes another possible
+         runtime validation failure and
+         prevents double refund.
+      ========================================= */
+
+      const reversed =
+        await Transaction.updateOne(
+          {
+            _id:
+              entryTransaction._id,
+
+            status:
+              "completed",
+          },
+
+          {
+            $set: {
+              status:
+                "reversed",
+
+              description:
+                `${entryTransaction.description || "Game entry"} | REFUNDED because ${cancelledGame.name} was cancelled.`,
+            },
+          },
+
+          {
+            session,
+          }
+        );
+
+
+      if (
+        reversed.modifiedCount !==
+        1
+      ) {
+        throw new Error(
+          `Failed to reverse game entry transaction ${entryTransaction._id}`
+        );
+      }
+
+
+      totalRefunded +=
+        refundAmount;
+
+
+      refundedEntries +=
+        1;
+
+
+      console.log(
+        `[BINGO] Refunded ${refundAmount} ETB to ${entryTransaction.userId}`
+      );
+
+    }
+
+
+    /* =========================================
+       10. COLLECT ASSIGNED CARDS
+    ========================================= */
+
+    const participationCardIds =
+      gamePlayers.flatMap(
+        (player) =>
+          getParticipationCardIds(
+            player
+          )
+      );
+
+
+    const uniqueCardIds =
+      [
+        ...new Map(
+          participationCardIds
+            .filter(Boolean)
+            .map(
+              (cardId: any) => {
+
+                const realId =
+                  cardId?._id ??
+                  cardId;
+
+
+                return [
+                  String(
+                    realId
+                  ),
+
+                  realId,
+                ];
+
+              }
+            )
+        ).values(),
+      ];
+
+
+    /* =========================================
+       11. RELEASE CARDS
+    ========================================= */
+
+    if (
+      uniqueCardIds.length > 0
+    ) {
+
+      const cardResult =
+        await Card.updateMany(
+          {
+            _id: {
+              $in:
+                uniqueCardIds,
+            },
+
+            status:
+              "assigned",
+          },
+
+          {
+            $set: {
+              status:
+                "available",
+            },
+          },
+
+          {
+            session,
+          }
+        );
+
+
+      cardsReleased =
+        cardResult.modifiedCount;
+
+    }
+
+
+    /* =========================================
+       12. CANCEL GAME PLAYERS
+    ========================================= */
+
+    const playerResult =
+      await GamePlayer.updateMany(
+        {
+          gameId:
+            gameObjectId,
+
+          status: {
+            $ne:
+              "cancelled",
+          },
+        },
+
+        {
+          $set: {
+            status:
+              "cancelled",
+
+            prizeAmount:
+              0,
+          },
+        },
+
+        {
+          session,
+        }
+      );
+
+
+    playersCancelled =
+      playerResult.modifiedCount;
+
+
+    /* =========================================
+       13. COMMIT REFUND
+    ========================================= */
+
+    await session.commitTransaction();
+
+
+    console.log(
+      `[BINGO] ACTIVE GAME CANCEL COMPLETE`
+    );
+
+
+    console.log(
+      `[BINGO] Refunded: ${totalRefunded} ETB`
+    );
+
+
+    console.log(
+      `[BINGO] Cards released: ${cardsReleased}`
+    );
+
+
+    console.log(
+      `[BINGO] Players cancelled: ${playersCancelled}`
+    );
+
+
+  } catch (error) {
+
+    if (
+      session.inTransaction()
+    ) {
+      await session.abortTransaction();
+    }
+
+
+    console.error(
+      "[BINGO] CANCEL ACTIVE GAME REFUND ERROR:",
+      error
+    );
+
+
+    throw error;
+
+
+  } finally {
+
+    await session.endSession();
+
+  }
+
+
+  /* =========================================
+     14. CREATE NEXT GAME IF AUTO MODE IS ON
+  ========================================= */
+
+  await scheduleNextGame(
+    cancelledGame
+  );
+
+
+  return {
+    game: {
+      id:
+        cancelledGame._id,
+
+      name:
+        cancelledGame.name,
+
+      status:
+        "cancelled",
+    },
+
+    refund: {
+      totalRefunded,
+
+      refundedEntries,
+    },
+
+    cardsReleased,
+
+    playersCancelled,
+  };
+
+};
