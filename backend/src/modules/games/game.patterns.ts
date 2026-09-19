@@ -494,6 +494,94 @@ const DIAGONAL_REVERSE = [
   4, 8, 12, 16, 20,
 ];
 
+/* =========================================================
+   HALF HOUSE DIAGONAL LAYOUTS
+========================================================= */
+
+const buildPatternCells = (
+  condition: (
+    row: number,
+    col: number
+  ) => boolean
+): number[] => {
+
+  const cells: number[] = [];
+
+  for (
+    let row = 0;
+    row < 5;
+    row += 1
+  ) {
+
+    for (
+      let col = 0;
+      col < 5;
+      col += 1
+    ) {
+
+      if (
+        condition(
+          row,
+          col
+        )
+      ) {
+
+        cells.push(
+          row * 5 + col
+        );
+
+      }
+
+    }
+
+  }
+
+  return cells;
+};
+
+
+/*
+ * Triangle above / left
+ * of reverse diagonal.
+ */
+const HALF_DIAGONAL_TOP_LEFT =
+  buildPatternCells(
+    (row, col) =>
+      row + col <= 4
+  );
+
+
+/*
+ * Triangle above / right
+ * of main diagonal.
+ */
+const HALF_DIAGONAL_TOP_RIGHT =
+  buildPatternCells(
+    (row, col) =>
+      col >= row
+  );
+
+
+/*
+ * Triangle below / left
+ * of main diagonal.
+ */
+const HALF_DIAGONAL_BOTTOM_LEFT =
+  buildPatternCells(
+    (row, col) =>
+      col <= row
+  );
+
+
+/*
+ * Triangle below / right
+ * of reverse diagonal.
+ */
+const HALF_DIAGONAL_BOTTOM_RIGHT =
+  buildPatternCells(
+    (row, col) =>
+      row + col >= 4
+  );
 
 /* =========================================================
    SQUARES
@@ -559,7 +647,375 @@ for (
     ]);
   }
 }
+const CORNER_CELLS = [
+  0,
+  4,
+  20,
+  24,
+];
+/* =========================================================
+   3 CORNER DOTS + 2 DISCONNECTED SQUARES
+========================================================= */
 
+const THREE_CORNER_DOTS_TWO_SQUARE_LAYOUTS:
+  number[][] = [];
+
+
+for (
+  let missingCornerIndex = 0;
+  missingCornerIndex <
+  CORNER_CELLS.length;
+  missingCornerIndex += 1
+) {
+
+  const selectedCornerDots =
+    CORNER_CELLS.filter(
+      (_, index) =>
+        index !==
+        missingCornerIndex
+    );
+
+
+  for (
+    let i = 0;
+    i <
+    SQUARE_2X2_LAYOUTS.length;
+    i += 1
+  ) {
+
+    const square1 =
+      SQUARE_2X2_LAYOUTS[i];
+
+
+    const square1Valid =
+      square1.every(
+        (cellIndex) =>
+          !selectedCornerDots.includes(
+            cellIndex
+          )
+      );
+
+
+    if (!square1Valid) {
+      continue;
+    }
+
+
+    for (
+      let j = i + 1;
+      j <
+      SQUARE_2X2_LAYOUTS.length;
+      j += 1
+    ) {
+
+      const square2 =
+        SQUARE_2X2_LAYOUTS[j];
+
+
+      const square2Valid =
+        square2.every(
+          (cellIndex) =>
+            !selectedCornerDots.includes(
+              cellIndex
+            )
+        );
+
+
+      if (!square2Valid) {
+        continue;
+      }
+
+
+      const squaresDisconnected =
+        square1.every(
+          (cellIndex) =>
+            !square2.includes(
+              cellIndex
+            )
+        );
+
+
+      if (
+        !squaresDisconnected
+      ) {
+        continue;
+      }
+
+
+      THREE_CORNER_DOTS_TWO_SQUARE_LAYOUTS.push(
+        mergeCells(
+          selectedCornerDots,
+          square1,
+          square2
+        )
+      );
+
+    }
+
+  }
+
+}
+/* =========================================================
+   3 CORNER DOTS + 3 DISCONNECTED SQUARES
+
+   Rules:
+   - any 3 of the 4 corner dots
+   - any 3 completed 2x2 squares
+   - squares cannot overlap each other
+   - squares cannot use selected corner dots
+   - unused fourth corner may be used
+========================================================= */
+
+const THREE_CORNER_DOTS_THREE_SQUARE_LAYOUTS:
+  number[][] = [];
+
+
+for (
+  let missingCornerIndex = 0;
+  missingCornerIndex <
+  CORNER_CELLS.length;
+  missingCornerIndex += 1
+) {
+
+  const selectedCornerDots =
+    CORNER_CELLS.filter(
+      (_, index) =>
+        index !==
+        missingCornerIndex
+    );
+
+
+  for (
+    let i = 0;
+    i <
+    SQUARE_2X2_LAYOUTS.length;
+    i += 1
+  ) {
+
+    const square1 =
+      SQUARE_2X2_LAYOUTS[i];
+
+
+    const square1Valid =
+      square1.every(
+        (cellIndex) =>
+          !selectedCornerDots.includes(
+            cellIndex
+          )
+      );
+
+
+    if (!square1Valid) {
+      continue;
+    }
+
+
+    for (
+      let j = i + 1;
+      j <
+      SQUARE_2X2_LAYOUTS.length;
+      j += 1
+    ) {
+
+      const square2 =
+        SQUARE_2X2_LAYOUTS[j];
+
+
+      const square2Valid =
+        square2.every(
+          (cellIndex) =>
+            !selectedCornerDots.includes(
+              cellIndex
+            )
+        ) &&
+        square2.every(
+          (cellIndex) =>
+            !square1.includes(
+              cellIndex
+            )
+        );
+
+
+      if (!square2Valid) {
+        continue;
+      }
+
+
+      for (
+        let k = j + 1;
+        k <
+        SQUARE_2X2_LAYOUTS.length;
+        k += 1
+      ) {
+
+        const square3 =
+          SQUARE_2X2_LAYOUTS[k];
+
+
+        const square3Valid =
+          square3.every(
+            (cellIndex) =>
+              !selectedCornerDots.includes(
+                cellIndex
+              )
+          ) &&
+          square3.every(
+            (cellIndex) =>
+              !square1.includes(
+                cellIndex
+              ) &&
+              !square2.includes(
+                cellIndex
+              )
+          );
+
+
+        if (!square3Valid) {
+          continue;
+        }
+
+
+        THREE_CORNER_DOTS_THREE_SQUARE_LAYOUTS.push(
+          mergeCells(
+            selectedCornerDots,
+            square1,
+            square2,
+            square3
+          )
+        );
+
+      }
+
+    }
+
+  }
+
+}
+/* =========================================================
+   ALL VALID 4-SQUARE COMBINATIONS
+
+   Rules:
+   - each square is 2x2
+   - squares may touch
+   - squares may NOT share cells
+========================================================= */
+
+const FOUR_SQUARE_LAYOUTS:
+  number[][] = [];
+
+
+for (
+  let a = 0;
+  a < SQUARE_2X2_LAYOUTS.length;
+  a += 1
+) {
+
+  for (
+    let b = a + 1;
+    b < SQUARE_2X2_LAYOUTS.length;
+    b += 1
+  ) {
+
+    const squareA =
+      SQUARE_2X2_LAYOUTS[a];
+
+    const squareB =
+      SQUARE_2X2_LAYOUTS[b];
+
+
+    const abDisconnected =
+      squareA.every(
+        (cellIndex) =>
+          !squareB.includes(
+            cellIndex
+          )
+      );
+
+
+    if (
+      !abDisconnected
+    ) {
+      continue;
+    }
+
+
+    for (
+      let c = b + 1;
+      c < SQUARE_2X2_LAYOUTS.length;
+      c += 1
+    ) {
+
+      const squareC =
+        SQUARE_2X2_LAYOUTS[c];
+
+
+      const cDisconnected =
+        squareC.every(
+          (cellIndex) =>
+            !squareA.includes(
+              cellIndex
+            ) &&
+            !squareB.includes(
+              cellIndex
+            )
+        );
+
+
+      if (
+        !cDisconnected
+      ) {
+        continue;
+      }
+
+
+      for (
+        let d = c + 1;
+        d < SQUARE_2X2_LAYOUTS.length;
+        d += 1
+      ) {
+
+        const squareD =
+          SQUARE_2X2_LAYOUTS[d];
+
+
+        const dDisconnected =
+          squareD.every(
+            (cellIndex) =>
+              !squareA.includes(
+                cellIndex
+              ) &&
+              !squareB.includes(
+                cellIndex
+              ) &&
+              !squareC.includes(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !dDisconnected
+        ) {
+          continue;
+        }
+
+
+        FOUR_SQUARE_LAYOUTS.push(
+          mergeCells(
+            squareA,
+            squareB,
+            squareC,
+            squareD
+          )
+        );
+
+      }
+
+    }
+
+  }
+
+}
 /* =========================================================
    RECTANGLES
 ========================================================= */
@@ -658,6 +1114,119 @@ const BIG_T_CONFIGS = [
 ];
 
 /* =========================================================
+   BIG T + 2 DISCONNECTED SQUARES
+
+   Rules:
+   - T can face any of 4 directions
+   - squares cannot overlap the T
+   - squares cannot overlap each other
+========================================================= */
+
+const T_TWO_DISCONNECTED_SQUARE_LAYOUTS:
+  number[][] = [];
+
+
+for (
+  const tConfig of
+  BIG_T_CONFIGS
+) {
+
+  for (
+    let i = 0;
+    i <
+    SQUARE_2X2_LAYOUTS.length;
+    i += 1
+  ) {
+
+    const square1 =
+      SQUARE_2X2_LAYOUTS[i];
+
+
+    /*
+     * First square must not
+     * share any cell with T.
+     */
+    const square1DisconnectedFromT =
+      square1.every(
+        (cellIndex) =>
+          !tConfig.cells.includes(
+            cellIndex
+          )
+      );
+
+
+    if (
+      !square1DisconnectedFromT
+    ) {
+      continue;
+    }
+
+
+    for (
+      let j = i + 1;
+      j <
+      SQUARE_2X2_LAYOUTS.length;
+      j += 1
+    ) {
+
+      const square2 =
+        SQUARE_2X2_LAYOUTS[j];
+
+
+      /*
+       * Second square must not
+       * share any cell with T.
+       */
+      const square2DisconnectedFromT =
+        square2.every(
+          (cellIndex) =>
+            !tConfig.cells.includes(
+              cellIndex
+            )
+        );
+
+
+      if (
+        !square2DisconnectedFromT
+      ) {
+        continue;
+      }
+
+
+      /*
+       * Two squares must not
+       * share cells with each other.
+       */
+      const squaresDisconnected =
+        square1.every(
+          (cellIndex) =>
+            !square2.includes(
+              cellIndex
+            )
+        );
+
+
+      if (
+        !squaresDisconnected
+      ) {
+        continue;
+      }
+
+
+      T_TWO_DISCONNECTED_SQUARE_LAYOUTS.push(
+        mergeCells(
+          tConfig.cells,
+          square1,
+          square2
+        )
+      );
+
+    }
+
+  }
+
+}
+/* =========================================================
    FILLED 3x2 RECTANGLES
 ========================================================= */
 
@@ -711,7 +1280,95 @@ for (
   }
 }
 
+/* =========================================================
+   ALL VALID 3-RECTANGLE COMBINATIONS
 
+   - each rectangle is 2x3 or 3x2
+   - rectangles may touch
+   - rectangles may NOT share cells
+========================================================= */
+
+const THREE_RECTANGLE_LAYOUTS:
+  number[][] = [];
+
+
+for (
+  let i = 0;
+  i < RECTANGLE_3X2_LAYOUTS.length;
+  i += 1
+) {
+
+  for (
+    let j = i + 1;
+    j < RECTANGLE_3X2_LAYOUTS.length;
+    j += 1
+  ) {
+
+    const rectangle1 =
+      RECTANGLE_3X2_LAYOUTS[i];
+
+    const rectangle2 =
+      RECTANGLE_3X2_LAYOUTS[j];
+
+
+    const firstTwoDisconnected =
+      rectangle1.every(
+        (cellIndex) =>
+          !rectangle2.includes(
+            cellIndex
+          )
+      );
+
+
+    if (
+      !firstTwoDisconnected
+    ) {
+      continue;
+    }
+
+
+    for (
+      let k = j + 1;
+      k < RECTANGLE_3X2_LAYOUTS.length;
+      k += 1
+    ) {
+
+      const rectangle3 =
+        RECTANGLE_3X2_LAYOUTS[k];
+
+
+      const thirdDisconnected =
+        rectangle3.every(
+          (cellIndex) =>
+            !rectangle1.includes(
+              cellIndex
+            ) &&
+            !rectangle2.includes(
+              cellIndex
+            )
+        );
+
+
+      if (
+        !thirdDisconnected
+      ) {
+        continue;
+      }
+
+
+      THREE_RECTANGLE_LAYOUTS.push(
+        mergeCells(
+          rectangle1,
+          rectangle2,
+          rectangle3
+        )
+      );
+
+    }
+
+  }
+
+}
 const BIG_CROSS =
   mergeCells(
     ROW_3,
@@ -780,6 +1437,24 @@ const NON_DIAGONAL_LINES:
     COL_5,
 
   ];
+  /* =========================================================
+   LINES THAT DO NOT TOUCH FREE
+========================================================= */
+
+const FREE_UNTOUCHED_LINES:
+  number[][] = [
+
+    ROW_1,
+    ROW_2,
+    ROW_4,
+    ROW_5,
+
+    COL_1,
+    COL_2,
+    COL_4,
+    COL_5,
+
+  ];
 
 
 
@@ -807,21 +1482,37 @@ const WINNING_PATTERN_LAYOUTS:
      Top 3 rows OR bottom 3 rows
   ======================================================= */
 
-  half_house: [
+half_house: [
 
-    mergeCells(
-      ROW_1,
-      ROW_2,
-      ROW_3
-    ),
+  /* TOP 3 ROWS */
+  mergeCells(
+    ROW_1,
+    ROW_2,
+    ROW_3
+  ),
 
-    mergeCells(
-      ROW_3,
-      ROW_4,
-      ROW_5
-    ),
+  /* BOTTOM 3 ROWS */
+  mergeCells(
+    ROW_3,
+    ROW_4,
+    ROW_5
+  ),
 
-  ],
+  /* LEFT 3 COLUMNS */
+  mergeCells(
+    COL_1,
+    COL_2,
+    COL_3
+  ),
+
+  /* RIGHT 3 COLUMNS */
+  mergeCells(
+    COL_3,
+    COL_4,
+    COL_5
+  ),
+
+],
   
 
 
@@ -837,60 +1528,13 @@ const WINNING_PATTERN_LAYOUTS:
 
 half_house_diagonal: [
 
-  // 1. UPPER → RIGHT
-  [
-    0, 1, 2, 3, 4,
+  HALF_DIAGONAL_TOP_LEFT,
 
-    6, 7, 8, 9,
+  HALF_DIAGONAL_TOP_RIGHT,
 
-    12, 13, 14,
+  HALF_DIAGONAL_BOTTOM_LEFT,
 
-    18, 19,
-
-    24,
-  ],
-
-
-  // 2. UPPER → LEFT
-  [
-    0, 1, 2, 3, 4,
-
-    5, 6, 7, 8,
-
-    10, 11, 12,
-
-    15, 16,
-
-    20,
-  ],
-
-
-  // 3. LOWER → RIGHT
-  [
-    4,
-
-    8, 9,
-
-    12, 13, 14,
-
-    16, 17, 18, 19,
-
-    20, 21, 22, 23, 24,
-  ],
-
-
-  // 4. LOWER → LEFT
-  [
-    0,
-
-    5, 6,
-
-    10, 11, 12,
-
-    15, 16, 17, 18,
-
-    20, 21, 22, 23, 24,
-  ],
+  HALF_DIAGONAL_BOTTOM_RIGHT,
 
 ],
 
@@ -1065,46 +1709,8 @@ half_house_diagonal: [
    4 correct possibilities from image
 ======================================================= */
 
-"3_rectangles": [
-
-  // Correct possibility 1
-  [
-    0, 1, 2,
-    5, 6, 7, 8, 9,
-    13, 14,
-    15, 16, 17, 18, 19,
-    20, 21, 22,
-  ],
-
-  // Correct possibility 2
-  [
-    0, 1, 2, 3,
-    5, 6, 7, 8,
-    10, 11,
-    13,
-    17, 18, 19,
-    22, 23, 24,
-  ],
-
-  // Correct possibility 3
-  [
-    0, 1, 2, 3, 4,
-    5, 6, 7, 8, 9,
-    10, 11,
-    17, 18, 19,
-    22, 23, 24,
-  ],
-
-  // Correct possibility 4
-  [
-    0, 1, 2, 3, 4,
-    5, 6, 7, 8, 9,
-    10, 11,
-    13, 14,
-    15, 16, 17,
-  ],
-
-],
+"3_rectangles":
+  THREE_RECTANGLE_LAYOUTS,
 
 
 /* =======================================================
@@ -1113,58 +1719,8 @@ half_house_diagonal: [
    4 correct possibilities from image
 ======================================================= */
 
-"4_squares": [
-
-  // Correct possibility 1
-  [
-    0, 1, 2, 3,
-    5, 6, 7, 8,
-    13, 14,
-    15, 16,
-    18, 19,
-    20, 21,
-  ],
-
-  // Correct possibility 2
-  [
-    0, 1, 2, 3,
-    5, 6, 7, 8,
-    10, 11,
-    13,
-    15, 16, 17, 18,
-  ],
-
-  // Correct possibility 3
-  [
-    0, 1,
-    3, 4,
-
-    5, 6,
-    8, 9,
-
-    15, 16,
-    18, 19,
-
-    20, 21,
-    23, 24,
-  ],
-
-  // Correct possibility 4
-  [
-    0, 1,
-    3, 4,
-
-    5, 6,
-    8, 9,
-
-    10, 11,
-    13,
-
-    15, 16, 17, 18,
-  ],
-
-],
-
+"4_squares":
+  FOUR_SQUARE_LAYOUTS,
 
  /* =======================================================
    17. 3 CORNER DOTS + 2 DISCONNECTED SQUARES
@@ -1173,53 +1729,8 @@ half_house_diagonal: [
    Squares do not overlap or touch each other.
 ======================================================= */
 
-"3_corner_dots_2_disconnected_squares": [
-
-  // 1. Missing BOTTOM-RIGHT corner dot
-  [
-    0, 4, 20,
-
-    6, 7,
-    11, 12,
-
-    18, 19,
-    23, 24,
-  ],
-
-  // 2. Missing BOTTOM-LEFT corner dot
-  [
-    0, 4, 24,
-
-    7, 8,
-    12, 13,
-
-    15, 16,
-    20, 21,
-  ],
-
-  // 3. Missing TOP-RIGHT corner dot
-  [
-    0, 20, 24,
-
-    3, 4,
-    8, 9,
-
-    11, 12,
-    16, 17,
-  ],
-
-  // 4. Missing TOP-LEFT corner dot
-  [
-    4, 20, 24,
-
-    0, 1,
-    5, 6,
-
-    12, 13,
-    17, 18,
-  ],
-
-],
+"3_corner_dots_2_disconnected_squares":
+  THREE_CORNER_DOTS_TWO_SQUARE_LAYOUTS,
 
 
  /* =======================================================
@@ -1228,70 +1739,8 @@ half_house_diagonal: [
    4 correct possibilities
 ======================================================= */
 
-"3_corner_dots_3_disconnected_squares": [
-
-  // Correct possibility 1
-  [
-    0,
-    2, 3, 4,
-
-    7, 8,
-
-    13, 14,
-
-    15, 16,
-    18, 19,
-
-    20, 21,
-    24,
-  ],
-
-  // Correct possibility 2
-  [
-    0,
-    2, 3, 4,
-
-    7, 8,
-
-    10, 11,
-    13,
-
-    15, 16, 17, 18,
-
-    24,
-  ],
-
-  // Correct possibility 3
-  [
-    0, 1, 2, 3, 4,
-
-    5, 6, 7, 8,
-
-    10, 11,
-
-    15, 16,
-
-    20,
-    24,
-  ],
-
-  // Correct possibility 4
-  [
-    0,
-    3, 4,
-
-    8, 9,
-
-    10, 11,
-    13,
-
-    15, 16, 17, 18,
-
-    20,
-    24,
-  ],
-
-],
+"3_corner_dots_3_disconnected_squares":
+  THREE_CORNER_DOTS_THREE_SQUARE_LAYOUTS,
 
  /* =======================================================
    19. 4 CORNER DOTS + 2 DISCONNECTED SQUARES
@@ -1315,38 +1764,8 @@ half_house_diagonal: [
    TOP / BOTTOM / LEFT / RIGHT
 ======================================================= */
 
-"t_2_disconnected_squares": [
-
-  // TOP T
-  mergeCells(
-    BIG_T_TOP,
-    SQUARE_BOTTOM_LEFT,
-    SQUARE_BOTTOM_RIGHT
-  ),
-
-  // BOTTOM T
-  mergeCells(
-    BIG_T_BOTTOM,
-    SQUARE_TOP_LEFT,
-    SQUARE_TOP_RIGHT
-  ),
-
-  // LEFT T
-  mergeCells(
-    BIG_T_LEFT,
-    SQUARE_TOP_RIGHT,
-    SQUARE_BOTTOM_RIGHT
-  ),
-
-  // RIGHT T
-  mergeCells(
-    BIG_T_RIGHT,
-    SQUARE_TOP_LEFT,
-    SQUARE_BOTTOM_LEFT
-  ),
-
-],
-
+"t_2_disconnected_squares":
+  T_TWO_DISCONNECTED_SQUARE_LAYOUTS,
   /* =======================================================
      21. T + DIAGONAL + 2 LINES
   ======================================================= */
@@ -1873,35 +2292,52 @@ if (
 if (
   pattern === "half_house"
 ) {
-  const topHalf =
+
+  const halfHouseLayouts = [
+
+    /* TOP */
     mergeCells(
       ROW_1,
       ROW_2,
       ROW_3
-    );
+    ),
 
-  const bottomHalf =
+    /* BOTTOM */
     mergeCells(
       ROW_3,
       ROW_4,
       ROW_5
-    );
+    ),
 
-  return (
-    topHalf.every(
-      (cellIndex) =>
-        isCellMarked(
-          cellIndex
-        )
-    ) ||
-    bottomHalf.every(
-      (cellIndex) =>
-        isCellMarked(
-          cellIndex
-        )
-    )
+    /* LEFT */
+    mergeCells(
+      COL_1,
+      COL_2,
+      COL_3
+    ),
+
+    /* RIGHT */
+    mergeCells(
+      COL_3,
+      COL_4,
+      COL_5
+    ),
+
+  ];
+
+
+  return halfHouseLayouts.some(
+    (requiredCells) =>
+      requiredCells.every(
+        (cellIndex) =>
+          isCellMarked(
+            cellIndex
+          )
+      )
   );
+
 }
+
 /* =========================================
    3. HALF HOUSE DIAGONAL
    PATTERN ONLY
@@ -1948,56 +2384,6 @@ const requiredCellIndex:
    PATTERNS THAT DO NOT REQUIRE
    THE LATEST CALLED NUMBER
 ========================================= */
-
-const ignoreLatestNumber =
-  pattern === "3_lines" ||
-  pattern === "4_lines" ||
-  pattern === "5_lines" ||
-  pattern === "6_lines" ||
-  pattern === "7_lines" ||
-  pattern === "8_lines" ||
-  pattern === "4_free_untouched_lines" ||
-  pattern === "3_horizontal_2_vertical" ||
-  pattern === "3_disconnected_lines" ||
-  pattern === "4_disconnected_lines" ||
-  pattern === "2_diagonals" ||
-  pattern === "3_rectangles" ||
-  pattern === "4_squares" ||
-  pattern ===
-    "3_corner_dots_2_disconnected_squares" ||
-  pattern ===
-    "3_corner_dots_3_disconnected_squares" ||
-  pattern ===
-  "4_corner_dots_2_disconnected_squares" ||
-pattern ===
-  "t_2_disconnected_squares" ||
-pattern ===
-  "t_1_diagonal_2_lines" ||
-pattern ===
-  "t_1_rectangle" ||
-pattern ===
-  "t_3_lines"||
-  pattern === "4_corner_squares" ||
-pattern === "2_horizontal_2_vertical" ||
-pattern === "1_cross_2_lines"||
-pattern === "3_small_t" ||
-pattern === "1_rectangle_2_squares" ||
-pattern === "1_line_2_squares"||
-pattern === "2_disconnected_lines_2_disconnected_squares" ||
-pattern === "2_squares_1_rectangle"||
-pattern === "3_lines_no_diagonal" ||
-pattern === "4_lines_no_diagonal" ||
-pattern === "5_lines_no_diagonal" ||
-pattern === "6_lines_no_diagonal" ||
-pattern === "7_lines_no_diagonal" ||
-pattern === "8_lines_no_diagonal"||
-pattern ===
-  "1_diagonal_2_disconnected_corner_squares";
-
-if (ignoreLatestNumber) {
-  return null;
-}
-
 
 /*
  * No current number supplied.
@@ -2168,6 +2554,174 @@ const completedLines =
     )
     .length;
 
+  /* =========================================
+   ACCURATE DYNAMIC LINE COUNT MATCHER
+
+   Used by:
+   3_lines
+   4_lines
+   5_lines
+   6_lines
+   7_lines
+   8_lines
+========================================= */
+
+const isLineCountPatternMatched = (
+  requiredLineCount: number
+): boolean => {
+
+  /*
+   * First:
+   * current card must have enough
+   * completed lines.
+   */
+  if (
+    completedLines <
+    requiredLineCount
+  ) {
+    return false;
+  }
+
+
+  /*
+   * If this function is used without
+   * a latest/current number,
+   * normal pattern validation is enough.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Latest called number must be
+   * part of at least one currently
+   * completed standard Bingo line.
+   */
+  if (
+    !completedLineContainsRequiredCell(
+      STANDARD_BINGO_LINES
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild the called-number state
+   * BEFORE the latest number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore =
+    (
+      index: number
+    ): boolean => {
+
+      /*
+       * FREE center always counts.
+       */
+      if (
+        index === 12
+      ) {
+        return true;
+      }
+
+
+      const row =
+        Math.floor(
+          index / 5
+        );
+
+      const col =
+        index % 5;
+
+
+      const value =
+        numbers[row]?.[
+          col
+        ];
+
+
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return false;
+      }
+
+
+      return calledBefore.has(
+        Number(value)
+      );
+
+    };
+
+
+  /*
+   * Count how many lines were already
+   * complete BEFORE the latest call.
+   */
+  const completedBefore =
+    STANDARD_BINGO_LINES.filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * If the player already had the
+   * required number of lines before
+   * this call, Bingo was missed.
+   */
+  if (
+    completedBefore >=
+    requiredLineCount
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Required threshold became valid
+   * on this latest call.
+   */
+  return true;
+
+};
+
 
 /* =========================================
    COMPLETED HORIZONTAL LINES
@@ -2211,7 +2765,194 @@ const completedVerticalLines =
           )
       )
   ).length;
+/* =========================================
+   DISCONNECTED LINE COUNT MATCHER
 
+   Valid arrangements:
+   - horizontal lines only
+   OR
+   - vertical lines only
+
+   Rows + columns cannot mix because
+   they intersect.
+========================================= */
+
+const isDisconnectedLinePatternMatched = (
+  requiredLineCount: number
+): boolean => {
+
+  /*
+   * Current card must currently have
+   * enough parallel completed lines.
+   */
+  const currentlyMatched =
+    completedHorizontalLines >=
+      requiredLineCount ||
+    completedVerticalLines >=
+      requiredLineCount;
+
+
+  if (!currentlyMatched) {
+    return false;
+  }
+
+
+  /*
+   * No latest-number validation supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild game state before
+   * the latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore =
+    (
+      index: number
+    ): boolean => {
+
+      /*
+       * FREE center always counts.
+       */
+      if (
+        index === 12
+      ) {
+        return true;
+      }
+
+
+      const row =
+        Math.floor(
+          index / 5
+        );
+
+
+      const col =
+        index % 5;
+
+
+      const value =
+        numbers[row]?.[
+          col
+        ];
+
+
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return false;
+      }
+
+
+      return calledBefore.has(
+        Number(value)
+      );
+
+    };
+
+
+  /*
+   * Count horizontal lines
+   * before latest call.
+   */
+  const horizontalBefore =
+    [
+      ROW_1,
+      ROW_2,
+      ROW_3,
+      ROW_4,
+      ROW_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * Count vertical lines
+   * before latest call.
+   */
+  const verticalBefore =
+    [
+      COL_1,
+      COL_2,
+      COL_3,
+      COL_4,
+      COL_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * If either valid orientation
+   * already existed before the
+   * latest call, Bingo was missed.
+   */
+  const matchedBefore =
+    horizontalBefore >=
+      requiredLineCount ||
+    verticalBefore >=
+      requiredLineCount;
+
+
+  if (matchedBefore) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid exactly
+   * on the latest call.
+   */
+  return true;
+
+};
 
 /* =========================================
    COMPLETED DIAGONALS
@@ -2250,6 +2991,198 @@ const completedNonDiagonalLines =
     .length;
 
 /* =========================================
+   ACCURATE NON-DIAGONAL LINE COUNT MATCHER
+
+   Used by:
+   - 3_lines_no_diagonal
+   - 4_lines_no_diagonal
+   - 5_lines_no_diagonal
+   - 6_lines_no_diagonal
+   - 7_lines_no_diagonal
+   - 8_lines_no_diagonal
+
+   Counts ONLY:
+   - horizontal rows
+   - vertical columns
+
+   Diagonals never count.
+========================================= */
+
+const isNonDiagonalLineCountMatched = (
+  requiredLineCount: number
+): boolean => {
+
+  /*
+   * Current card must have
+   * enough horizontal/vertical lines.
+   */
+  if (
+    completedNonDiagonalLines <
+    requiredLineCount
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Normal validation when
+   * latest number is not supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Latest called cell must belong
+   * to at least one currently
+   * completed NON-DIAGONAL line.
+   */
+  if (
+    !completedLineContainsRequiredCell(
+      NON_DIAGONAL_LINES
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild called-number state
+   * BEFORE latest number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    /*
+     * FREE center always counts.
+     */
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * Count horizontal + vertical
+   * lines before latest call.
+   *
+   * Diagonals are intentionally
+   * ignored here.
+   */
+  const completedBefore =
+    NON_DIAGONAL_LINES.filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * If required threshold already
+   * existed before latest call,
+   * Bingo was missed.
+   */
+  if (
+    completedBefore >=
+    requiredLineCount
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Required threshold became valid
+   * on this latest call.
+   */
+  return true;
+
+};
+
+/* =========================================
+   COMPLETED LINES NOT TOUCHING FREE
+========================================= */
+
+const completedFreeUntouchedLines =
+  FREE_UNTOUCHED_LINES
+    .filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarked(
+              cellIndex
+            )
+        )
+    )
+    .length;
+
+/* =========================================
    4 LINES NOT TOUCHING FREE
 ========================================= */
 
@@ -2271,9 +3204,140 @@ if (
   pattern ===
   "4_free_untouched_lines"
 ) {
-  return (
-    completedLines >= 4
+
+  /*
+   * Must currently have at least
+   * 4 eligible lines.
+   */
+  if (
+    completedFreeUntouchedLines < 4
+  ) {
+    return false;
+  }
+
+
+  /*
+   * If called without latest-number
+   * validation, normal match is enough.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Latest called cell must belong
+   * to one of the eligible lines
+   * that is currently complete.
+   */
+  if (
+    !completedLineContainsRequiredCell(
+      FREE_UNTOUCHED_LINES
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state before latest call.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore =
+    (
+      index: number
+    ): boolean => {
+
+      if (
+        index === 12
+      ) {
+        return true;
+      }
+
+
+      const row =
+        Math.floor(
+          index / 5
+        );
+
+      const col =
+        index % 5;
+
+
+      const value =
+        numbers[row]?.[
+          col
+        ];
+
+
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return false;
+      }
+
+
+      return calledBefore.has(
+        Number(value)
+      );
+
+    };
+
+
+  const completedBefore =
+    FREE_UNTOUCHED_LINES.filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * Already had 4 eligible lines
+   * before latest call = missed Bingo.
+   */
+  if (
+    completedBefore >= 4
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
 
 
@@ -2287,39 +3351,339 @@ if (
    WIN:
    - any 3 completed horizontal rows
    - any 2 completed vertical columns
-
-   No latest-number requirement.
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "3_horizontal_2_vertical"
 ) {
-  return (
+
+  const currentlyMatched =
     completedHorizontalLines >= 3 &&
-    completedVerticalLines >= 2
+    completedVerticalLines >= 2;
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
+  }
+
+
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  const horizontalBefore =
+    [
+      ROW_1,
+      ROW_2,
+      ROW_3,
+      ROW_4,
+      ROW_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  const verticalBefore =
+    [
+      COL_1,
+      COL_2,
+      COL_3,
+      COL_4,
+      COL_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  const matchedBefore =
+    horizontalBefore >= 3 &&
+    verticalBefore >= 2;
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
 
 
 /* =========================================
+ /* =========================================
    25. 2 HORIZONTAL + 2 VERTICAL
 
    WIN:
    - any 2 completed horizontal rows
    - any 2 completed vertical columns
-
-   No latest-number requirement.
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "2_horizontal_2_vertical"
 ) {
-  return (
+
+  /*
+   * Current card must have:
+   * at least 2 rows
+   * AND
+   * at least 2 columns.
+   */
+  const currentlyMatched =
     completedHorizontalLines >= 2 &&
-    completedVerticalLines >= 2
+    completedVerticalLines >= 2;
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Normal pattern validation when
+   * no latest number is supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild called-number state
+   * BEFORE the latest call.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * Count completed rows BEFORE
+   * the latest call.
+   */
+  const horizontalBefore =
+    [
+      ROW_1,
+      ROW_2,
+      ROW_3,
+      ROW_4,
+      ROW_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * Count completed columns BEFORE
+   * the latest call.
+   */
+  const verticalBefore =
+    [
+      COL_1,
+      COL_2,
+      COL_3,
+      COL_4,
+      COL_5,
+    ].filter(
+      (line) =>
+        line.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    ).length;
+
+
+  /*
+   * If BOTH thresholds were already
+   * satisfied before the latest call,
+   * Bingo was missed.
+   */
+  const matchedBefore =
+    horizontalBefore >= 2 &&
+    verticalBefore >= 2;
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  /*
+   * 2 rows + 2 columns became valid
+   * exactly on the latest call.
+   */
+  return true;
+
 }
 
 
@@ -2345,8 +3709,8 @@ if (
 if (
   pattern === "3_lines"
 ) {
-  return (
-    completedLines >= 3
+  return isLineCountPatternMatched(
+    3
   );
 }
 
@@ -2358,8 +3722,8 @@ if (
 if (
   pattern === "4_lines"
 ) {
-  return (
-    completedLines >= 4
+  return isLineCountPatternMatched(
+    4
   );
 }
 
@@ -2371,8 +3735,8 @@ if (
 if (
   pattern === "5_lines"
 ) {
-  return (
-    completedLines >= 5
+  return isLineCountPatternMatched(
+    5
   );
 }
 
@@ -2384,8 +3748,8 @@ if (
 if (
   pattern === "6_lines"
 ) {
-  return (
-    completedLines >= 6
+  return isLineCountPatternMatched(
+    6
   );
 }
 
@@ -2397,8 +3761,8 @@ if (
 if (
   pattern === "7_lines"
 ) {
-  return (
-    completedLines >= 7
+  return isLineCountPatternMatched(
+    7
   );
 }
 
@@ -2410,8 +3774,8 @@ if (
 if (
   pattern === "8_lines"
 ) {
-  return (
-    completedLines >= 8
+  return isLineCountPatternMatched(
+    8
   );
 }
 
@@ -2431,6 +3795,18 @@ if (
 
 
 /* =========================================
+   LINE PATTERNS WITHOUT DIAGONAL
+
+   Counts ONLY:
+   - horizontal rows
+   - vertical columns
+
+   Rows and columns may be mixed.
+   Diagonals never count.
+========================================= */
+
+
+/* =========================================
    32. THREE LINES NO DIAGONAL
 ========================================= */
 
@@ -2438,8 +3814,8 @@ if (
   pattern ===
   "3_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 3
+  return isNonDiagonalLineCountMatched(
+    3
   );
 }
 
@@ -2452,8 +3828,8 @@ if (
   pattern ===
   "4_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 4
+  return isNonDiagonalLineCountMatched(
+    4
   );
 }
 
@@ -2466,8 +3842,8 @@ if (
   pattern ===
   "5_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 5
+  return isNonDiagonalLineCountMatched(
+    5
   );
 }
 
@@ -2480,8 +3856,8 @@ if (
   pattern ===
   "6_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 6
+  return isNonDiagonalLineCountMatched(
+    6
   );
 }
 
@@ -2494,8 +3870,8 @@ if (
   pattern ===
   "7_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 7
+  return isNonDiagonalLineCountMatched(
+    7
   );
 }
 
@@ -2508,11 +3884,10 @@ if (
   pattern ===
   "8_lines_no_diagonal"
 ) {
-  return (
-    completedNonDiagonalLines >= 8
+  return isNonDiagonalLineCountMatched(
+    8
   );
 }
-
 /* =========================================
    12. THREE DISCONNECTED LINES
 
@@ -2532,8 +3907,9 @@ if (
   "3_disconnected_lines"
 ) {
   return (
-    completedHorizontalLines >= 3 ||
-    completedVerticalLines >= 3
+    isDisconnectedLinePatternMatched(
+      3
+    )
   );
 }
 
@@ -2554,154 +3930,649 @@ if (
   "4_disconnected_lines"
 ) {
   return (
-    completedHorizontalLines >= 4 ||
-    completedVerticalLines >= 4
+    isDisconnectedLinePatternMatched(
+      4
+    )
   );
 }
+
 /* =========================================
    21. BIG T + 1 DIAGONAL + 2 EXTRA LINES
+
+   WIN:
+   - any BIG T orientation
+   - at least 1 diagonal
+   - at least 2 additional
+     horizontal / vertical lines
+   - T base lines do not count
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "t_1_diagonal_2_lines"
 ) {
-  return BIG_T_CONFIGS.some(
-    (tConfig) => {
 
-      const tCompleted =
-        tConfig.cells.every(
-          (cellIndex) =>
-            isCellMarked(
-              cellIndex
-            )
+  /*
+   * Check the pattern against any
+   * supplied marked-cell state.
+   */
+  const isTDiagonalTwoLinesMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
+
+    return BIG_T_CONFIGS.some(
+      (tConfig) => {
+
+        /*
+         * Complete BIG T.
+         */
+        const tCompleted =
+          tConfig.cells.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !tCompleted
+        ) {
+          return false;
+        }
+
+
+        /*
+         * At least one of the
+         * two diagonals.
+         */
+        const diagonalCompleted =
+          [
+            DIAGONAL_MAIN,
+            DIAGONAL_REVERSE,
+          ].some(
+            (diagonal) =>
+              diagonal.every(
+                (cellIndex) =>
+                  isMarked(
+                    cellIndex
+                  )
+              )
+          );
+
+
+        if (
+          !diagonalCompleted
+        ) {
+          return false;
+        }
+
+
+        /*
+         * Additional rows / columns.
+         *
+         * The 2 lines that create
+         * this T are excluded.
+         */
+        const extraLines =
+          NON_DIAGONAL_LINES.filter(
+            (line) =>
+              !tConfig.baseLines.includes(
+                line
+              ) &&
+              line.every(
+                (cellIndex) =>
+                  isMarked(
+                    cellIndex
+                  )
+              )
+          ).length;
+
+
+        return (
+          extraLines >= 2
         );
 
-      if (!tCompleted) {
-        return false;
       }
+    );
 
-      const diagonalCompleted =
-        completedDiagonalLines >= 1;
+  };
 
-      const extraLines =
-        NON_DIAGONAL_LINES.filter(
-          (line) =>
-            !tConfig.baseLines.includes(
-              line
-            ) &&
-            line.every(
-              (cellIndex) =>
-                isCellMarked(
-                  cellIndex
-                )
-            )
-        ).length;
 
-      return (
-        diagonalCompleted &&
-        extraLines >= 2
-      );
-    }
+  /*
+   * Current state must be winning.
+   */
+  const currentlyMatched =
+    isTDiagonalTwoLinesMatched(
+      isCellMarked
+    );
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Normal check when no
+   * latest number was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild card state BEFORE
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    /*
+     * FREE center remains marked.
+     */
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If the complete pattern already
+   * existed before latest call,
+   * player missed Bingo.
+   */
+  const matchedBefore =
+    isTDiagonalTwoLinesMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid exactly
+   * on latest call.
+   */
+  return true;
+
 }
 
 
 /* =========================================
-   22. BIG T + 1 DISCONNECTED 3x2 RECTANGLE
+   22. BIG T + 1 DISCONNECTED RECTANGLE
+
+   WIN:
+   - any BIG T orientation
+   - any completed 2x3 / 3x2 rectangle
+   - rectangle cannot share cells with T
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "t_1_rectangle"
 ) {
-  return BIG_T_CONFIGS.some(
-    (tConfig) => {
 
-      const tCompleted =
-        tConfig.cells.every(
-          (cellIndex) =>
-            isCellMarked(
-              cellIndex
-            )
-        );
+  const isTRectangleMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
 
-      if (!tCompleted) {
-        return false;
-      }
+    return BIG_T_CONFIGS.some(
+      (tConfig) => {
 
-      return (
-        RECTANGLE_3X2_LAYOUTS.some(
-          (rectangle) => {
+        const tCompleted =
+          tConfig.cells.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          );
 
-            const disconnected =
-              rectangle.every(
+
+        if (
+          !tCompleted
+        ) {
+          return false;
+        }
+
+
+        return (
+          RECTANGLE_3X2_LAYOUTS.some(
+            (rectangle) => {
+
+              /*
+               * Rectangle must be completely
+               * disconnected from the T.
+               */
+              const disconnected =
+                rectangle.every(
+                  (cellIndex) =>
+                    !tConfig.cells.includes(
+                      cellIndex
+                    )
+                );
+
+
+              if (
+                !disconnected
+              ) {
+                return false;
+              }
+
+
+              return rectangle.every(
                 (cellIndex) =>
-                  !tConfig.cells.includes(
+                  isMarked(
                     cellIndex
                   )
               );
 
-            if (!disconnected) {
-              return false;
             }
+          )
+        );
 
-            return rectangle.every(
-              (cellIndex) =>
-                isCellMarked(
-                  cellIndex
-                )
-            );
-          }
-        )
-      );
-    }
+      }
+    );
+
+  };
+
+
+  /*
+   * Current state must contain
+   * a valid T + rectangle.
+   */
+  const currentlyMatched =
+    isTRectangleMatched(
+      isCellMarked
+    );
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Normal validation when no
+   * latest number was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state BEFORE
+   * the latest call.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If T + rectangle already
+   * existed before latest call,
+   * Bingo was missed.
+   */
+  const matchedBefore =
+    isTRectangleMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
 
 
 /* =========================================
    23. BIG T + 3 EXTRA STANDARD LINES
+
+   WIN:
+   - any BIG T orientation
+   - any 3 additional standard lines
+   - T's own 2 base lines do not count
+   - horizontal / vertical / diagonal allowed
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "t_3_lines"
 ) {
-  return BIG_T_CONFIGS.some(
-    (tConfig) => {
 
-      const tCompleted =
-        tConfig.cells.every(
-          (cellIndex) =>
-            isCellMarked(
-              cellIndex
-            )
+  const isTThreeLinesMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
+
+    return BIG_T_CONFIGS.some(
+      (tConfig) => {
+
+        /*
+         * Complete BIG T.
+         */
+        const tCompleted =
+          tConfig.cells.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !tCompleted
+        ) {
+          return false;
+        }
+
+
+        /*
+         * Count additional standard
+         * Bingo lines.
+         *
+         * Exclude the two lines that
+         * already form the BIG T.
+         */
+        const extraCompletedLines =
+          STANDARD_BINGO_LINES.filter(
+            (line) =>
+              !tConfig.baseLines.includes(
+                line
+              ) &&
+              line.every(
+                (cellIndex) =>
+                  isMarked(
+                    cellIndex
+                  )
+              )
+          ).length;
+
+
+        return (
+          extraCompletedLines >= 3
         );
 
-      if (!tCompleted) {
-        return false;
       }
+    );
 
-      const extraCompletedLines =
-        STANDARD_BINGO_LINES.filter(
-          (line) =>
-            !tConfig.baseLines.includes(
-              line
-            ) &&
-            line.every(
-              (cellIndex) =>
-                isCellMarked(
-                  cellIndex
-                )
-            )
-        ).length;
+  };
 
-      return (
-        extraCompletedLines >= 3
-      );
-    }
+
+  /*
+   * Current card must be winning.
+   */
+  const currentlyMatched =
+    isTThreeLinesMatched(
+      isCellMarked
+    );
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Normal validation when no
+   * latest number was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state before
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
   );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If T + 3 extra lines
+   * already existed before latest
+   * call, Bingo was missed.
+   */
+  const matchedBefore =
+    isTThreeLinesMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
 
 /* =========================================
@@ -2714,6 +4585,8 @@ if (
    PLUS:
    - any 2 additional standard lines
    - horizontal / vertical / diagonal
+   - cross base lines do not count
+   - latest call must create the pattern
 ========================================= */
 
 if (
@@ -2721,413 +4594,1500 @@ if (
   "1_cross_2_lines"
 ) {
 
-  const crossCompleted =
-    BIG_CROSS.every(
-      (cellIndex) =>
-        isCellMarked(cellIndex)
+  const isCrossTwoLinesMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
+
+    /*
+     * Complete BIG CROSS.
+     */
+    const crossCompleted =
+      BIG_CROSS.every(
+        (cellIndex) =>
+          isMarked(
+            cellIndex
+          )
+      );
+
+
+    if (
+      !crossCompleted
+    ) {
+      return false;
+    }
+
+
+    /*
+     * Count additional standard
+     * Bingo lines.
+     *
+     * ROW_3 and COL_3 already
+     * form the BIG CROSS and
+     * therefore do not count.
+     */
+    const extraCompletedLines =
+      STANDARD_BINGO_LINES.filter(
+        (line) =>
+          line !== ROW_3 &&
+          line !== COL_3 &&
+          line.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      ).length;
+
+
+    return (
+      extraCompletedLines >= 2
     );
 
-  if (!crossCompleted) {
+  };
+
+
+  /*
+   * Current state must be winning.
+   */
+  const currentlyMatched =
+    isCrossTwoLinesMatched(
+      isCellMarked
+    );
+
+
+  if (
+    !currentlyMatched
+  ) {
     return false;
   }
 
-  const extraCompletedLines =
-    STANDARD_BINGO_LINES.filter(
-      (line) =>
-        line !== ROW_3 &&
-        line !== COL_3 &&
-        line.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
-    ).length;
 
-  return extraCompletedLines >= 2;
+  /*
+   * Normal pattern check when no
+   * latest number was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild game state BEFORE
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If BIG CROSS + 2 extra lines
+   * already existed before latest
+   * call, Bingo was missed.
+   */
+  const matchedBefore =
+    isCrossTwoLinesMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
 /* =========================================
    29. ONE LINE + TWO SQUARES
+
+   WIN:
+   - any 1 standard Bingo line
+   - any 2 completed 2x2 squares
+   - squares cannot overlap each other
+   - line may overlap the squares
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "1_line_2_squares"
 ) {
-  const completedStandardLines =
-    STANDARD_BINGO_LINES.filter(
-      (line) =>
-        line.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
+
+  const isLineTwoSquaresMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
+
+    /*
+     * At least one completed
+     * standard Bingo line.
+     */
+    const completedStandardLines =
+      STANDARD_BINGO_LINES.filter(
+        (line) =>
+          line.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    if (
+      completedStandardLines.length < 1
+    ) {
+      return false;
+    }
+
+
+    /*
+     * Find every completed
+     * 2x2 square.
+     */
+    const completedSquares =
+      SQUARE_2X2_LAYOUTS.filter(
+        (square) =>
+          square.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    /*
+     * Need two different squares
+     * that share no cells.
+     */
+    for (
+      let i = 0;
+      i <
+      completedSquares.length;
+      i += 1
+    ) {
+
+      for (
+        let j = i + 1;
+        j <
+        completedSquares.length;
+        j += 1
+      ) {
+
+        const square1 =
+          completedSquares[i];
+
+        const square2 =
+          completedSquares[j];
+
+
+        const squaresDoNotOverlap =
+          square1.every(
+            (cellIndex) =>
+              !square2.includes(
+                cellIndex
+              )
+          );
+
+
+        if (
+          squaresDoNotOverlap
+        ) {
+          return true;
+        }
+
+      }
+
+    }
+
+
+    return false;
+
+  };
+
+
+  /*
+   * Current card must contain:
+   * 1 line + 2 valid squares.
+   */
+  const currentlyMatched =
+    isLineTwoSquaresMatched(
+      isCellMarked
     );
 
+
   if (
-    completedStandardLines.length < 1
+    !currentlyMatched
   ) {
     return false;
   }
 
-  const completedSquares =
-    SQUARE_2X2_LAYOUTS.filter(
-      (square) =>
-        square.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
-    );
 
-  for (
-    let i = 0;
-    i < completedSquares.length;
-    i += 1
+  /*
+   * Normal check when no
+   * latest call was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
   ) {
-    for (
-      let j = i + 1;
-      j < completedSquares.length;
-      j += 1
-    ) {
-      const square1 =
-        completedSquares[i];
-
-      const square2 =
-        completedSquares[j];
-
-      const squaresDoNotOverlap =
-        square1.every(
-          (cellIndex) =>
-            !square2.includes(
-              cellIndex
-            )
-        );
-
-/* =========================================================
-   RECTANGLES
-========================================================= */
-
-      if (squaresDoNotOverlap) {
-        return true;
-      }
-    }
+    return true;
   }
 
-  return false;
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state before
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If the same complete condition
+   * already existed before latest
+   * call, Bingo was missed.
+   */
+  const matchedBefore =
+    isLineTwoSquaresMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid
+   * exactly on latest call.
+   */
+  return true;
+
 }
 /* =========================================
    30. 2 DISCONNECTED LINES
        + 2 DISCONNECTED SQUARES
 
-   ANY valid arrangement.
-
-   Rules:
+   WIN:
    - any 2 completed standard lines
-   - the 2 lines must not cross
+   - lines cannot share cells
    - any 2 completed 2x2 squares
-   - squares must not overlap
-   - squares must not overlap either line
+   - squares cannot share cells
+   - squares cannot share cells
+     with either line
+   - latest call must create pattern
 ========================================= */
 
 if (
   pattern ===
   "2_disconnected_lines_2_disconnected_squares"
 ) {
-  const completedCandidateLines =
-    STANDARD_BINGO_LINES.filter(
-      (line) =>
-        line.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
-    );
 
-  const completedSquares =
-    SQUARE_2X2_LAYOUTS.filter(
-      (square) =>
-        square.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
-    );
+  const isTwoLinesTwoSquaresMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
 
-  for (
-    let lineIndex1 = 0;
-    lineIndex1 <
-    completedCandidateLines.length;
-    lineIndex1 += 1
-  ) {
-    for (
-      let lineIndex2 =
-        lineIndex1 + 1;
-      lineIndex2 <
-      completedCandidateLines.length;
-      lineIndex2 += 1
+    /*
+     * Find all completed
+     * standard Bingo lines.
+     */
+    const completedCandidateLines =
+      STANDARD_BINGO_LINES.filter(
+        (line) =>
+          line.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    /*
+     * Find all completed
+     * 2x2 squares.
+     */
+    const completedSquares =
+      SQUARE_2X2_LAYOUTS.filter(
+        (square) =>
+          square.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    /*
+     * Need at least:
+     * 2 lines
+     * 2 squares
+     */
+    if (
+      completedCandidateLines.length < 2 ||
+      completedSquares.length < 2
     ) {
-      const line1 =
-        completedCandidateLines[
-          lineIndex1
-        ];
+      return false;
+    }
 
-      const line2 =
-        completedCandidateLines[
-          lineIndex2
-        ];
 
-      /*
-       * The two lines must not
-       * share any cell.
-       */
-      const linesDisconnected =
-        line1.every(
-          (cellIndex) =>
-            !line2.includes(
-              cellIndex
-            )
-        );
-
-      if (!linesDisconnected) {
-        continue;
-      }
+    for (
+      let lineIndex1 = 0;
+      lineIndex1 <
+      completedCandidateLines.length;
+      lineIndex1 += 1
+    ) {
 
       for (
-        let squareIndex1 = 0;
-        squareIndex1 <
-        completedSquares.length;
-        squareIndex1 += 1
+        let lineIndex2 =
+          lineIndex1 + 1;
+        lineIndex2 <
+        completedCandidateLines.length;
+        lineIndex2 += 1
       ) {
-        for (
-          let squareIndex2 =
-            squareIndex1 + 1;
-          squareIndex2 <
-          completedSquares.length;
-          squareIndex2 += 1
+
+        const line1 =
+          completedCandidateLines[
+            lineIndex1
+          ];
+
+        const line2 =
+          completedCandidateLines[
+            lineIndex2
+          ];
+
+
+        /*
+         * Lines cannot share cells.
+         */
+        const linesDisconnected =
+          line1.every(
+            (cellIndex) =>
+              !line2.includes(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !linesDisconnected
         ) {
-          const square1 =
-            completedSquares[
-              squareIndex1
-            ];
-
-          const square2 =
-            completedSquares[
-              squareIndex2
-            ];
-
-          /*
-           * Squares must not
-           * overlap each other.
-           */
-          const squaresDisconnected =
-            square1.every(
-              (cellIndex) =>
-                !square2.includes(
-                  cellIndex
-                )
-            );
-
-          if (!squaresDisconnected) {
-            continue;
-          }
-
-          /*
-           * Square 1 cannot touch
-           * either winning line.
-           */
-          const square1Disconnected =
-            square1.every(
-              (cellIndex) =>
-                !line1.includes(
-                  cellIndex
-                ) &&
-                !line2.includes(
-                  cellIndex
-                )
-            );
-
-          if (!square1Disconnected) {
-            continue;
-          }
-
-          /*
-           * Square 2 cannot touch
-           * either winning line.
-           */
-          const square2Disconnected =
-            square2.every(
-              (cellIndex) =>
-                !line1.includes(
-                  cellIndex
-                ) &&
-                !line2.includes(
-                  cellIndex
-                )
-            );
-
-          if (!square2Disconnected) {
-            continue;
-          }
-
-          return true;
+          continue;
         }
+
+
+        for (
+          let squareIndex1 = 0;
+          squareIndex1 <
+          completedSquares.length;
+          squareIndex1 += 1
+        ) {
+
+          for (
+            let squareIndex2 =
+              squareIndex1 + 1;
+            squareIndex2 <
+            completedSquares.length;
+            squareIndex2 += 1
+          ) {
+
+            const square1 =
+              completedSquares[
+                squareIndex1
+              ];
+
+            const square2 =
+              completedSquares[
+                squareIndex2
+              ];
+
+
+            /*
+             * Squares cannot
+             * share cells.
+             */
+            const squaresDisconnected =
+              square1.every(
+                (cellIndex) =>
+                  !square2.includes(
+                    cellIndex
+                  )
+              );
+
+
+            if (
+              !squaresDisconnected
+            ) {
+              continue;
+            }
+
+
+            /*
+             * Square 1 cannot share
+             * cells with either line.
+             */
+            const square1Disconnected =
+              square1.every(
+                (cellIndex) =>
+                  !line1.includes(
+                    cellIndex
+                  ) &&
+                  !line2.includes(
+                    cellIndex
+                  )
+              );
+
+
+            if (
+              !square1Disconnected
+            ) {
+              continue;
+            }
+
+
+            /*
+             * Square 2 cannot share
+             * cells with either line.
+             */
+            const square2Disconnected =
+              square2.every(
+                (cellIndex) =>
+                  !line1.includes(
+                    cellIndex
+                  ) &&
+                  !line2.includes(
+                    cellIndex
+                  )
+              );
+
+
+            if (
+              !square2Disconnected
+            ) {
+              continue;
+            }
+
+
+            /*
+             * Found one completely
+             * valid arrangement.
+             */
+            return true;
+
+          }
+
+        }
+
       }
+
     }
+
+
+    return false;
+
+  };
+
+
+  /*
+   * Current card must contain
+   * a valid arrangement.
+   */
+  const currentlyMatched =
+    isTwoLinesTwoSquaresMatched(
+      isCellMarked
+    );
+
+
+  if (
+    !currentlyMatched
+  ) {
+    return false;
   }
 
-  return false;
+
+  /*
+   * Normal check when no
+   * latest number is supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state BEFORE
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If a complete valid arrangement
+   * already existed before latest
+   * call, Bingo was missed.
+   */
+  const matchedBefore =
+    isTwoLinesTwoSquaresMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid exactly
+   * on latest call.
+   */
+  return true;
+
 }
 /* =========================================
    31. 2 SQUARES + 1 RECTANGLE
 
-   ANY valid arrangement.
-
-   Rules:
+   WIN:
    - any 2 completed 2x2 squares
-   - squares must be separate
-   - any completed 3x2 / 2x3 rectangle
+   - squares cannot share cells
+   - any completed 2x3 / 3x2 rectangle
+   - rectangle cannot share cells
+     with either square
+   - latest call must create pattern
 ========================================= */
 
 if (
   pattern ===
   "2_squares_1_rectangle"
 ) {
-  const completedSquares =
-    SQUARE_2X2_LAYOUTS.filter(
-      (square) =>
-        square.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
-    );
 
-  if (completedSquares.length < 2) {
+  const isTwoSquaresRectangleMatched = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): boolean => {
+
+    /*
+     * Find all completed
+     * 2x2 squares.
+     */
+    const completedSquares =
+      SQUARE_2X2_LAYOUTS.filter(
+        (square) =>
+          square.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    if (
+      completedSquares.length < 2
+    ) {
+      return false;
+    }
+
+
+    /*
+     * Find all completed
+     * 2x3 / 3x2 rectangles.
+     */
+    const completedRectangles =
+      RECTANGLE_3X2_LAYOUTS.filter(
+        (rectangle) =>
+          rectangle.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          )
+      );
+
+
+    if (
+      completedRectangles.length < 1
+    ) {
+      return false;
+    }
+
+
+    for (
+      let i = 0;
+      i <
+      completedSquares.length;
+      i += 1
+    ) {
+
+      for (
+        let j = i + 1;
+        j <
+        completedSquares.length;
+        j += 1
+      ) {
+
+        const square1 =
+          completedSquares[i];
+
+        const square2 =
+          completedSquares[j];
+
+
+        /*
+         * The two squares cannot
+         * share any cells.
+         */
+        const squaresDisconnected =
+          square1.every(
+            (cellIndex) =>
+              !square2.includes(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !squaresDisconnected
+        ) {
+          continue;
+        }
+
+
+        /*
+         * Find a rectangle that is
+         * disconnected from BOTH
+         * squares.
+         */
+        for (
+          const rectangle of
+          completedRectangles
+        ) {
+
+          const rectangleDisconnected =
+            rectangle.every(
+              (cellIndex) =>
+                !square1.includes(
+                  cellIndex
+                ) &&
+                !square2.includes(
+                  cellIndex
+                )
+            );
+
+
+          if (
+            rectangleDisconnected
+          ) {
+            return true;
+          }
+
+        }
+
+      }
+
+    }
+
+
     return false;
-  }
 
-  const completedRectangles =
-    RECTANGLE_3X2_LAYOUTS.filter(
-      (rectangle) =>
-        rectangle.every(
-          (cellIndex) =>
-            isCellMarked(cellIndex)
-        )
+  };
+
+
+  /*
+   * Current card must contain a
+   * valid arrangement.
+   */
+  const currentlyMatched =
+    isTwoSquaresRectangleMatched(
+      isCellMarked
     );
+
 
   if (
-    completedRectangles.length < 1
+    !currentlyMatched
   ) {
     return false;
   }
 
-  for (
-    let i = 0;
-    i < completedSquares.length;
-    i += 1
+
+  /*
+   * Normal validation when no
+   * latest number is supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
   ) {
-    for (
-      let j = i + 1;
-      j < completedSquares.length;
-      j += 1
-    ) {
-      const square1 =
-        completedSquares[i];
-
-      const square2 =
-        completedSquares[j];
-
-      const squaresDoNotOverlap =
-        square1.every(
-          (cellIndex) =>
-            !square2.includes(
-              cellIndex
-            )
-        );
-
-      if (squaresDoNotOverlap) {
-        return true;
-      }
-    }
+    return true;
   }
 
-  return false;
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild state BEFORE
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If a valid arrangement already
+   * existed before latest call,
+   * Bingo was missed.
+   */
+  const matchedBefore =
+    isTwoSquaresRectangleMatched(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid exactly
+   * on latest call.
+   */
+  return true;
+
 }
 
 /* =========================================
    19. 4 CORNER DOTS
        + 2 DISCONNECTED SQUARES
 
-   ANY valid arrangement.
-
    WIN:
    - all 4 corner dots
    - any 2 completed 2x2 squares
    - squares cannot overlap each other
    - squares cannot use a corner dot
+   - latest call must create the pattern
 ========================================= */
 
 if (
   pattern ===
   "4_corner_dots_2_disconnected_squares"
 ) {
-  const cornerDots = [
-    0,
-    4,
-    20,
-    24,
-  ];
 
-  const cornersCompleted =
-    cornerDots.every(
-      (cellIndex) =>
-        isCellMarked(cellIndex)
+  /*
+   * Check whether a given marked-cell
+   * state contains this winning pattern.
+   */
+  const findValidSquarePairs = (
+    isMarked: (
+      cellIndex: number
+    ) => boolean
+  ): number[][] => {
+
+    /*
+     * All four corner dots
+     * must be completed.
+     */
+    const cornersCompleted =
+      CORNER_CELLS.every(
+        (cellIndex) =>
+          isMarked(
+            cellIndex
+          )
+      );
+
+
+    if (
+      !cornersCompleted
+    ) {
+      return [];
+    }
+
+
+    /*
+     * Find completed squares that
+     * do not use any corner cell.
+     */
+    const completedSquares =
+      SQUARE_2X2_LAYOUTS.filter(
+        (square) =>
+          square.every(
+            (cellIndex) =>
+              isMarked(
+                cellIndex
+              )
+          ) &&
+          square.every(
+            (cellIndex) =>
+              !CORNER_CELLS.includes(
+                cellIndex
+              )
+          )
+      );
+
+
+    const validLayouts:
+      number[][] = [];
+
+
+    /*
+     * Find every pair of squares
+     * that does not share cells.
+     */
+    for (
+      let i = 0;
+      i <
+      completedSquares.length;
+      i += 1
+    ) {
+
+      for (
+        let j = i + 1;
+        j <
+        completedSquares.length;
+        j += 1
+      ) {
+
+        const square1 =
+          completedSquares[i];
+
+        const square2 =
+          completedSquares[j];
+
+
+        const disconnected =
+          square1.every(
+            (cellIndex) =>
+              !square2.includes(
+                cellIndex
+              )
+          );
+
+
+        if (
+          !disconnected
+        ) {
+          continue;
+        }
+
+
+        validLayouts.push(
+          mergeCells(
+            CORNER_CELLS,
+            square1,
+            square2
+          )
+        );
+
+      }
+
+    }
+
+
+    return validLayouts;
+
+  };
+
+
+  /*
+   * Check current game state.
+   */
+  const currentLayouts =
+    findValidSquarePairs(
+      isCellMarked
     );
 
-  if (!cornersCompleted) {
+
+  if (
+    currentLayouts.length === 0
+  ) {
     return false;
   }
 
-  const completedSquares =
-    SQUARE_2X2_LAYOUTS.filter(
-      (square) =>
-        square.every(
+
+  /*
+   * No latest-number requirement
+   * supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  /*
+   * Latest called cell must actually
+   * participate in at least one
+   * currently valid winning layout.
+   */
+  const latestContributes =
+    currentLayouts.some(
+      (layout) =>
+        layout.includes(
+          requiredCellIndex
+        )
+    );
+
+
+  if (
+    !latestContributes
+  ) {
+    return false;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild called-number state
+   * BEFORE latest call.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore = (
+    index: number
+  ): boolean => {
+
+    if (
+      index === 12
+    ) {
+      return true;
+    }
+
+
+    const row =
+      Math.floor(
+        index / 5
+      );
+
+    const col =
+      index % 5;
+
+
+    const value =
+      numbers[row]?.[
+        col
+      ];
+
+
+    if (
+      value === undefined ||
+      value === null
+    ) {
+      return false;
+    }
+
+
+    return calledBefore.has(
+      Number(value)
+    );
+
+  };
+
+
+  /*
+   * If ANY valid configuration
+   * existed before latest call,
+   * Bingo was already missed.
+   */
+  const layoutsBefore =
+    findValidSquarePairs(
+      isCellMarkedBefore
+    );
+
+
+  if (
+    layoutsBefore.length > 0
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Pattern became valid
+   * on this latest call.
+   */
+  return true;
+
+}
+
+/* =========================================
+   15. THREE RECTANGLES
+
+   WIN:
+   - any 3 filled 2x3 / 3x2 rectangles
+   - rectangles cannot overlap
+   - latest call must complete the pattern
+========================================= */
+
+if (
+  pattern ===
+  "3_rectangles"
+) {
+
+  const completedLayouts =
+    THREE_RECTANGLE_LAYOUTS.filter(
+      (layout) =>
+        layout.every(
           (cellIndex) =>
-            isCellMarked(cellIndex)
-        ) &&
-        square.every(
-          (cellIndex) =>
-            !cornerDots.includes(
+            isCellMarked(
               cellIndex
             )
         )
     );
 
-  for (
-    let i = 0;
-    i < completedSquares.length;
-    i += 1
+
+  /*
+   * No valid combination of
+   * 3 rectangles yet.
+   */
+  if (
+    completedLayouts.length === 0
   ) {
-    for (
-      let j = i + 1;
-      j < completedSquares.length;
-      j += 1
-    ) {
-      const square1 =
-        completedSquares[i];
-
-      const square2 =
-        completedSquares[j];
-
-      const squaresDisconnected =
-        square1.every(
-          (cellIndex) =>
-            !square2.includes(
-              cellIndex
-            )
-        );
-
-      if (squaresDisconnected) {
-        return true;
-      }
-    }
+    return false;
   }
 
-  return false;
+
+  /*
+   * Normal validation when no
+   * latest number was supplied.
+   */
+  if (
+    requiredCellIndex === null ||
+    requiredNumber === undefined ||
+    requiredNumber === null
+  ) {
+    return true;
+  }
+
+
+  /*
+   * Latest called number must belong
+   * to one of the currently valid
+   * 3-rectangle combinations.
+   */
+  const latestContributes =
+    completedLayouts.some(
+      (layout) =>
+        layout.includes(
+          requiredCellIndex
+        )
+    );
+
+
+  if (
+    !latestContributes
+  ) {
+    return false;
+  }
+
+
+  const target =
+    Number(
+      requiredNumber
+    );
+
+
+  if (
+    !Number.isFinite(
+      target
+    )
+  ) {
+    return false;
+  }
+
+
+  /*
+   * Rebuild card state BEFORE
+   * latest called number.
+   */
+  const calledBefore =
+    new Set(
+      called
+    );
+
+
+  calledBefore.delete(
+    target
+  );
+
+
+  const isCellMarkedBefore =
+    (
+      index: number
+    ): boolean => {
+
+      /*
+       * FREE remains free.
+       */
+      if (
+        index === 12
+      ) {
+        return true;
+      }
+
+
+      const row =
+        Math.floor(
+          index / 5
+        );
+
+      const col =
+        index % 5;
+
+
+      const value =
+        numbers[row]?.[
+          col
+        ];
+
+
+      if (
+        value === undefined ||
+        value === null
+      ) {
+        return false;
+      }
+
+
+      return calledBefore.has(
+        Number(value)
+      );
+
+    };
+
+
+  /*
+   * Check whether ANY valid
+   * 3-rectangle arrangement
+   * already existed before
+   * latest call.
+   */
+  const matchedBefore =
+    THREE_RECTANGLE_LAYOUTS.some(
+      (layout) =>
+        layout.every(
+          (cellIndex) =>
+            isCellMarkedBefore(
+              cellIndex
+            )
+        )
+    );
+
+
+  if (
+    matchedBefore
+  ) {
+    return false;
+  }
+
+
+  return true;
+
 }
   /* =========================================
      NEW ADMIN WINNING PATTERNS
