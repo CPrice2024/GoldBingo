@@ -232,11 +232,11 @@ const isBonusGame =
  * max 25 cards
  *
  * Bonus:
- * max 2 cards
+ * max 3 cards
  */
 const maxCardsForGame =
   isBonusGame
-    ? 2
+    ? 3
     : 25;
 
 
@@ -334,7 +334,7 @@ const maxCardsForGame =
 
   throw new Error(
     isBonusGame
-      ? "Bonus games allow a maximum of 2 cards per player"
+      ? "Bonus games allow a maximum of 3 cards per player"
       : "Maximum 25 cards allowed per player"
   );
 

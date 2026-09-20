@@ -18141,7 +18141,8 @@ html[data-theme="day"]
 
 .bingo-winner-card.bingo-final-winner-card.mine {
       background: linear-gradient(135deg, #ff9d06, #ff4700);
-
+border: 1px solid #03000d00;
+    border-radius: 4px;
 
   box-shadow:
     0 0 0 2px

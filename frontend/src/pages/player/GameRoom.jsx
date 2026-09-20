@@ -276,6 +276,13 @@ const [
    Bonus  = maximum 2 cards
 ========================================= */
 
+/* =========================================
+   GAME TYPE CARD LIMIT
+
+   Normal = maximum 25 cards
+   Bonus  = maximum 3 cards
+========================================= */
+
 const isBonusGame =
   Number(
     game?.gameType ?? 1
@@ -284,13 +291,14 @@ const isBonusGame =
 
 const MAX_CARDS_PER_PLAYER =
   isBonusGame
-    ? 2
+    ? 3
     : 25;
 
 
 const CARD_COUNT_OPTIONS =
   isBonusGame
     ? [
+        3,
         2,
         1,
       ]

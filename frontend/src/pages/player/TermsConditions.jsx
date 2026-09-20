@@ -38,7 +38,7 @@ const TermsConditions = () => {
           <div>
 
             <span className="player-terms-page-brand">
-              GOLD BINGO
+              Gold Online Bingo
             </span>
 
             <h1>

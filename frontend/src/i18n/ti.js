@@ -695,13 +695,13 @@ game: {
     "Bingo ይጽዕን ኣሎ...",
 
   noActiveGame:
-    "ንጡፍ ጸወታ የለን",
+    "ጸወታ የለን",
 
   noActiveGameDescription:
-    "ኣብዚ እዋን ንጡፍ ጸወታ Bingo የለን።",
+    "ጸወታ የለን።",
 
   noGameRunning:
-    "ኣብዚ እዋን ዝካየድ ጸወታ የለን",
+    "ጸወታ የለን",
 
   newGameAutomatic:
     "ሓድሽ ጸወታ Bingo ብኣውቶማቲክ ክፍጠር እዩ። በጃኹም ድሕሪ ቁሩብ እንደገና ፈትኑ።",
