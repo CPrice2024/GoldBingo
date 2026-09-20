@@ -912,7 +912,7 @@ const formatMoney =
 
           <button
   type="button"
-  className={`player-game-settings-trigger ${
+  className={`notification-button ${
     gameSettingsOpen
       ? "active"
       : ""
