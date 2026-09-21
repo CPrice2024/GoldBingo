@@ -3842,12 +3842,6 @@ html[data-theme="day"]
     click it"
 */
 
-.bingo-cell-waiting-mark {
-  animation:
-    bingoWaitingMarkPulse
-    1.5s ease-in-out
-    infinite;
-}
 
 
 @keyframes bingoWaitingMarkPulse {
@@ -3900,6 +3894,7 @@ html[data-theme="day"]
 
 .bingo-cell.manual-mode:not(.free) {
   cursor: pointer;
+  border: 1px solid #626262;
 }
 
 .bingo-cell.manual-mode:not(.free):active {

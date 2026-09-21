@@ -34,11 +34,24 @@ function Transactions() {
 
       const result = await getMyTransactions();
 
-      setTransactions(
-        Array.isArray(result?.data)
-          ? result.data
-          : []
-      );
+      const recentTransactions =
+  Array.isArray(result?.data)
+    ? [...result.data]
+        .sort(
+          (a, b) =>
+            new Date(
+              b.createdAt
+            ).getTime() -
+            new Date(
+              a.createdAt
+            ).getTime()
+        )
+        .slice(0, 15)
+    : [];
+
+setTransactions(
+  recentTransactions
+);
     } catch (err) {
       console.error("Failed to load transactions:", err);
 

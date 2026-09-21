@@ -928,7 +928,7 @@ bingo:
   "BINGO",
 
 bingoBlocked:
-  "BINGO UGgurame",
+  "UGgurame",
 
 maximumCardsAllowed:
   "Baay'ina kaardii guddaan hayyamamu:",

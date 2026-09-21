@@ -92,7 +92,24 @@ const [ocrError, setOcrError] = useState("");
 
       const result = await getMyDeposits();
 
-      setDeposits(result?.data || []);
+      const recentDeposits =
+  Array.isArray(result?.data)
+    ? [...result.data]
+        .sort(
+          (a, b) =>
+            new Date(
+              b.createdAt
+            ).getTime() -
+            new Date(
+              a.createdAt
+            ).getTime()
+        )
+        .slice(0, 15)
+    : [];
+
+setDeposits(
+  recentDeposits
+);
     } catch (err) {
       console.error("Failed to load deposits:", err);
 

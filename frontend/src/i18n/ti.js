@@ -919,7 +919,7 @@ bingo:
   "BINGO",
 
 bingoBlocked:
-  "BINGO ተኣጊዱ",
+  "ተኣጊዱ",
 
 maximumCardsAllowed:
   "ዝፍቀድ ዝለዓለ ብዝሒ ካርድ:",

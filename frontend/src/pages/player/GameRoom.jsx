@@ -6332,9 +6332,10 @@ const handleClaimBingo =
 className="bingo-inline-card-grid"
 >
           {!previewCardsLoading &&
-  liveGame?.status ===
-    "waiting" &&
-  !finishedGameCleared &&
+  (
+    liveGame?.status === "waiting" ||
+    !hasDisplayGame
+  ) &&
   displayCards.length <
     MAX_CARDS_PER_PLAYER && (
 
@@ -6379,12 +6380,14 @@ className="bingo-inline-card-grid"
       1 / 2 / 3 / 5 / 10
   =============================== */}
 
-  {liveGame?.status ===
-    "waiting" &&
-  displayCards.length <
-    MAX_CARDS_PER_PLAYER && (
+  {(
+  liveGame?.status === "waiting" ||
+  !hasDisplayGame
+) &&
+displayCards.length <
+  MAX_CARDS_PER_PLAYER && (
 
-      <div className="bingo-card-speed-options">
+    <div className="bingo-card-speed-options">
 
         {CARD_COUNT_OPTIONS.map(
           (

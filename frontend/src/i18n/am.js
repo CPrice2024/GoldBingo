@@ -905,7 +905,7 @@ bingo:
   "ቢንጎ",
 
 bingoBlocked:
-  "ቢንጎ ታግዷል",
+  "ታግዷል",
 
 maximumCardsAllowed:
   "የሚፈቀደው ከፍተኛ የካርድ ብዛት:",

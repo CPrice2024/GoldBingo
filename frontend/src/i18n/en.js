@@ -935,7 +935,7 @@ bingo:
   "BINGO",
 
 bingoBlocked:
-  "BINGO BLOCKED",
+  "BLOCKED",
 
 maximumCardsAllowed:
   "Maximum cards allowed:",
