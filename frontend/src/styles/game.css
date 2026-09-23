@@ -3216,7 +3216,7 @@ html[data-theme="day"]
 
 .bingo-called-history {
     margin: 0px;
-    padding: 0px 10px;
+    padding: 0px 2px;
     border: 1px solid #006ce700;
     border-radius: 5px;
     background: #00000000;
@@ -6454,7 +6454,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-winner-card {
-  background: #29a600;
+      background: linear-gradient(135deg, #ff9d06, #ff8600);
     color: #ffffff;
     border-style: solid;
     padding: 3px;
@@ -9133,7 +9133,7 @@ top: 93% !important;
   overflow-x: auto;
   overflow-y: hidden;
 
-  padding: 8px 4px 12px;
+  padding: 8px 8px 12px;
 
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
