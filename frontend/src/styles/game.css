@@ -6457,9 +6457,8 @@ html[data-theme="day"]
   background: #29a600;
     color: #ffffff;
     border-style: solid;
-    padding: 5px;
+    padding: 3px;
     border-radius: 8px;
-    margin-top: 5px;
 }
 
 
@@ -9113,7 +9112,7 @@ top: 93% !important;
 
   .bingo-blocked-summary-grid
     .bingo-winner-card-button {
-    padding: 6px 4px;
+    padding: 4px 4px;
     font-size: 11px;
   }
 }
@@ -9229,4 +9228,126 @@ top: 93% !important;
   gap: 8px;
   flex-wrap: wrap;
   flex: 1;
+}
+
+/* =========================================
+   SUPPORT PHONE NUMBERS
+========================================= */
+
+.player-support-phones {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+
+  margin-top: 10px;
+  padding: 10px 12px;
+
+  border-radius: 12px;
+
+  background: rgba(
+    255,
+    255,
+    255,
+    0.04
+  );
+
+  border: 1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+}
+
+.player-support-title {
+  font-size: 12px;
+  font-weight: 700;
+
+  color: rgba(
+    255,
+    255,
+    255,
+    0.6
+  );
+
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.player-support-phones a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  text-decoration: none;
+}
+
+.player-support-phones a:hover {
+  color: #d4a72c;
+}
+/* =========================================
+   SUPPORT PHONES - DAY / NIGHT THEME
+========================================= */
+
+/* NIGHT MODE */
+
+html[data-theme="night"]
+.player-support-phones {
+      background: #ffffff00;
+    border-color: #8f8f8f1c;
+}
+
+html[data-theme="night"]
+.player-support-title {
+  color: #94a3b8;
+}
+
+html[data-theme="night"]
+.player-support-phones a {
+  color: #f8fafc;
+}
+
+html[data-theme="night"]
+.player-support-phones a svg {
+  color: #0085d4;
+}
+
+
+/* DAY MODE */
+
+html[data-theme="day"]
+.player-support-phones {
+      background: #ffffff00;
+    border-color: #8f8f8f1c;
+}
+
+html[data-theme="day"]
+.player-support-title {
+  color: #64748b;
+}
+
+html[data-theme="day"]
+.player-support-phones a {
+  color: #1e293b;
+}
+
+html[data-theme="day"]
+.player-support-phones a svg {
+  color: #0085d4;
+}
+
+
+/* BOTH MODES HOVER */
+
+html[data-theme="day"]
+.player-support-phones a:hover,
+html[data-theme="night"]
+.player-support-phones a:hover {
+  color: #d4a72c;
 }

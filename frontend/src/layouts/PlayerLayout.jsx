@@ -14,6 +14,7 @@ import {
   LogOut,
   User,
   Wallet,
+  Phone,
   ArrowDownToLine,
   ArrowUpFromLine,
   ReceiptText,
@@ -747,7 +748,29 @@ const formatMoney =
     Terms & Conditions
   </span>
 </NavLink>
+{/* SUPPORT PHONE NUMBERS */}
 
+<div className="player-support-phones">
+
+  <span className="player-support-title">
+    Support
+  </span>
+
+  <a href="tel:0958889812">
+    <Phone size={17} />
+    <span>
+      0958889812
+    </span>
+  </a>
+
+  <a href="tel:0958889811">
+    <Phone size={17} />
+    <span>
+      0958889811
+    </span>
+  </a>
+
+</div>
 
   {/* TELEGRAM SUPPORT */}
 
@@ -2315,7 +2338,33 @@ const formatMoney =
           Read
         </span>
 
-      </NavLink>
+            </NavLink>
+
+      {/* SUPPORT PHONE NUMBERS */}
+
+      <div className="player-support-phones">
+
+        <span className="player-support-title">
+          Support
+        </span>
+
+        <a href="tel:0958889812">
+          <Phone size={17} />
+
+          <span>
+            0958889812
+          </span>
+        </a>
+
+        <a href="tel:0958889811">
+          <Phone size={17} />
+
+          <span>
+            0958889811
+          </span>
+        </a>
+
+      </div>
 
     </section>
 
