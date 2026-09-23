@@ -9351,3 +9351,24 @@ html[data-theme="night"]
 .player-support-phones a:hover {
   color: #d4a72c;
 }
+/* =========================================
+   FIXED GAME AREA + SCROLLING CARDS
+========================================= */
+
+.bingo-fixed-game-area {
+  position: sticky;
+
+  top: 0;
+    box-shadow: 0 5px 15px rgb(0 0 0 / 31%);
+  z-index: 100;
+
+  width: 100%;
+
+  background: inherit;
+}
+
+.bingo-inline-card-section {
+  position: relative;
+
+  z-index: 1;
+}

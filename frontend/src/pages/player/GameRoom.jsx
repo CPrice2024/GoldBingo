@@ -4192,15 +4192,71 @@ const getCardSortScore =
 
   };
 
+/* =========================================
+   MOVE BLOCKED CARDS TO BOTTOM
 
+   Active / usable cards stay above.
+   Blocked joined cards move below them.
+========================================= */
+
+const moveBlockedCardsToBottom =
+  (cardsToSort) => {
+
+    return [...cardsToSort].sort(
+      (
+        firstCard,
+        secondCard
+      ) => {
+
+        const firstBlocked =
+          isCardJoined(
+            firstCard
+          ) &&
+          isCardBlocked(
+            firstCard
+          );
+
+
+        const secondBlocked =
+          isCardJoined(
+            secondCard
+          ) &&
+          isCardBlocked(
+            secondCard
+          );
+
+
+        /*
+         * Same status:
+         * keep current order.
+         */
+        if (
+          firstBlocked ===
+          secondBlocked
+        ) {
+          return 0;
+        }
+
+
+        /*
+         * Blocked card goes below.
+         */
+        return firstBlocked
+          ? 1
+          : -1;
+
+      }
+    );
+
+  };
 /* =========================================
    SORT DISPLAY CARDS
 ========================================= */
 
-const sortedDisplayCards =
+const baseSortedDisplayCards =
   cardSortMode === "off"
 
-    ? displayCards
+    ? [...displayCards]
 
     : [...displayCards]
         .sort(
@@ -4236,11 +4292,6 @@ const sortedDisplayCards =
             }
 
 
-            /*
-             * Stable tie breaker:
-             * card number.
-             */
-
             return String(
               firstCard
                 ?.cardNumber ||
@@ -4259,6 +4310,12 @@ const sortedDisplayCards =
 
           }
         );
+
+
+const sortedDisplayCards =
+  moveBlockedCardsToBottom(
+    baseSortedDisplayCards
+  );
 
 /* =========================================
    BULK MARK ALL / UNMARK ALL
@@ -4964,7 +5021,9 @@ const handleClaimBingo =
   }
 
   return (
-    <div className="bingo-mobile-page">
+  <div className="bingo-mobile-page">
+
+    <div className="bingo-fixed-game-area">
 
       {/* =====================================
     GLOBAL LAST CALLED
@@ -5819,52 +5878,7 @@ const handleClaimBingo =
 )}
 
 
-
-      {/* =====================================
-          INLINE CARD SELECTION
-          DIRECTLY BELOW BINGO BOARD
-      ====================================== */}
-
-   {(
-  inlineCardsOpen ||
-  isJoined ||
-  selectedPreviewCards.length > 0
-) && (
-
-  <section
-    id="bingo-inline-card-selection"
-    className="bingo-inline-card-section"
-  >
-
-    {/* =====================================
-        WINNER CLAIM WINDOW
-    ===================================== */}
-
-        
-          {/* ERROR */}
-
-          {previewCardsError && (
-
-            <div className="bingo-inline-card-error">
-
-              <AlertCircle
-                size={17}
-              />
-
-              {previewCardsError}
-
-            </div>
-
-          )}
-
-
-          {/* CARDS */}
-
-{displayCards.length > 0 && (
-
-  <>
-
-    {/* =====================================
+{/* =====================================
         SELECTED CARD ACTIONS
         SHOW ABOVE CARDS
     ===================================== */}
@@ -5984,6 +5998,53 @@ const handleClaimBingo =
 
 )}
 
+      </div>
+
+    {/* =====================================
+        INLINE CARD SELECTION
+        DIRECTLY BELOW BINGO BOARD
+    ====================================== */}
+
+   {(
+  inlineCardsOpen ||
+  isJoined ||
+  selectedPreviewCards.length > 0
+) && (
+
+  <section
+    id="bingo-inline-card-selection"
+    className="bingo-inline-card-section"
+  >
+
+    {/* =====================================
+        WINNER CLAIM WINDOW
+    ===================================== */}
+
+        
+          {/* ERROR */}
+
+          {previewCardsError && (
+
+            <div className="bingo-inline-card-error">
+
+              <AlertCircle
+                size={17}
+              />
+
+              {previewCardsError}
+
+            </div>
+
+          )}
+
+
+          {/* CARDS */}
+
+{displayCards.length > 0 && (
+
+  <>
+
+    
 
     {/* =====================================
         CARD GRID

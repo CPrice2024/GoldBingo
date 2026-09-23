@@ -527,7 +527,10 @@ a {
 
   backdrop-filter: blur(14px);
 }
-
+.player-topbar {
+  position: relative;
+  z-index: 5000;
+}
 .player-topbar h1 {
   margin: 0;
 
@@ -18239,4 +18242,20 @@ border: 1px solid #03000d00;
     font-size: 12px;
   }
 
+}
+/* =========================================
+   GAME SETTINGS ABOVE FIXED BINGO AREA
+========================================= */
+
+.player-game-settings-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+
+  z-index: 20000 !important;
+}
+
+.player-game-settings-modal {
+  position: relative;
+
+  z-index: 20001 !important;
 }
