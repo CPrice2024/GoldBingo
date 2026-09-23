@@ -7,6 +7,14 @@ export const WINNING_PATTERNS = [
       en: "Full House",
     },
   },
+  {
+  value: "full_circle",
+  label: {
+    am: "ሙሉ ክብ",
+    ti: "ምሉእ ክብ",
+    en: "Full Circle",
+  },
+},
 
   {
     value: "half_house",

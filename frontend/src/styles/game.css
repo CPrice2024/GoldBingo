@@ -538,7 +538,7 @@ button {
 .bingo-game-info {
    margin: 0px 0px 7px;
     padding: 2px 2px;
-    border: 1px solid #0062be;
+    border: 1px solid #454545;
     border-radius: 8px;
     background: #ffffff00;
     box-shadow: 0 2px 8px rgb(31 0 179 / 31%);
@@ -561,7 +561,7 @@ button {
     justify-content: center;
     border-radius: 7px;
     background: #e8f1ff00;
-    color: #3a3f45;
+    color: #e5e5e5;
 }
 
 .bingo-game-info-main > div:last-child {
@@ -594,20 +594,21 @@ button {
    ========================================================= */
 
 .bingo-info-stats {
-      display: grid;
+        display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 2px;
     margin-top: 0px;
     justify-content: space-between;
-    border-top-style: ridge;
+    border-top-style: solid;
+    border-width: 1px;
 }
 
 .bingo-info-stats > div {
   display: flex;
-    column-gap: 3px;
+    column-gap: 1px;
     width: auto;
-    padding: 0px 2px;
-    border-radius: 3px;
+    padding: 0px 0px;
+    border-radius: 0px;
     background: #f8fafc00;
 }
 
@@ -626,7 +627,7 @@ button {
 
 .bingo-info-stats strong {
   color: #f8ec00;
-      font-size: 9px;
+      font-size: 12px;
     font-family: monospace;
 }
 
@@ -1174,7 +1175,7 @@ html[data-theme="day"]
 .bingo-current-pattern-button
 > span:first-child {
       min-width: 0;
-    color: #424ea2;
+    color: #f38d00;
     font-size: 12px;
     font-weight: 500;
     white-space: normal;
@@ -3092,7 +3093,7 @@ html[data-theme="day"]
 
   margin-top: 3px;
 
-  color: #8b94a5;
+  color: #ededed;
   font-size: 12px;
 }
 
@@ -3216,7 +3217,7 @@ html[data-theme="day"]
 .bingo-called-history {
     margin: 0px;
     padding: 0px 10px;
-    border: 1px solid #006ce7;
+    border: 1px solid #006ce700;
     border-radius: 5px;
     background: #00000000;
 }
@@ -3732,7 +3733,7 @@ html[data-theme="day"]
   }
 
   .bingo-info-stats strong {
-        font-size: 11px;
+        font-size: 12px;
     font-family: monospace;
   }
 }
@@ -5436,7 +5437,7 @@ html[data-theme="day"]
 
 html[data-theme="day"]
 .bingo-live-icon {
-  background: #eff6ff;
+  background: #93939300;
   color: #2563eb;
 }
 
@@ -5479,7 +5480,7 @@ html[data-theme="day"]
 html[data-theme="day"]
 .bingo-info-stats strong {
   color: #f38d00;
-    font-size: 11px;
+    font-size: 12px;
     font-family: monospace;
 }
 .bingo-info-demo {
@@ -6119,7 +6120,12 @@ html[data-theme="day"]
 
   gap: 7px;
 }
-
+.bingo-blocked-count{
+  border-radius: 50%;
+  border: 1px solid
+    rgba(212, 167, 44, 0.3);
+    padding: 5px;
+}
 
 .bingo-winner-card-button {
   min-width: 0;
@@ -6133,7 +6139,7 @@ html[data-theme="day"]
   padding: 9px 5px;
 
 
-  border-radius: 8px;
+  border-radius: 6px;
 
   background: #121722;
 
@@ -8390,8 +8396,6 @@ top: 93% !important;
   max-height: 480px;
 
   object-fit: contain;
-
-  border-radius: 18px;
 }
 
 
@@ -9091,8 +9095,8 @@ top: 93% !important;
 }
 
 .bingo-blocked-count-card strong {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .bingo-blocked-count-card small {
@@ -9112,4 +9116,117 @@ top: 93% !important;
     padding: 6px 4px;
     font-size: 11px;
   }
+}
+
+/* =========================================
+   CALLED NUMBER HORIZONTAL HISTORY
+========================================= */
+
+.bingo-history-list-expand {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  max-width: 100%;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 8px 4px 12px;
+
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+
+  scrollbar-width: thin;
+  overscroll-behavior-x: contain;
+}
+
+.bingo-history-list-expand .bingo-history-ball {
+  flex: 0 0 auto;
+}
+
+/* mobile swipe */
+@media (max-width: 768px) {
+  .bingo-history-list-expand {
+    gap: 8px;
+    padding-bottom: 10px;
+  }
+
+  .bingo-history-list-expand .bingo-history-ball {
+    flex-shrink: 0;
+  }
+}
+
+/* =========================================
+   BLOCKED / WINNER ROW LABEL
+========================================= */
+
+.bingo-card-list-label {
+      display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: auto;
+    padding: 4px 12px;
+    margin: 0;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.3px;
+}
+
+.bingo-card-list-label-blocked {
+  color: #fa1e1e;
+
+  background: rgba(
+    255,
+    70,
+    70,
+    0.12
+  );
+
+  border: 1px solid
+    rgba(
+      255,
+      70,
+      70,
+      0.35
+    );
+}
+.bingo-card-list-label-winner {
+      color: #00b214;
+    background: #e4ffe7;
+    border: 1px solid rgba(212, 167, 44, 0.4);
+}
+/* =========================================
+   WINNER / BLOCKED INLINE ROW
+========================================= */
+
+.bingo-live-winners-section,
+.bingo-blocked-cards-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.bingo-live-winners-section
+  .bingo-card-list-label,
+.bingo-blocked-cards-section
+  .bingo-card-list-label {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.bingo-live-winners-section
+  .bingo-winner-grid,
+.bingo-blocked-cards-section
+  .bingo-winner-grid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  flex: 1;
 }

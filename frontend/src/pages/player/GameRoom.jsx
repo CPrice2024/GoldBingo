@@ -534,6 +534,8 @@ const claimSoundRef =
 
 const previousCalledCountRef =
   useRef(null);
+  const calledHistoryRef =
+  useRef(null);
 
   const [cardOpen, setCardOpen] = useState(false);
 const [cardNotification, setCardNotification] = useState("");
@@ -2243,6 +2245,23 @@ const formatCountdown = (
     image: bingoBallRed,
   };
 };
+
+useEffect(() => {
+  if (
+    !showLastCalled ||
+    !calledHistoryRef.current
+  ) {
+    return;
+  }
+
+  calledHistoryRef.current.scrollTo({
+    left: 0,
+    behavior: "smooth",
+  });
+}, [
+  calledNumbers.length,
+  showLastCalled,
+]);
 /* =========================================
    NEW NUMBER CALL SOUND
 ========================================= */
@@ -5015,15 +5034,14 @@ const handleClaimBingo =
 
     {showLastCalled && (
 
-      <div className="bingo-history-list bingo-history-list-expand">
+      <div
+  ref={calledHistoryRef}
+  className="bingo-history-list bingo-history-list-expand"
+>
 
         {[...calledNumbers]
-          .reverse()
-          .slice(
-            0,
-            8
-          )
-          .map(
+  .reverse()
+  .map(
             (
               number,
               index
@@ -5271,7 +5289,7 @@ const handleClaimBingo =
 
   {/* PRICE */}
   <div>
-    <Coins size={16} />
+    <Coins size={12} />
 
     <span>
       {t("game.price")}
@@ -5295,7 +5313,7 @@ const handleClaimBingo =
 
   {/* GAME TYPE */}
   <div>
-    <Gamepad2 size={13} />
+    <Gamepad2 size={12} />
 
     <span>
       {t("game.gameType")}
@@ -5318,7 +5336,7 @@ const handleClaimBingo =
 
   {/* PRIZE */}
   <div>
-    <Trophy size={13} />
+    <Trophy size={12} />
 
     <span>
       {t("game.prize")}
@@ -5530,21 +5548,25 @@ const handleClaimBingo =
 {!finishedGameCleared &&
   blockedCards.length > 0 && (
 
-  <section
-    className="
-      bingo-winners-section
-      bingo-blocked-cards-section
-    "
-  >
+ <section
+  className="
+    bingo-winners-section
+    bingo-blocked-cards-section
+  "
+>
 
-    <div className="bingo-winner-grid bingo-blocked-summary-grid">
+  <div className="bingo-card-list-label bingo-card-list-label-blocked">
+    Blocked
+  </div>
+
+  <div className="bingo-winner-grid bingo-blocked-summary-grid">
 
   {blockedCards
     .slice(
       0,
       showAllBlockedCards
         ? blockedCards.length
-        : 3
+        : 2
     )
     .map(
       (
@@ -5625,8 +5647,7 @@ const handleClaimBingo =
         type="button"
 
         className="
-          bingo-winner-card-button
-          bingo-blocked-count-card
+          bingo-blocked-count
         "
 
         onClick={() =>
@@ -5636,18 +5657,12 @@ const handleClaimBingo =
         }
       >
 
-        <AlertCircle
-          size={15}
-        />
+       
 
         <strong>
           +
-          {blockedCards.length - 3}
+          {blockedCards.length - 2}
         </strong>
-
-        <small>
-          Blocked
-        </small>
 
       </button>
 
@@ -5689,15 +5704,18 @@ const handleClaimBingo =
 
 {showFinalWinnerList && (
 
-  <section
-    className="
-      bingo-winners-section
-      bingo-final-winners-section
-    "
-  >
-    {/* WINNER BUTTONS */}
+<section
+  className="
+    bingo-winners-section
+    bingo-live-winners-section
+  "
+>
 
-    <div className="bingo-winner-grid">
+  <div className="bingo-card-list-label bingo-card-list-label-winner">
+    Winner
+  </div>
+
+  <div className="bingo-winner-grid">
 
       {publicWinners
         .slice(

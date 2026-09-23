@@ -11,6 +11,14 @@ export const WINNING_PATTERNS = [
       en: "Full House",
     },
   },
+  {
+  value: "full_circle",
+  label: {
+    am: "ሙሉ ክብ",
+    ti: "ምሉእ ክብ",
+    en: "Full Circle",
+  },
+},
 
   {
     value: "half_house",
@@ -1474,6 +1482,22 @@ const WINNING_PATTERN_LAYOUTS:
   full_house: [
     ALL_CELLS,
   ],
+
+
+  /* =======================================================
+   FULL CIRCLE
+
+   All outside-border cells must be marked.
+======================================================= */
+
+full_circle: [
+  mergeCells(
+    ROW_1,
+    ROW_5,
+    COL_1,
+    COL_5
+  ),
+],
 
 
   /* =======================================================
