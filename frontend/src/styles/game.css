@@ -6245,7 +6245,7 @@ html[data-theme="day"]
   border-radius: 16px;
 
   background:
-    #0d1017;
+    #000000d6;
 
   box-shadow:
     0 24px 70px
@@ -6289,9 +6289,9 @@ html[data-theme="day"]
 
 
 .bingo-winner-detail-header small {
-     color: #52668b;
-    font-size: 13px;
-    font-family: monospace;
+       color: #000000;
+    font-size: 16px;
+    font-family: math;
 }
 
 
@@ -6696,6 +6696,7 @@ html[data-theme="day"]
 
   font-size: 20px;
   letter-spacing: 0.3px;
+  font-family: serif;
 }
 
 

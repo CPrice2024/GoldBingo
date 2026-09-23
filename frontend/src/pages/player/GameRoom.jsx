@@ -5517,7 +5517,6 @@ const handleClaimBingo =
       bingo-live-winners-section
     "
   >
-
     <div className="bingo-winner-grid">
 
       {publicWinners.map(
@@ -6860,9 +6859,10 @@ displayCards.length <
 
         <div>
 
-          <span>
+          <strong
+          class="bingo-winner-phone">
             {t("game.falseBingo")}
-          </span>
+          </strong>
 
 
           <strong className="bingo-winner-phone">
@@ -6872,12 +6872,13 @@ displayCards.length <
          
 
 
-          <small>
+          <strong
+          class="bingo-winner-phone">
   {selectedBlockedCard
     ?.player
     ?.phone ||
     "-"}
-</small>
+</strong>
 
         </div>
 
@@ -6912,9 +6913,9 @@ displayCards.length <
 
       <div className="bingo-blocked-card-current-call">
 
-        <span>
+        <strong>
           CALL
-        </span>
+        </strong>
 
         <strong>
           {getBingoBall(
@@ -6923,7 +6924,7 @@ displayCards.length <
             )
           )?.letter}
 
-          {Number(
+          -{Number(
             selectedBlockedCard.calledNumber
           )}
         </strong>
