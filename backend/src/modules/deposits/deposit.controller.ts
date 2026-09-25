@@ -6,8 +6,11 @@ import {
   getAgentPendingDeposits,
   getPlayerPaymentSettings,
   approveDeposit,
+  verifyAndApproveCbeDeposit,
 } from "./deposit.service";
-
+import {
+  verifyCbeReceipt,
+} from "./cbeReceipt.service";
 export const createDepositRequest = async (
   req: Request,
   res: Response
@@ -246,7 +249,168 @@ export const getPendingAgentDeposits = async (
       });
   }
 };
+export const verifyCbeReceiptRequest =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const playerId =
+        req.user?.userId;
 
+      if (!playerId) {
+        return res
+          .status(401)
+          .json({
+            success: false,
+            message:
+              "Authentication required",
+          });
+      }
+
+      if (
+        req.user?.role !==
+        "player"
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message:
+              "Only players can verify CBE receipts",
+          });
+      }
+
+      const {
+        receiptUrl,
+      } = req.body;
+
+      if (
+        typeof receiptUrl !==
+          "string" ||
+        !receiptUrl.trim()
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "receiptUrl is required",
+          });
+      }
+
+      const receipt =
+        await verifyCbeReceipt(
+          receiptUrl
+        );
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+          message:
+            "CBE receipt verified successfully",
+          data:
+            receipt,
+        });
+
+    } catch (error) {
+      return res
+        .status(400)
+        .json({
+          success: false,
+
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to verify CBE receipt",
+        });
+    }
+  };
+
+export const approveCbeReceiptRequest =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const playerId =
+        req.user?.userId;
+
+      if (!playerId) {
+        return res
+          .status(401)
+          .json({
+            success: false,
+            message:
+              "Authentication required",
+          });
+      }
+
+      if (
+        req.user?.role !==
+        "player"
+      ) {
+        return res
+          .status(403)
+          .json({
+            success: false,
+            message:
+              "Only players can verify CBE deposits",
+          });
+      }
+
+      const {
+        receiptUrl,
+      } = req.body;
+
+      if (
+        typeof receiptUrl !==
+          "string" ||
+        !receiptUrl.trim()
+      ) {
+        return res
+          .status(400)
+          .json({
+            success: false,
+            message:
+              "receiptUrl is required",
+          });
+      }
+
+      const result =
+        await verifyAndApproveCbeDeposit(
+          playerId,
+          receiptUrl
+        );
+
+      return res
+        .status(200)
+        .json({
+          success: true,
+
+          message:
+            "CBE deposit verified and approved successfully",
+
+          data:
+            result,
+        });
+
+    } catch (error) {
+
+      return res
+        .status(400)
+        .json({
+          success: false,
+
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to verify CBE deposit",
+        });
+    }
+  };
+  
 export const approveDepositRequest = async (
   req: Request,
   res: Response

@@ -8,6 +8,9 @@ import {
   AppSettings,
 } from "../settings/appSettings.model";
 import {
+  verifyCbeReceipt,
+} from "./cbeReceipt.service";
+import {
   PaymentSms,
 } from "../paymentSms/paymentSms.model";
 import {
@@ -48,6 +51,10 @@ interface ApproveDepositOptions {
   matchedTransactionId?: string;
 
   smsReceivedAt?: Date;
+
+  approvalSource?:
+    | "sms"
+    | "cbe_qr";
 }
 const PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS =
   12 * 60 * 60 * 1000;
@@ -447,7 +454,261 @@ if (
 
   return deposit;
 };
+export const verifyAndApproveCbeDeposit =
+  async (
+    playerId: string,
+    receiptUrl: string
+  ) => {
 
+    /* =========================================
+       1. VERIFY RECEIPT WITH CBE
+    ========================================= */
+
+    const receipt =
+      await verifyCbeReceipt(
+        receiptUrl
+      );
+
+
+    /* =========================================
+       2. FIND PLAYER
+    ========================================= */
+
+    const player =
+      await User.findOne({
+        _id: playerId,
+        role: "player",
+        status: "active",
+      });
+
+
+    if (!player) {
+      throw new Error(
+        "Player not found"
+      );
+    }
+
+
+    if (!player.referredBy) {
+      throw new Error(
+        "Player is not assigned to an agent"
+      );
+    }
+
+
+    /* =========================================
+       3. FIND ASSIGNED AGENT
+    ========================================= */
+
+    const agent =
+      await User.findOne({
+        _id:
+          player.referredBy,
+
+        role:
+          "agent",
+
+        status:
+          "active",
+      });
+
+
+    if (!agent) {
+      throw new Error(
+        "Player's assigned agent is not available"
+      );
+    }
+
+
+    /* =========================================
+       4. CHECK AGENT CBE SETTINGS
+    ========================================= */
+
+    const cbeSettings =
+      agent.paymentSettings
+        ?.cbe;
+
+
+    if (
+      !cbeSettings?.enabled
+    ) {
+      throw new Error(
+        "CBE deposits are currently unavailable"
+      );
+    }
+
+
+    const agentCbeAccount =
+      String(
+        cbeSettings.account || ""
+      )
+        .replace(/\D/g, "");
+
+
+    if (!agentCbeAccount) {
+      throw new Error(
+        "Agent CBE account is not configured"
+      );
+    }
+
+
+    /* =========================================
+       5. VERIFY RECEIVER ACCOUNT
+
+       CBE API returns masked account:
+       1********0051
+
+       Agent setting contains real account.
+       We compare final 4 digits.
+    ========================================= */
+
+    const receiptAccountDigits =
+      String(
+        receipt.receiverAccount || ""
+      )
+        .replace(/\D/g, "");
+
+
+    const expectedLast4 =
+      agentCbeAccount.slice(
+        -4
+      );
+
+
+    const receivedLast4 =
+      receiptAccountDigits.slice(
+        -4
+      );
+
+
+    if (
+      !expectedLast4 ||
+      !receivedLast4 ||
+      expectedLast4 !==
+        receivedLast4
+    ) {
+      throw new Error(
+        "CBE receipt receiver account does not match the assigned agent"
+      );
+    }
+
+
+    /* =========================================
+       6. FIND MATCHING PENDING DEPOSIT
+    ========================================= */
+
+    const deposit =
+      await Deposit.findOne({
+        playerId:
+          player._id,
+
+        agentId:
+          agent._id,
+
+        paymentMethod:
+          "cbe",
+
+        reference:
+          receipt.reference,
+
+        status:
+          "pending",
+      });
+
+
+    if (!deposit) {
+      throw new Error(
+        "No matching pending CBE deposit found for this receipt"
+      );
+    }
+
+
+    /* =========================================
+       7. CHECK RECEIPT AMOUNT
+    ========================================= */
+
+    const requestedAmount =
+      Number(
+        deposit.amount
+      );
+
+
+    const receivedAmount =
+      Number(
+        receipt.transferredAmount
+      );
+
+
+    if (
+      !Number.isFinite(
+        receivedAmount
+      ) ||
+      receivedAmount <= 0
+    ) {
+      throw new Error(
+        "Invalid CBE receipt amount"
+      );
+    }
+
+
+    if (
+      receivedAmount <
+      requestedAmount
+    ) {
+      throw new Error(
+        `CBE receipt amount ${receivedAmount} ETB is lower than requested deposit amount ${requestedAmount} ETB`
+      );
+    }
+
+
+    /* =========================================
+       8. AUTO APPROVE
+    ========================================= */
+
+    const result =
+      await approveDeposit(
+        deposit._id.toString(),
+
+        agent._id.toString(),
+
+        {
+          verifiedAmount:
+            receivedAmount,
+
+          autoApproved:
+            true,
+
+          matchedTransactionId:
+            receipt.reference,
+
+          approvalSource:
+            "cbe_qr",
+        }
+      );
+
+
+    return {
+      receipt,
+
+      deposit:
+        result.deposit,
+
+      balanceBefore:
+        result.balanceBefore,
+
+      balanceAfter:
+        result.balanceAfter,
+
+      depositAmount:
+        result.depositAmount,
+
+      bonusAmount:
+        result.bonusAmount,
+
+      creditedAmount:
+        result.creditedAmount,
+    };
+  };
 export const getPlayerDeposits = async (
   playerId: string,
   query: any = {}
@@ -991,14 +1252,21 @@ if (
   deposit.autoApproved =
     true;
 
-  deposit.smsAmount =
-    depositAmount;
-
   deposit.matchedTransactionId =
     options.matchedTransactionId;
 
-  deposit.smsReceivedAt =
-    options.smsReceivedAt;
+
+  if (
+    options.approvalSource !==
+      "cbe_qr"
+  ) {
+
+    deposit.smsAmount =
+      depositAmount;
+
+    deposit.smsReceivedAt =
+      options.smsReceivedAt;
+  }
 
 } else {
 

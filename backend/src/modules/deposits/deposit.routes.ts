@@ -8,7 +8,8 @@ import {
   getMyPaymentSettings,
   getPendingAgentDeposits,
   approveDepositRequest,
-
+  verifyCbeReceiptRequest,
+  approveCbeReceiptRequest,
 } from "./deposit.controller";
 
 const router = Router();
@@ -34,7 +35,15 @@ router.get(
   "/pending",
   getPendingAgentDeposits
 );
+router.post(
+  "/cbe/verify-receipt",
+  verifyCbeReceiptRequest
+);
 
+router.post(
+  "/cbe/approve-receipt",
+  approveCbeReceiptRequest
+);
 router.patch(
   "/:id/approve",
   approveDepositRequest
