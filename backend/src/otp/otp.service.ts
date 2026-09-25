@@ -16,7 +16,7 @@ export const OTP_EXPIRES_MINUTES =
   );
 
 const OTP_MAX_ATTEMPTS = Number(
-  process.env.OTP_MAX_ATTEMPTS || 5
+  process.env.OTP_MAX_ATTEMPTS || 3
 );
 
 const OTP_RESEND_SECONDS = Number(

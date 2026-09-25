@@ -21,6 +21,9 @@ import OTPRequest
 import {
   User,
 } from "../modules/users/user.model";
+import {
+  sendNotificationToUser,
+} from "../modules/notifications/notification.service";
 
 export async function requestOTP(
   req: Request,
@@ -325,65 +328,129 @@ export async function requestOTP(
     }
 
 
-    /* =================================
-       SEND OTP SMS AUTOMATICALLY
-    ================================= */
+/* =================================
+   SEND OTP
 
-    const message =
-      `Your Gold Bingo password reset code is ${code}. ` +
-      `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
-      `Do not share this code with anyone.`;
+   PRIMARY  = FCM PUSH
+   FALLBACK = SMS
+================================= */
 
-
-    try {
-
-      await sendSMS({
-        phone:
-          normalizedPhone,
-
-        message,
-      });
-
-    } catch (
-      smsError: any
-    ) {
-
-      console.error(
-        "[OTP] Automatic SMS sending failed:",
-        smsError
-      );
+const message =
+  `Your Gold Bingo password reset code is ${code}. ` +
+  `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
+  `Do not share this code with anyone.`;
 
 
-      /*
-       * OTP must not remain usable
-       * when SMS sending fails.
-       */
-      otpRequest.status =
-        "expired";
-
-      otpRequest.codeHash =
-        null;
-
-      otpRequest.expiresAt =
-        null;
+let deliveryMethod:
+  "push" | "sms" =
+    "push";
 
 
-      await otpRequest.save();
+/* =================================
+   1. TRY PUSH FIRST
+================================= */
 
+try {
 
-      return res
-        .status(502)
-        .json({
-          success: false,
-          message:
-            "OTP could not be sent. Please try again.",
-        });
+  await sendNotificationToUser(
+    player._id.toString(),
+
+    "Gold Bingo Password Reset",
+
+    `Your verification code is ${code}. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
+
+    {
+      type:
+        "password_reset_otp",
+
+      purpose:
+        "forgot_password",
+
+      otp:
+        code,
+
+      expiresInSeconds:
+        String(
+          OTP_EXPIRES_MINUTES *
+            60
+        ),
     }
+  );
+
+
+  console.log(
+    `[OTP] Push OTP sent for request ${otpRequest._id}`
+  );
+
+} catch (
+  pushError
+) {
+
+  console.warn(
+    "[OTP] Push unavailable. Falling back to SMS:",
+    pushError
+  );
+
+
+  deliveryMethod =
+    "sms";
+
+
+  /* =================================
+     2. SMS FALLBACK
+  ================================= */
+
+  try {
+
+    await sendSMS({
+      phone:
+        normalizedPhone,
+
+      message,
+    });
 
 
     console.log(
-      `[OTP] OTP automatically sent for request ${otpRequest._id}`
+      `[OTP] SMS fallback sent for request ${otpRequest._id}`
     );
+
+  } catch (
+    smsError: any
+  ) {
+
+    console.error(
+      "[OTP] SMS fallback failed:",
+      smsError
+    );
+
+
+    /* =================================
+       BOTH DELIVERY METHODS FAILED
+    ================================= */
+
+    otpRequest.status =
+      "expired";
+
+    otpRequest.codeHash =
+      null;
+
+    otpRequest.expiresAt =
+      null;
+
+
+    await otpRequest.save();
+
+
+    return res
+      .status(502)
+      .json({
+        success: false,
+
+        message:
+          "OTP could not be delivered by push notification or SMS. Please try again.",
+      });
+  }
+}
 
 
     /* =================================
@@ -396,7 +463,9 @@ export async function requestOTP(
         success: true,
 
         message:
-          "OTP sent successfully. Check your phone.",
+  deliveryMethod === "push"
+    ? "OTP sent by push notification."
+    : "OTP sent by SMS fallback.",
 
         data: {
           requestId:
@@ -407,6 +476,8 @@ export async function requestOTP(
 
           status:
             "approved",
+
+          deliveryMethod,
 
           approvedAt:
             now,
@@ -557,7 +628,7 @@ export async function verifyOTPCode(
     ================================= */
 
     if (
-      otpRequest.attempts >= 5
+      otpRequest.attempts >= 3
     ) {
 
       otpRequest.status =
@@ -612,7 +683,7 @@ export async function verifyOTPCode(
           attemptsRemaining:
             Math.max(
               0,
-              5 -
+              3 -
                 otpRequest.attempts
             ),
 
