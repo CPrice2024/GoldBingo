@@ -40,6 +40,8 @@ const isAutoApprovalEnabled = () => {
 const PAYMENT_SMS_MATCH_WINDOW_MS =
   24 * 60 * 60 * 1000;
 
+const PAYMENT_SMS_FUTURE_REQUEST_WINDOW_MS =
+  12 * 60 * 60 * 1000;
 /* =========================================
    NORMALIZE REFERENCE
 ========================================= */
@@ -436,6 +438,11 @@ const windowStart =
     smsReceivedAt.getTime() -
       PAYMENT_SMS_MATCH_WINDOW_MS
   );
+  const windowEnd =
+  new Date(
+    smsReceivedAt.getTime() +
+      PAYMENT_SMS_FUTURE_REQUEST_WINDOW_MS
+  );
 
 
 /* =========================================
@@ -461,13 +468,13 @@ const deposit =
     status:
       "pending",
 
-    createdAt: {
-      $gte:
-        windowStart,
+   createdAt: {
+  $gte:
+    windowStart,
 
-      $lte:
-        smsReceivedAt,
-    },
+  $lte:
+    windowEnd,
+},
 
   }).sort({
     createdAt: -1,

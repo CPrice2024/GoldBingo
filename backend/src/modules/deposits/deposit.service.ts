@@ -8,6 +8,9 @@ import {
   AppSettings,
 } from "../settings/appSettings.model";
 import {
+  PaymentSms,
+} from "../paymentSms/paymentSms.model";
+import {
   createDeposit,
   findPlayerDeposits,
   countFilteredPlayerDeposits,
@@ -46,6 +49,62 @@ interface ApproveDepositOptions {
 
   smsReceivedAt?: Date;
 }
+const PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS =
+  12 * 60 * 60 * 1000;
+
+const isAutoApprovalEnabled = () =>
+  String(
+    process.env.PAYMENT_SMS_AUTO_APPROVE ??
+      "false"
+  )
+    .trim()
+    .toLowerCase() === "true";
+  const getPaymentSmsReceivedAt = (
+  sms: any
+): Date => {
+  const parsedReceivedStamp =
+    sms?.receivedStamp
+      ? new Date(
+          sms.receivedStamp
+        )
+      : null;
+
+  if (
+    parsedReceivedStamp &&
+    Number.isFinite(
+      parsedReceivedStamp.getTime()
+    )
+  ) {
+    return parsedReceivedStamp;
+  }
+
+  return new Date(
+    sms.createdAt
+  );
+};
+
+
+const extractReceivedSmsAmount = (
+  text: string
+): number | null => {
+  const match =
+    String(text || "").match(
+      /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i
+    );
+
+  if (!match) {
+    return null;
+  }
+
+  const amount =
+    Number(
+      match[1].replace(/,/g, "")
+    );
+
+  return Number.isFinite(amount)
+    ? amount
+    : null;
+};
 
 
 export const submitDeposit = async (
@@ -220,7 +279,141 @@ const deposit = await createDeposit({
     note: data.note,
   });
 
+/* =========================================
+   MATCH SMS THAT ARRIVED BEFORE DEPOSIT
 
+   Allowed:
+   SMS first
+   → deposit request up to 12 hours later
+========================================= */
+
+if (
+  reference &&
+  (
+    data.paymentMethod === "telebirr" ||
+    data.paymentMethod === "cbe"
+  )
+) {
+  const previousSms =
+    await PaymentSms.findOne({
+      agentId:
+        agent._id,
+
+      reference,
+
+      paymentMethod:
+        data.paymentMethod,
+
+      status:
+        "ignored",
+    }).sort({
+      createdAt: -1,
+    });
+
+
+  if (previousSms) {
+    const smsReceivedAt =
+      getPaymentSmsReceivedAt(
+        previousSms
+      );
+
+    const depositCreatedAt =
+      new Date(
+        (deposit as any).createdAt
+      );
+
+    const timeDifferenceMs =
+      depositCreatedAt.getTime() -
+      smsReceivedAt.getTime();
+
+    const withinReverseWindow =
+      timeDifferenceMs >= 0 &&
+      timeDifferenceMs <=
+        PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS;
+
+
+    if (withinReverseWindow) {
+      const storedSmsAmount =
+        Number(
+          previousSms.amount
+        );
+
+      const parsedSmsAmount =
+        extractReceivedSmsAmount(
+          previousSms.text || ""
+        );
+
+      const smsAmount =
+        Number.isFinite(
+          storedSmsAmount
+        )
+          ? storedSmsAmount
+          : parsedSmsAmount;
+
+      const requestedAmount =
+        Number(
+          deposit.amount
+        );
+
+
+      const amountIsValid =
+        smsAmount !== null &&
+        Number.isFinite(
+          Number(smsAmount)
+        ) &&
+        Number(smsAmount) >=
+          requestedAmount;
+
+
+      if (amountIsValid) {
+        previousSms.status =
+          "matched";
+
+        previousSms.amount =
+          Number(smsAmount);
+
+        previousSms.depositId =
+          deposit._id;
+
+        previousSms.error =
+          undefined;
+
+        await previousSms.save();
+
+
+        if (
+          isAutoApprovalEnabled()
+        ) {
+          const approval =
+            await approveDeposit(
+              deposit._id.toString(),
+              agent._id.toString(),
+              {
+                verifiedAmount:
+                  Number(smsAmount),
+
+                autoApproved:
+                  true,
+
+                matchedTransactionId:
+                  reference,
+
+                smsReceivedAt,
+              }
+            );
+
+
+          previousSms.status =
+            "approved";
+
+          await previousSms.save();
+
+          return approval.deposit;
+        }
+      }
+    }
+  }
+}
 
   // ------------------------------------------
   // NOTIFY AGENT
