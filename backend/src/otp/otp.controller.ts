@@ -328,11 +328,11 @@ export async function requestOTP(
     }
 
 
-    /* =================================
+        /* =================================
        SEND PASSWORD RESET OTP
 
-       PRIMARY = SMS
-       OPTIONAL = FCM PUSH
+       PRIMARY  = FCM PUSH
+       FALLBACK = SMS
     ================================= */
 
     const message =
@@ -341,62 +341,13 @@ export async function requestOTP(
       `Do not share this code with anyone.`;
 
 
-    /* =================================
-       1. SEND SMS
-    ================================= */
-
-    try {
-
-      await sendSMS({
-        phone:
-          normalizedPhone,
-
-        message,
-      });
-
-
-      console.log(
-        `[OTP] Password reset SMS sent for request ${otpRequest._id}`
-      );
-
-    } catch (
-      smsError: any
-    ) {
-
-      console.error(
-        "[OTP] Password reset SMS failed:",
-        smsError
-      );
-
-
-      otpRequest.status =
-        "expired";
-
-      otpRequest.codeHash =
-        null;
-
-      otpRequest.expiresAt =
-        null;
-
-
-      await otpRequest.save();
-
-
-      return res
-        .status(502)
-        .json({
-          success: false,
-
-          message:
-            smsError?.message ||
-            "OTP could not be sent by SMS. Please try again later.",
-        });
-
-    }
+    let deliveryMethod:
+      "push" | "sms" =
+        "push";
 
 
     /* =================================
-       2. OPTIONAL PUSH NOTIFICATION
+       1. TRY PUSH NOTIFICATION FIRST
     ================================= */
 
     try {
@@ -406,7 +357,7 @@ export async function requestOTP(
 
         "Gold Bingo Password Reset",
 
-        `A password reset code was sent to your registered phone number. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
+        `Your verification code is ${code}. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
 
         {
           type:
@@ -414,6 +365,9 @@ export async function requestOTP(
 
           purpose:
             "forgot_password",
+
+          otp:
+            code,
 
           expiresInSeconds:
             String(
@@ -433,9 +387,73 @@ export async function requestOTP(
     ) {
 
       console.warn(
-        "[OTP] Optional push notification failed:",
+        "[OTP] Push unavailable. Falling back to SMS:",
         pushError
       );
+
+
+      deliveryMethod =
+        "sms";
+
+
+      /* =================================
+         2. SMS FALLBACK
+      ================================= */
+
+      try {
+
+        await sendSMS({
+          phone:
+            normalizedPhone,
+
+          message,
+        });
+
+
+        console.log(
+          `[OTP] Password reset SMS fallback sent for request ${otpRequest._id}`
+        );
+
+      } catch (
+        smsError: any
+      ) {
+
+        console.error(
+          "[OTP] SMS fallback failed:",
+          smsError
+        );
+
+
+        /*
+         * Neither method delivered
+         * the OTP successfully.
+         */
+
+        otpRequest.status =
+          "expired";
+
+        otpRequest.codeHash =
+          null;
+
+        otpRequest.expiresAt =
+          null;
+
+
+        await otpRequest.save();
+
+
+        return res
+          .status(502)
+          .json({
+
+            success: false,
+
+            message:
+              "OTP could not be delivered by notification or SMS. Please try again later.",
+
+          });
+
+      }
 
     }
 
@@ -451,7 +469,9 @@ export async function requestOTP(
         success: true,
 
         message:
-          "OTP sent successfully to your registered phone number.",
+          deliveryMethod === "push"
+            ? "OTP sent by notification."
+            : "Notification unavailable. OTP sent by SMS.",
 
         data: {
 
@@ -464,8 +484,7 @@ export async function requestOTP(
           status:
             "approved",
 
-          deliveryMethod:
-            "sms",
+          deliveryMethod,
 
           approvedAt:
             now,
