@@ -14,7 +14,13 @@ import {
   EyeOff,
   Lock,
 } from "lucide-react";
+import {
+  PushNotifications,
+} from "@capacitor/push-notifications";
 
+import {
+  Capacitor,
+} from "@capacitor/core";
 import {
   useNavigate,
 } from "react-router-dom";
@@ -105,6 +111,78 @@ export default function ForgotPassword() {
     setMessage,
   ] = useState("");
 
+  const ensureNotificationPermission =
+  async () => {
+
+    /*
+     * Notification permission requirement
+     * applies to the native mobile app.
+     */
+    if (!Capacitor.isNativePlatform()) {
+      return true;
+    }
+
+
+    try {
+
+      let permission =
+        await PushNotifications
+          .checkPermissions();
+
+
+      /*
+       * Already granted.
+       */
+      if (
+        permission.receive ===
+        "granted"
+      ) {
+
+        await PushNotifications
+          .register();
+
+        return true;
+      }
+
+
+      /*
+       * Ask the player again.
+       */
+      permission =
+        await PushNotifications
+          .requestPermissions();
+
+
+      if (
+        permission.receive ===
+        "granted"
+      ) {
+
+        await PushNotifications
+          .register();
+
+        return true;
+      }
+
+
+      /*
+       * Player denied permission.
+       */
+      return false;
+
+
+    } catch (error) {
+
+      console.error(
+        "Notification permission check failed:",
+        error
+      );
+
+      return false;
+
+    }
+
+  };
 
   /* ===============================
      REQUEST + SEND OTP
@@ -147,11 +225,24 @@ export default function ForgotPassword() {
          * 4. Sends SMS automatically
          */
 
-        const result =
-          await requestPasswordOTP(
-            cleanPhone
-          );
+       const notificationGranted =
+  await ensureNotificationPermission();
 
+
+if (!notificationGranted) {
+
+  setError(
+    "Notification permission is required to receive your OTP. Please allow notifications and try again."
+  );
+
+  return;
+}
+
+
+const result =
+  await requestPasswordOTP(
+    cleanPhone
+  );
 
         setStep(
           "otp"
