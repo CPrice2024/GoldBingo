@@ -5,7 +5,9 @@ import {
 import {
   Capacitor,
 } from "@capacitor/core";
-
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000/api/v1";
 
 export const registerPushNotifications =
   async () => {
@@ -77,28 +79,94 @@ export const registerPushNotifications =
       ================================= */
 
       await PushNotifications
-        .addListener(
-          "registration",
-          (token) => {
+  .addListener(
+    "registration",
+    async (token) => {
 
-            console.log(
-              "================================"
-            );
+      console.log(
+        "================================"
+      );
 
-            console.log(
-              "🔥 FCM DEVICE TOKEN:"
-            );
+      console.log(
+        "🔥 NATIVE FCM DEVICE TOKEN:"
+      );
 
-            console.log(
-              token.value
-            );
+      console.log(
+        token.value
+      );
 
-            console.log(
-              "================================"
-            );
+      console.log(
+        "================================"
+      );
 
-          }
+
+      try {
+
+        const accessToken =
+          localStorage.getItem(
+            "accessToken"
+          );
+
+
+        if (!accessToken) {
+          console.log(
+            "[PUSH] No access token available yet"
+          );
+
+          return;
+        }
+
+
+        const response =
+          await fetch(
+            `${API_URL}/notifications/token`,
+            {
+              method: "PATCH",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+
+                Authorization:
+                  `Bearer ${accessToken}`,
+              },
+
+              body: JSON.stringify({
+                fcmToken:
+                  token.value,
+              }),
+            }
+          );
+
+
+        const result =
+          await response.json();
+
+
+        if (!response.ok) {
+          throw new Error(
+            result.message ||
+              "Failed to register native FCM token"
+          );
+        }
+
+
+        console.log(
+          "[PUSH] Native FCM token saved:",
+          result
         );
+
+      } catch (error) {
+
+        console.error(
+          "[PUSH] Failed to save native FCM token:",
+          error
+        );
+
+      }
+
+    }
+  );
 
 
       /* ================================

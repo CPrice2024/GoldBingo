@@ -328,129 +328,116 @@ export async function requestOTP(
     }
 
 
-/* =================================
-   SEND OTP
+    /* =================================
+       SEND PASSWORD RESET OTP
 
-   PRIMARY  = FCM PUSH
-   FALLBACK = SMS
-================================= */
+       PRIMARY = SMS
+       OPTIONAL = FCM PUSH
+    ================================= */
 
-const message =
-  `Your Gold Bingo password reset code is ${code}. ` +
-  `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
-  `Do not share this code with anyone.`;
-
-
-let deliveryMethod:
-  "push" | "sms" =
-    "push";
-
-
-/* =================================
-   1. TRY PUSH FIRST
-================================= */
-
-try {
-
-  await sendNotificationToUser(
-    player._id.toString(),
-
-    "Gold Bingo Password Reset",
-
-    `Your verification code is ${code}. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
-
-    {
-      type:
-        "password_reset_otp",
-
-      purpose:
-        "forgot_password",
-
-      otp:
-        code,
-
-      expiresInSeconds:
-        String(
-          OTP_EXPIRES_MINUTES *
-            60
-        ),
-    }
-  );
-
-
-  console.log(
-    `[OTP] Push OTP sent for request ${otpRequest._id}`
-  );
-
-} catch (
-  pushError
-) {
-
-  console.warn(
-    "[OTP] Push unavailable. Falling back to SMS:",
-    pushError
-  );
-
-
-  deliveryMethod =
-    "sms";
-
-
-  /* =================================
-     2. SMS FALLBACK
-  ================================= */
-
-  try {
-
-    await sendSMS({
-      phone:
-        normalizedPhone,
-
-      message,
-    });
-
-
-    console.log(
-      `[OTP] SMS fallback sent for request ${otpRequest._id}`
-    );
-
-  } catch (
-    smsError: any
-  ) {
-
-    console.error(
-      "[OTP] SMS fallback failed:",
-      smsError
-    );
+    const message =
+      `Your Gold Bingo password reset code is ${code}. ` +
+      `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
+      `Do not share this code with anyone.`;
 
 
     /* =================================
-       BOTH DELIVERY METHODS FAILED
+       1. SEND SMS
     ================================= */
 
-    otpRequest.status =
-      "expired";
+    try {
 
-    otpRequest.codeHash =
-      null;
+      await sendSMS({
+        phone:
+          normalizedPhone,
 
-    otpRequest.expiresAt =
-      null;
-
-
-    await otpRequest.save();
-
-
-    return res
-      .status(502)
-      .json({
-        success: false,
-
-        message:
-          "OTP could not be delivered by push notification or SMS. Please try again.",
+        message,
       });
-  }
-}
+
+
+      console.log(
+        `[OTP] Password reset SMS sent for request ${otpRequest._id}`
+      );
+
+    } catch (
+      smsError: any
+    ) {
+
+      console.error(
+        "[OTP] Password reset SMS failed:",
+        smsError
+      );
+
+
+      otpRequest.status =
+        "expired";
+
+      otpRequest.codeHash =
+        null;
+
+      otpRequest.expiresAt =
+        null;
+
+
+      await otpRequest.save();
+
+
+      return res
+        .status(502)
+        .json({
+          success: false,
+
+          message:
+            smsError?.message ||
+            "OTP could not be sent by SMS. Please try again later.",
+        });
+
+    }
+
+
+    /* =================================
+       2. OPTIONAL PUSH NOTIFICATION
+    ================================= */
+
+    try {
+
+      await sendNotificationToUser(
+        player._id.toString(),
+
+        "Gold Bingo Password Reset",
+
+        `A password reset code was sent to your registered phone number. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
+
+        {
+          type:
+            "password_reset_otp",
+
+          purpose:
+            "forgot_password",
+
+          expiresInSeconds:
+            String(
+              OTP_EXPIRES_MINUTES *
+              60
+            ),
+        }
+      );
+
+
+      console.log(
+        `[OTP] Password reset push sent for request ${otpRequest._id}`
+      );
+
+    } catch (
+      pushError
+    ) {
+
+      console.warn(
+        "[OTP] Optional push notification failed:",
+        pushError
+      );
+
+    }
 
 
     /* =================================
@@ -460,14 +447,14 @@ try {
     return res
       .status(200)
       .json({
+
         success: true,
 
         message:
-  deliveryMethod === "push"
-    ? "OTP sent by push notification."
-    : "OTP sent by SMS fallback.",
+          "OTP sent successfully to your registered phone number.",
 
         data: {
+
           requestId:
             otpRequest._id,
 
@@ -477,13 +464,16 @@ try {
           status:
             "approved",
 
-          deliveryMethod,
+          deliveryMethod:
+            "sms",
 
           approvedAt:
             now,
 
           expiresAt,
+
         },
+
       });
 
   } catch (
