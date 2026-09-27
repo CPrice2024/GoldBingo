@@ -114,62 +114,116 @@ export default function ForgotPassword() {
   const ensureNotificationPermission =
   async () => {
 
-    /*
-     * Notification permission requirement
-     * applies to the native mobile app.
-     */
-    if (!Capacitor.isNativePlatform()) {
-      return true;
-    }
-
-
     try {
 
-      let permission =
-        await PushNotifications
-          .checkPermissions();
+      /* ==============================
+         NATIVE ANDROID / IOS
+      ============================== */
+
+      if (
+        Capacitor.isNativePlatform()
+      ) {
+
+        let permission =
+          await PushNotifications
+            .checkPermissions();
+
+
+        if (
+          permission.receive ===
+          "granted"
+        ) {
+
+          await PushNotifications
+            .register();
+
+          return true;
+        }
+
+
+        permission =
+          await PushNotifications
+            .requestPermissions();
+
+
+        if (
+          permission.receive ===
+          "granted"
+        ) {
+
+          await PushNotifications
+            .register();
+
+          return true;
+        }
+
+
+        return false;
+      }
+
+
+      /* ==============================
+         WEBSITE / CHROME
+      ============================== */
+
+      if (
+        !("Notification" in window)
+      ) {
+
+        console.error(
+          "This browser does not support notifications."
+        );
+
+        return false;
+      }
 
 
       /*
-       * Already granted.
+       * Permission already granted.
        */
       if (
-        permission.receive ===
+        Notification.permission ===
         "granted"
       ) {
-
-        await PushNotifications
-          .register();
 
         return true;
       }
 
 
       /*
-       * Ask the player again.
+       * User has never answered.
+       * Chrome can show the popup.
        */
-      permission =
-        await PushNotifications
-          .requestPermissions();
-
-
       if (
-        permission.receive ===
-        "granted"
+        Notification.permission ===
+        "default"
       ) {
 
-        await PushNotifications
-          .register();
+        const permission =
+          await Notification
+            .requestPermission();
 
-        return true;
+
+        return (
+          permission ===
+          "granted"
+        );
       }
 
 
       /*
-       * Player denied permission.
+       * User previously pressed Block.
        */
+      if (
+        Notification.permission ===
+        "denied"
+      ) {
+
+        return false;
+      }
+
+
       return false;
-
 
     } catch (error) {
 
