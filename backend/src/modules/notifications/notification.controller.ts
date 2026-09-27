@@ -102,39 +102,106 @@ export const registerFcmToken = async (
   res: Response
 ) => {
   try {
-    const userId = req.user?.userId;
+    const userId =
+      req.user?.userId;
 
     if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Authentication required",
+        message:
+          "Authentication required",
       });
     }
 
-    const { fcmToken } = req.body;
+    const {
+      fcmToken,
+      deviceId,
+      platform,
+    } = req.body;
 
     if (
-      typeof fcmToken !== "string" ||
+      typeof fcmToken !==
+        "string" ||
       !fcmToken.trim()
     ) {
       return res.status(400).json({
         success: false,
-        message: "FCM token is required",
+        message:
+          "FCM token is required",
       });
     }
 
-    const user = await saveUserFcmToken(
-      userId,
-      fcmToken
-    );
+    /*
+     * deviceId is optional temporarily
+     * so the currently deployed
+     * frontend remains compatible.
+     */
+    if (
+      deviceId !== undefined &&
+      (
+        typeof deviceId !==
+          "string" ||
+        !deviceId.trim()
+      )
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid device ID",
+      });
+    }
+
+    if (
+      platform !== undefined &&
+      platform !== "web" &&
+      platform !== "android"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Platform must be web or android",
+      });
+    }
+
+    const result =
+      await saveUserFcmToken(
+        userId,
+        fcmToken,
+        deviceId,
+        platform
+      );
 
     return res.status(200).json({
       success: true,
-      message: "FCM token registered successfully",
+
+      message:
+        result.deviceCreated
+          ? "Trusted device registered successfully"
+          : "FCM token registered successfully",
+
       data: {
-        userId: user._id,
-        role: user.role,
-        fcmToken: user.fcmToken,
+        userId:
+          result.user._id,
+
+        role:
+          result.user.role,
+
+        fcmToken:
+          result.user.fcmToken,
+
+        trustedDeviceRegistered:
+          result.trustedDeviceRegistered,
+
+        deviceCreated:
+          result.deviceCreated,
+
+        /*
+         * Will contain a secret only
+         * on the FIRST registration
+         * of a trusted device.
+         */
+        deviceCredential:
+          result.deviceCredential,
       },
     });
   } catch (error) {
@@ -145,6 +212,7 @@ export const registerFcmToken = async (
 
     return res.status(500).json({
       success: false,
+
       message:
         error instanceof Error
           ? error.message

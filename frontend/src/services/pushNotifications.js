@@ -5,6 +5,10 @@ import {
 import {
   Capacitor,
 } from "@capacitor/core";
+import {
+  getOrCreateDeviceId,
+  saveDeviceCredential,
+} from "../utils/deviceIdentity";
 const API_URL =
   import.meta.env.VITE_API_URL ||
   "http://localhost:5000/api/v1";
@@ -91,9 +95,7 @@ export const registerPushNotifications =
         "🔥 NATIVE FCM DEVICE TOKEN:"
       );
 
-      console.log(
-        token.value
-      );
+    
 
       console.log(
         "================================"
@@ -115,8 +117,13 @@ export const registerPushNotifications =
 
           return;
         }
+        const deviceId =
+  await getOrCreateDeviceId();
 
-
+console.log(
+  "[PUSH] Registering trusted Android device:",
+  deviceId
+);
         const response =
           await fetch(
             `${API_URL}/notifications/token`,
@@ -132,9 +139,15 @@ export const registerPushNotifications =
               },
 
               body: JSON.stringify({
-                fcmToken:
-                  token.value,
-              }),
+  fcmToken:
+    token.value,
+
+  deviceId,
+
+  platform:
+    "android",
+}),
+
             }
           );
 
@@ -149,8 +162,22 @@ export const registerPushNotifications =
               "Failed to register native FCM token"
           );
         }
+        /*
+ * Backend returns this secret only
+ * when this Android installation is
+ * registered for the first time.
+ */
+if (
+  result?.data?.deviceCredential
+) {
+  await saveDeviceCredential(
+    result.data.deviceCredential
+  );
 
-
+  console.log(
+    "[DEVICE] Android trusted-device credential saved"
+  );
+}
         console.log(
           "[PUSH] Native FCM token saved:",
           result

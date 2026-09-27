@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 import {
   IUser,
+  ITrustedDevice,
   UserRole,
   UserStatus,
 } from "./user.types";
@@ -13,7 +14,50 @@ export interface IUserDocument
   createdAt: Date;
   updatedAt: Date;
 }
+const trustedDeviceSchema =
+  new Schema<ITrustedDevice>(
+    {
+      deviceId: {
+        type: String,
+        required: true,
+        trim: true,
+      },
 
+      deviceCredentialHash: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      platform: {
+        type: String,
+        enum: [
+          "web",
+          "android",
+        ],
+        required: true,
+      },
+
+      fcmToken: {
+        type: String,
+        required: true,
+        trim: true,
+      },
+
+      createdAt: {
+        type: Date,
+        default: Date.now,
+      },
+
+      lastSeenAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+    {
+      _id: false,
+    }
+  );
 const userSchema = new Schema<IUserDocument>(
   {
 
@@ -132,7 +176,10 @@ paymentSettings: {
   default: null,
   trim: true,
 },
-
+trustedDevices: {
+  type: [trustedDeviceSchema],
+  default: [],
+},
     lastLogin: {
       type: Date,
       default: null,

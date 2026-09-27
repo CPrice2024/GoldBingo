@@ -13,6 +13,9 @@ import {
   OTP_EXPIRES_MINUTES,
 } from "./otp.service";
 import {
+  sendPushNotification,
+} from "../modules/notifications/firebase.service";
+import {
   sendSMS,
 } from "../services/sms.service";
 import OTPRequest
@@ -21,9 +24,6 @@ import OTPRequest
 import {
   User,
 } from "../modules/users/user.model";
-import {
-  sendNotificationToUser,
-} from "../modules/notifications/notification.service";
 
 export async function requestOTP(
   req: Request,
@@ -32,8 +32,10 @@ export async function requestOTP(
   try {
 
     const {
-      phone,
-    } = req.body;
+  phone,
+  deviceId,
+  deviceCredential,
+} = req.body;
 
 
     /* =================================
@@ -95,8 +97,8 @@ export async function requestOTP(
           },
         ],
       }).select(
-        "_id fullName phone status"
-      );
+  "_id fullName phone status fcmToken trustedDevices"
+);
 
 
     if (!player) {
@@ -122,6 +124,116 @@ export async function requestOTP(
             "This player account is not active",
         });
     }
+
+    /* =================================
+   VERIFY TRUSTED DEVICE
+================================= */
+
+const cleanDeviceId =
+  typeof deviceId === "string"
+    ? deviceId.trim()
+    : "";
+
+const cleanDeviceCredential =
+  typeof deviceCredential ===
+    "string"
+    ? deviceCredential.trim()
+    : "";
+
+
+let pushToken:
+  string | null =
+    null;
+
+let trustedDeviceMatched =
+  false;
+
+
+if (
+  cleanDeviceId &&
+  cleanDeviceCredential
+) {
+
+  const trustedDevice =
+    player.trustedDevices?.find(
+      (device) =>
+        device.deviceId ===
+        cleanDeviceId
+    );
+
+
+  if (
+    trustedDevice &&
+    trustedDevice
+      .deviceCredentialHash &&
+    trustedDevice.fcmToken
+  ) {
+
+    const incomingHash =
+      crypto
+        .createHash("sha256")
+        .update(
+          cleanDeviceCredential
+        )
+        .digest("hex");
+
+
+    const storedBuffer =
+      Buffer.from(
+        trustedDevice
+          .deviceCredentialHash,
+        "hex"
+      );
+
+    const incomingBuffer =
+      Buffer.from(
+        incomingHash,
+        "hex"
+      );
+
+
+    if (
+      storedBuffer.length ===
+        incomingBuffer.length &&
+      crypto.timingSafeEqual(
+        storedBuffer,
+        incomingBuffer
+      )
+    ) {
+
+      pushToken =
+        trustedDevice.fcmToken;
+
+      trustedDeviceMatched =
+        true;
+
+    }
+
+  }
+
+}
+
+
+/*
+ * Migration compatibility:
+ *
+ * Existing players may already have
+ * an FCM token but no trustedDevices
+ * because they have not logged in
+ * since this update.
+ */
+if (
+  !pushToken &&
+  (!player.trustedDevices ||
+    player.trustedDevices.length ===
+      0) &&
+  player.fcmToken
+) {
+
+  pushToken =
+    player.fcmToken;
+
+}
 
 
     const now =
@@ -328,134 +440,145 @@ export async function requestOTP(
     }
 
 
-        /* =================================
-       SEND PASSWORD RESET OTP
-
-       PRIMARY  = FCM PUSH
-       FALLBACK = SMS
-    ================================= */
-
-    const message =
-      `Your Gold Bingo password reset code is ${code}. ` +
-      `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
-      `Do not share this code with anyone.`;
-
-
-    let deliveryMethod:
-      "push" | "sms" =
-        "push";
-
-
     /* =================================
-       1. TRY PUSH NOTIFICATION FIRST
-    ================================= */
+   SEND PASSWORD RESET OTP
 
-    try {
+   TRUSTED PUSH FIRST
+   FALLBACK = SMS
+================================= */
 
-      await sendNotificationToUser(
-        player._id.toString(),
+const message =
+  `Your Gold Bingo password reset code is ${code}. ` +
+  `This code expires in ${OTP_EXPIRES_MINUTES} minutes. ` +
+  `Do not share this code with anyone.`;
 
-        "Gold Bingo Password Reset",
 
-        `Your verification code is ${code}. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
+let deliveryMethod:
+  "push" | "sms" =
+    "push";
 
-        {
-          type:
-            "password_reset_otp",
 
-          purpose:
-            "forgot_password",
+let pushDelivered =
+  false;
 
-          otp:
-            code,
 
-          expiresInSeconds:
-            String(
-              OTP_EXPIRES_MINUTES *
+/* =================================
+   TRY TRUSTED DEVICE PUSH
+================================= */
+
+if (pushToken) {
+
+  try {
+
+    await sendPushNotification(
+      pushToken,
+
+      "Gold Bingo Password Reset",
+
+      `Your verification code is ${code}. It expires in ${OTP_EXPIRES_MINUTES} minutes.`,
+
+      {
+        type:
+          "password_reset_otp",
+
+        purpose:
+          "forgot_password",
+
+        otp:
+          code,
+
+        expiresInSeconds:
+          String(
+            OTP_EXPIRES_MINUTES *
               60
-            ),
-        }
-      );
-
-
-      console.log(
-        `[OTP] Password reset push sent for request ${otpRequest._id}`
-      );
-
-    } catch (
-      pushError
-    ) {
-
-      console.warn(
-        "[OTP] Push unavailable. Falling back to SMS:",
-        pushError
-      );
-
-
-      deliveryMethod =
-        "sms";
-
-
-      /* =================================
-         2. SMS FALLBACK
-      ================================= */
-
-      try {
-
-        await sendSMS({
-          phone:
-            normalizedPhone,
-
-          message,
-        });
-
-
-        console.log(
-          `[OTP] Password reset SMS fallback sent for request ${otpRequest._id}`
-        );
-
-      } catch (
-        smsError: any
-      ) {
-
-        console.error(
-          "[OTP] SMS fallback failed:",
-          smsError
-        );
-
-
-        /*
-         * Neither method delivered
-         * the OTP successfully.
-         */
-
-        otpRequest.status =
-          "expired";
-
-        otpRequest.codeHash =
-          null;
-
-        otpRequest.expiresAt =
-          null;
-
-
-        await otpRequest.save();
-
-
-        return res
-          .status(502)
-          .json({
-
-            success: false,
-
-            message:
-              "OTP could not be delivered by notification or SMS. Please try again later.",
-
-          });
-
+          ),
       }
+    );
 
-    }
+
+    pushDelivered =
+      true;
+
+
+    console.log(
+      `[OTP] Trusted-device push sent for request ${otpRequest._id}`
+    );
+
+  } catch (
+    pushError
+  ) {
+
+    console.warn(
+      "[OTP] Trusted-device push failed. Using SMS fallback:",
+      pushError
+    );
+
+  }
+
+}
+
+
+/* =================================
+   SMS FALLBACK
+================================= */
+
+if (!pushDelivered) {
+
+  deliveryMethod =
+    "sms";
+
+
+  try {
+
+    await sendSMS({
+      phone:
+        normalizedPhone,
+
+      message,
+    });
+
+
+    console.log(
+      `[OTP] SMS fallback sent for request ${otpRequest._id}`
+    );
+
+  } catch (
+    smsError: any
+  ) {
+
+    console.error(
+      "[OTP] SMS fallback failed:",
+      smsError
+    );
+
+
+    otpRequest.status =
+      "expired";
+
+    otpRequest.codeHash =
+      null;
+
+    otpRequest.expiresAt =
+      null;
+
+
+    await otpRequest.save();
+
+
+    return res
+      .status(502)
+      .json({
+
+        success: false,
+
+        message:
+          "OTP could not be delivered by notification or SMS. Please try again later.",
+
+      });
+
+  }
+
+}
 
 
     /* =================================
@@ -485,6 +608,9 @@ export async function requestOTP(
             "approved",
 
           deliveryMethod,
+
+          trustedDeviceUsed:
+            trustedDeviceMatched,
 
           approvedAt:
             now,

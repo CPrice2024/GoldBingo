@@ -6,7 +6,10 @@ import {
   Capacitor,
 } from "@capacitor/core";
 import { messaging } from "./firebase";
-
+import {
+  getOrCreateDeviceId,
+  saveDeviceCredential,
+} from "./utils/deviceIdentity";
 const VAPID_KEY =
   "BHw0vbHQF2KjjeM5yOJvkoZGo3Ozy1QIz3umHHNwicFOXwRncV6DDzKNNxwJMXcjsJtAVZcljPM8NEVD6xSBnDM";
 
@@ -34,7 +37,13 @@ export const requestFcmToken = async (
 
     return null;
   }
+const deviceId =
+  await getOrCreateDeviceId();
 
+console.log(
+  "[DEVICE] Registering browser:",
+  deviceId
+);
   try {
     const permission =
       await Notification.requestPermission();
@@ -91,8 +100,13 @@ export const requestFcmToken = async (
         },
 
         body: JSON.stringify({
-          fcmToken: token,
-        }),
+  fcmToken: token,
+
+  deviceId,
+
+  platform: "web",
+}),
+        
       }
     );
 
@@ -105,7 +119,22 @@ export const requestFcmToken = async (
           "Failed to register FCM token"
       );
     }
+/*
+ * The backend returns the secret
+ * credential only when this device
+ * is registered for the first time.
+ */
+if (
+  result?.data?.deviceCredential
+) {
+  await saveDeviceCredential(
+    result.data.deviceCredential
+  );
 
+  console.log(
+    "[DEVICE] Trusted browser credential stored"
+  );
+}
     console.log(
       "FCM token registered:",
       result

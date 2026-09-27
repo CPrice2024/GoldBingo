@@ -1,7 +1,13 @@
 import {
+  useCallback,
+  useEffect,
+  useRef,
   useState,
 } from "react";
 
+import {
+  listenForMessages,
+} from "../../notifications";
 import {
   ArrowLeft,
   KeyRound,
@@ -30,7 +36,9 @@ import {
   verifyPasswordOTP,
   resetPasswordWithOTP,
 } from "../../api/auth.api";
-
+import {
+  getDeviceIdentity,
+} from "../../utils/deviceIdentity";
 
 export default function ForgotPassword() {
 
@@ -110,6 +118,9 @@ export default function ForgotPassword() {
     message,
     setMessage,
   ] = useState("");
+
+  const lastAutoVerifiedOtp =
+  useRef("");
 
   const ensureNotificationPermission =
   async () => {
@@ -246,6 +257,12 @@ export default function ForgotPassword() {
     async (e) => {
 
       e.preventDefault();
+      setStep(
+  "phone"
+);
+
+lastAutoVerifiedOtp.current =
+  "";
 
       setError("");
       setMessage("");
@@ -293,20 +310,75 @@ if (!notificationGranted) {
 }
 
 
+/*
+ * Clear any OTP from an older request.
+ */
+setOtp("");
+
+lastAutoVerifiedOtp.current =
+  "";
+
+
+/*
+ * Read this browser/app installation's
+ * persistent trusted identity.
+ */
+const deviceIdentity =
+  await getDeviceIdentity();
+
+
+console.log(
+  "[FORGOT PASSWORD] Trusted device:",
+  {
+    deviceId:
+      deviceIdentity.deviceId,
+
+    hasCredential:
+      Boolean(
+        deviceIdentity
+          .deviceCredential
+      ),
+
+    platform:
+      deviceIdentity.platform,
+  }
+);
+
+
+/*
+ * Move to the OTP screen before
+ * requesting the OTP.
+ *
+ * Push can arrive before the HTTP
+ * request finishes.
+ */
+setStep(
+  "otp"
+);
+
+
 const result =
   await requestPasswordOTP(
-    cleanPhone
+    cleanPhone,
+    deviceIdentity
   );
 
-        setStep(
-          "otp"
-        );
 
+/*
+ * If FCM already arrived and started
+ * automatic verification, do not
+ * overwrite its status message.
+ */
+if (
+  !lastAutoVerifiedOtp.current
+) {
 
-        setMessage(
-          result?.message ||
-          "OTP sent successfully. Check your phone."
-        );
+  setMessage(
+    result?.message ||
+      "OTP sent successfully. Check your phone."
+  );
+
+}
 
 
       } catch (err) {
@@ -333,21 +405,22 @@ const result =
     };
 
 
-  /* ===============================
-     VERIFY OTP
-  =============================== */
+/* ===============================
+   VERIFY OTP
+=============================== */
 
-  const verifyOtp =
-    async (e) => {
+const verifyOtpCode =
+  useCallback(
+    async (code) => {
 
-      e.preventDefault();
+      const cleanOtp =
+        String(
+          code || ""
+        ).trim();
+
 
       setError("");
       setMessage("");
-
-
-      const cleanOtp =
-        otp.trim();
 
 
       if (
@@ -360,7 +433,7 @@ const result =
           "Enter a valid 6-digit OTP."
         );
 
-        return;
+        return false;
       }
 
 
@@ -404,6 +477,8 @@ const result =
         );
 
 
+        return true;
+
       } catch (err) {
 
         console.error(
@@ -419,13 +494,37 @@ const result =
           "Invalid or expired OTP"
         );
 
+
+        return false;
+
       } finally {
 
         setLoading(false);
 
       }
 
-    };
+    },
+    [
+      phone,
+    ]
+  );
+
+
+/* ===============================
+   MANUAL VERIFY BUTTON
+=============================== */
+
+const verifyOtp =
+  async (e) => {
+
+    e.preventDefault();
+
+
+    await verifyOtpCode(
+      otp
+    );
+
+  };
 
 
   /* ===============================
@@ -558,6 +657,228 @@ const result =
 
     };
 
+useEffect(() => {
+
+  let webUnsubscribe =
+    null;
+
+  let nativeReceivedHandle =
+    null;
+
+  let nativeActionHandle =
+    null;
+
+
+  const processOtpNotification =
+    async (payload) => {
+
+      console.log(
+        "[FORGOT PASSWORD] OTP notification:",
+        payload
+      );
+
+
+      const data =
+        payload?.data ||
+        {};
+
+
+      /*
+       * Only process password-reset OTP
+       * notifications.
+       */
+      if (
+        data.type !==
+          "password_reset_otp" ||
+        data.purpose !==
+          "forgot_password"
+      ) {
+        return;
+      }
+
+
+      const receivedOtp =
+        String(
+          data.otp || ""
+        ).trim();
+
+
+      if (
+        !/^\d{6}$/.test(
+          receivedOtp
+        )
+      ) {
+
+        console.warn(
+          "[FORGOT PASSWORD] Invalid OTP received in push"
+        );
+
+        return;
+      }
+
+
+      /*
+       * Prevent the same notification
+       * from automatically verifying
+       * more than once.
+       */
+      if (
+        lastAutoVerifiedOtp
+          .current ===
+        receivedOtp
+      ) {
+        return;
+      }
+
+
+      lastAutoVerifiedOtp.current =
+        receivedOtp;
+
+
+      /*
+       * Show the OTP inside the field.
+       */
+      setOtp(
+        receivedOtp
+      );
+
+
+      /*
+       * Move to OTP screen if the push
+       * arrives very quickly.
+       */
+      setStep(
+        "otp"
+      );
+
+
+      setMessage(
+        "OTP received. Verifying automatically..."
+      );
+
+
+      /*
+       * Same action as pressing the
+       * Verify OTP button.
+       */
+      const verified =
+        await verifyOtpCode(
+          receivedOtp
+        );
+
+
+      /*
+       * If verification failed, allow
+       * another attempt.
+       */
+      if (!verified) {
+
+        lastAutoVerifiedOtp.current =
+          "";
+
+      }
+
+    };
+
+
+  const setupListeners =
+    async () => {
+
+      /* ==============================
+         ANDROID APP
+      ============================== */
+
+      if (
+        Capacitor.isNativePlatform()
+      ) {
+
+        nativeReceivedHandle =
+          await PushNotifications
+            .addListener(
+              "pushNotificationReceived",
+              async (
+                notification
+              ) => {
+
+                await processOtpNotification(
+                  notification
+                );
+
+              }
+            );
+
+
+        nativeActionHandle =
+          await PushNotifications
+            .addListener(
+              "pushNotificationActionPerformed",
+              async (
+                action
+              ) => {
+
+                await processOtpNotification(
+                  action.notification
+                );
+
+              }
+            );
+
+
+        return;
+      }
+
+
+      /* ==============================
+         WEB / CHROME
+      ============================== */
+
+      webUnsubscribe =
+        listenForMessages(
+          async (payload) => {
+
+            await processOtpNotification(
+              payload
+            );
+
+          }
+        );
+
+    };
+
+
+  setupListeners();
+
+
+  return () => {
+
+    if (
+      typeof webUnsubscribe ===
+      "function"
+    ) {
+      webUnsubscribe();
+    }
+
+
+    if (
+      nativeReceivedHandle
+    ) {
+      nativeReceivedHandle
+        .remove();
+    }
+
+
+    if (
+      nativeActionHandle
+    ) {
+      nativeActionHandle
+        .remove();
+    }
+
+  };
+
+}, [
+  verifyOtpCode,
+]);
 
   /* ===============================
      START AGAIN

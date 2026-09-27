@@ -43,13 +43,26 @@ export const changePassword = async (
 
 
 export const requestPasswordOTP =
-  async (phone) => {
+  async (
+    phone,
+    deviceIdentity = {}
+  ) => {
 
     const response =
       await api.post(
         "/otp/request",
         {
           phone,
+
+          deviceId:
+            deviceIdentity
+              ?.deviceId ||
+            null,
+
+          deviceCredential:
+            deviceIdentity
+              ?.deviceCredential ||
+            null,
         }
       );
 

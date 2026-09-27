@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
+import {
+  createHash,
+  randomBytes,
+} from "crypto";
 
+import type {
+  TrustedDevicePlatform,
+} from "../users/user.types";
 import { User } from "../users/user.model";
 
 import {
@@ -25,9 +32,10 @@ import {
 export const saveUserFcmToken =
   async (
     userId: string,
-    fcmToken: string
+    fcmToken: string,
+    deviceId?: string,
+    platform?: TrustedDevicePlatform
   ) => {
-
     if (
       !fcmToken ||
       !fcmToken.trim()
@@ -37,53 +45,26 @@ export const saveUserFcmToken =
       );
     }
 
-
     const cleanToken =
       fcmToken.trim();
 
+    const cleanDeviceId =
+      typeof deviceId === "string"
+        ? deviceId.trim()
+        : "";
 
-    /*
-     * Get old token first.
-     */
-    const existingUser =
+    const cleanPlatform:
+      TrustedDevicePlatform =
+        platform === "android"
+          ? "android"
+          : "web";
+
+    const user =
       await User.findById(
         userId
       ).select(
-        "_id role fcmToken"
+        "_id phone role fcmToken trustedDevices"
       );
-
-
-    if (!existingUser) {
-      throw new Error(
-        "User not found"
-      );
-    }
-
-
-    const oldToken =
-      existingUser.fcmToken;
-
-
-    /*
-     * Save new token.
-     */
-    const user =
-      await User.findByIdAndUpdate(
-        userId,
-        {
-          $set: {
-            fcmToken:
-              cleanToken,
-          },
-        },
-        {
-          new: true,
-          runValidators: true,
-        }
-      ).select(
-        "_id fullName phone role fcmToken"
-      );
-
 
     if (!user) {
       throw new Error(
@@ -91,63 +72,168 @@ export const saveUserFcmToken =
       );
     }
 
+    let deviceCredential:
+      string | null = null;
+
+    let deviceCreated =
+      false;
+
+    let previousDeviceToken:
+      string | null = null;
 
     /*
-     * PLAYER:
-     * automatically subscribe to
+     * New trusted-device registration.
+     *
+     * If deviceId is not supplied,
+     * we keep legacy behavior so the
+     * current frontend does not break
+     * during deployment.
+     */
+    if (cleanDeviceId) {
+      const devices =
+        user.trustedDevices || [];
+
+      const existingDevice =
+        devices.find(
+          (device) =>
+            device.deviceId ===
+            cleanDeviceId
+        );
+
+      if (existingDevice) {
+        /*
+         * Same browser/app.
+         * Keep the device identity.
+         * Only refresh its FCM token.
+         */
+        previousDeviceToken =
+          existingDevice.fcmToken ||
+          null;
+
+        existingDevice.fcmToken =
+          cleanToken;
+
+        existingDevice.platform =
+          cleanPlatform;
+
+        existingDevice.lastSeenAt =
+          new Date();
+      } else {
+        /*
+         * First successful login
+         * from this browser/app.
+         */
+        deviceCredential =
+          randomBytes(32)
+            .toString("hex");
+
+        const deviceCredentialHash =
+          createHash("sha256")
+            .update(
+              deviceCredential
+            )
+            .digest("hex");
+
+        devices.push({
+          deviceId:
+            cleanDeviceId,
+
+          deviceCredentialHash,
+
+          platform:
+            cleanPlatform,
+
+          fcmToken:
+            cleanToken,
+
+          createdAt:
+            new Date(),
+
+          lastSeenAt:
+            new Date(),
+        });
+
+        user.trustedDevices =
+          devices;
+
+        deviceCreated =
+          true;
+      }
+    }
+
+    /*
+     * Keep old single-token field
+     * during migration.
+     *
+     * Existing notification code
+     * still depends on this field.
+     */
+    user.fcmToken =
+      cleanToken;
+
+    await user.save();
+
+    /*
+     * Subscribe current token to
      * GoldBingo player notifications.
      */
     if (
       user.role ===
       "player"
     ) {
-
       try {
-
         /*
-         * Remove old token if
-         * this phone/token changed.
+         * Only unsubscribe if the
+         * SAME trusted device received
+         * a replacement FCM token.
+         *
+         * Do not unsubscribe another
+         * trusted device.
          */
         if (
-          oldToken &&
-          oldToken !==
+          previousDeviceToken &&
+          previousDeviceToken !==
             cleanToken
         ) {
-
           await unsubscribePlayerFromNotifications(
-            oldToken
+            previousDeviceToken
           );
-
         }
-
 
         await subscribePlayerToNotifications(
           cleanToken
         );
 
-
         console.log(
-          `[FCM] Player ${user._id} subscribed to game notifications`
+          `[FCM] Player ${user._id} registered notification device`
         );
-
       } catch (error) {
-
         /*
-         * Do not fail login/token
-         * registration just because
-         * Firebase temporarily failed.
+         * Firebase failure should
+         * not make login fail.
          */
         console.error(
           "[FCM] Player topic subscription failed:",
           error
         );
-
       }
-
     }
 
+    return {
+      user,
 
-    return user;
+      trustedDeviceRegistered:
+        Boolean(cleanDeviceId),
+
+      deviceCreated,
+
+      /*
+       * Returned only when this
+       * device is created for the
+       * first time.
+       */
+      deviceCredential,
+    };
   };
 
 export const sendNotificationToUser = async (
