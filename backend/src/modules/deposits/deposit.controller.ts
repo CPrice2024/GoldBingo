@@ -34,11 +34,12 @@ export const createDepositRequest = async (
     }
 
     const {
-      amount,
-      paymentMethod,
-      reference,
-      note,
-    } = req.body;
+  amount,
+  paymentMethod,
+  reference,
+  cbeReceiptUrl,
+  note,
+} = req.body;
 
     if (
       typeof amount !== "number" ||
@@ -54,11 +55,12 @@ export const createDepositRequest = async (
     const deposit = await submitDeposit(
       playerId,
       {
-        amount,
-        paymentMethod,
-        reference,
-        note,
-      }
+  amount,
+  paymentMethod,
+  reference,
+  cbeReceiptUrl,
+  note,
+}
     );
 
     return res.status(201).json({

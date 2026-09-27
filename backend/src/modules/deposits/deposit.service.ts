@@ -14,6 +14,10 @@ import {
   PaymentSms,
 } from "../paymentSms/paymentSms.model";
 import {
+  normalizeCbeReceiptUrl,
+  extractCbeTransferAmountFromSms,
+} from "./cbeReceiptUrl.util";
+import {
   createDeposit,
   findPlayerDeposits,
   countFilteredPlayerDeposits,
@@ -38,10 +42,21 @@ import {
 } from "../../shared/pagination";
 
 interface CreateDepositInput {
-  amount: number;
-  paymentMethod: PaymentMethod;
-  reference?: string;
-  note?: string;
+
+  amount:
+    number;
+
+  paymentMethod:
+    PaymentMethod;
+
+  reference?:
+    string;
+
+  cbeReceiptUrl?:
+    string;
+
+  note?:
+    string;
 }
 interface ApproveDepositOptions {
   verifiedAmount?: number;
@@ -53,12 +68,14 @@ interface ApproveDepositOptions {
   smsReceivedAt?: Date;
 
   approvalSource?:
-    | "sms"
-    | "cbe_qr";
+  | "sms"
+  | "cbe_qr"
+  | "cbe_sms_qr";
 }
 const PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS =
   12 * 60 * 60 * 1000;
-
+const PAYMENT_SMS_FORWARD_MATCH_WINDOW_MS =
+  24 * 60 * 60 * 1000;
 const isAutoApprovalEnabled = () =>
   String(
     process.env.PAYMENT_SMS_AUTO_APPROVE ??
@@ -296,10 +313,8 @@ const deposit = await createDeposit({
 
 if (
   reference &&
-  (
-    data.paymentMethod === "telebirr" ||
-    data.paymentMethod === "cbe"
-  )
+  data.paymentMethod ===
+    "telebirr"
 ) {
   const previousSms =
     await PaymentSms.findOne({
@@ -461,24 +476,46 @@ export const verifyAndApproveCbeDeposit =
   ) => {
 
     /* =========================================
-       1. VERIFY RECEIPT WITH CBE
+       1. NORMALIZE QR URL
     ========================================= */
 
-    const receipt =
-      await verifyCbeReceipt(
+    const normalizedReceiptUrl =
+      normalizeCbeReceiptUrl(
         receiptUrl
       );
 
 
+    if (!normalizedReceiptUrl) {
+      throw new Error(
+        "Invalid CBE receipt QR URL"
+      );
+    }
+
+
     /* =========================================
-       2. FIND PLAYER
+       2. VISIT / VERIFY WITH CBE
+    ========================================= */
+
+    const receipt =
+      await verifyCbeReceipt(
+        normalizedReceiptUrl
+      );
+
+
+    /* =========================================
+       3. PLAYER
     ========================================= */
 
     const player =
       await User.findOne({
-        _id: playerId,
-        role: "player",
-        status: "active",
+        _id:
+          playerId,
+
+        role:
+          "player",
+
+        status:
+          "active",
       });
 
 
@@ -497,7 +534,7 @@ export const verifyAndApproveCbeDeposit =
 
 
     /* =========================================
-       3. FIND ASSIGNED AGENT
+       4. AGENT
     ========================================= */
 
     const agent =
@@ -521,7 +558,7 @@ export const verifyAndApproveCbeDeposit =
 
 
     /* =========================================
-       4. CHECK AGENT CBE SETTINGS
+       5. VERIFY CBE ACCOUNT
     ========================================= */
 
     const cbeSettings =
@@ -540,9 +577,12 @@ export const verifyAndApproveCbeDeposit =
 
     const agentCbeAccount =
       String(
-        cbeSettings.account || ""
-      )
-        .replace(/\D/g, "");
+        cbeSettings.account ||
+          ""
+      ).replace(
+        /\D/g,
+        ""
+      );
 
 
     if (!agentCbeAccount) {
@@ -552,21 +592,14 @@ export const verifyAndApproveCbeDeposit =
     }
 
 
-    /* =========================================
-       5. VERIFY RECEIVER ACCOUNT
-
-       CBE API returns masked account:
-       1********0051
-
-       Agent setting contains real account.
-       We compare final 4 digits.
-    ========================================= */
-
     const receiptAccountDigits =
       String(
-        receipt.receiverAccount || ""
-      )
-        .replace(/\D/g, "");
+        receipt.receiverAccount ||
+          ""
+      ).replace(
+        /\D/g,
+        ""
+      );
 
 
     const expectedLast4 =
@@ -594,7 +627,34 @@ export const verifyAndApproveCbeDeposit =
 
 
     /* =========================================
-       6. FIND MATCHING PENDING DEPOSIT
+       6. NORMALIZE RECEIPT REFERENCE
+    ========================================= */
+
+    const receiptReference =
+      String(
+        receipt.reference ||
+          ""
+      )
+        .trim()
+        .toUpperCase()
+        .replace(
+          /\s+/g,
+          ""
+        );
+
+
+    if (!receiptReference) {
+      throw new Error(
+        "CBE receipt transaction ID was not found"
+      );
+    }
+
+
+    /* =========================================
+       7. FIND PENDING DEPOSIT
+
+       Player's entered FT reference must
+       equal the official CBE receipt.
     ========================================= */
 
     const deposit =
@@ -609,7 +669,7 @@ export const verifyAndApproveCbeDeposit =
           "cbe",
 
         reference:
-          receipt.reference,
+          receiptReference,
 
         status:
           "pending",
@@ -624,7 +684,7 @@ export const verifyAndApproveCbeDeposit =
 
 
     /* =========================================
-       7. CHECK RECEIPT AMOUNT
+       8. RECEIPT AMOUNT MUST MATCH EXACTLY
     ========================================= */
 
     const requestedAmount =
@@ -633,7 +693,7 @@ export const verifyAndApproveCbeDeposit =
       );
 
 
-    const receivedAmount =
+    const receiptAmount =
       Number(
         receipt.transferredAmount
       );
@@ -641,9 +701,9 @@ export const verifyAndApproveCbeDeposit =
 
     if (
       !Number.isFinite(
-        receivedAmount
+        receiptAmount
       ) ||
-      receivedAmount <= 0
+      receiptAmount <= 0
     ) {
       throw new Error(
         "Invalid CBE receipt amount"
@@ -652,18 +712,265 @@ export const verifyAndApproveCbeDeposit =
 
 
     if (
-      receivedAmount <
-      requestedAmount
+      Math.abs(
+        receiptAmount -
+          requestedAmount
+      ) >= 0.01
     ) {
       throw new Error(
-        `CBE receipt amount ${receivedAmount} ETB is lower than requested deposit amount ${requestedAmount} ETB`
+        `CBE receipt amount ${receiptAmount} ETB does not match requested deposit amount ${requestedAmount} ETB`
       );
     }
 
 
     /* =========================================
-       8. AUTO APPROVE
+       9. PREVENT QR RECEIPT REUSE
     ========================================= */
+
+    const usedReceipt =
+      await Deposit.findOne({
+        cbeReceiptUrl:
+          normalizedReceiptUrl,
+
+        _id: {
+          $ne:
+            deposit._id,
+        },
+      });
+
+
+    if (usedReceipt) {
+      throw new Error(
+        "This CBE receipt has already been used"
+      );
+    }
+
+
+    /*
+     * QR has now been verified against
+     * CBE and belongs to this deposit.
+     */
+    deposit.cbeReceiptUrl =
+      normalizedReceiptUrl;
+
+
+    await deposit.save();
+
+
+    /* =========================================
+       10. FIND SAME URL IN AGENT SMS
+    ========================================= */
+
+    const depositCreatedAt =
+      new Date(
+        deposit.createdAt
+      );
+
+
+    const earliestSmsTime =
+      new Date(
+        depositCreatedAt.getTime() -
+          PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS
+      );
+
+
+    const latestSmsTime =
+      new Date(
+        depositCreatedAt.getTime() +
+          PAYMENT_SMS_FORWARD_MATCH_WINDOW_MS
+      );
+
+
+    const paymentSms =
+      await PaymentSms.findOne({
+        agentId:
+          agent._id,
+
+        paymentMethod:
+          "cbe",
+
+        receiptUrl:
+          normalizedReceiptUrl,
+
+        status: {
+          $in: [
+            "received",
+            "ignored",
+            "matched",
+          ],
+        },
+
+        createdAt: {
+          $gte:
+            earliestSmsTime,
+
+          $lte:
+            latestSmsTime,
+        },
+      }).sort({
+        createdAt: -1,
+      });
+
+
+    /*
+     * QR is valid, but agent SMS has
+     * not arrived yet.
+     *
+     * Keep deposit pending.
+     */
+    if (!paymentSms) {
+
+      return {
+        verified:
+          true,
+
+        matched:
+          false,
+
+        approved:
+          false,
+
+        reason:
+          "Waiting for matching CBE SMS",
+
+        receipt,
+
+        deposit,
+      };
+
+    }
+
+
+    /* =========================================
+       11. SMS AMOUNT
+    ========================================= */
+
+    const storedSmsAmount =
+      Number(
+        paymentSms.amount
+      );
+
+
+    const parsedSmsAmount =
+      extractCbeTransferAmountFromSms(
+        paymentSms.text
+      );
+
+
+    const smsAmount =
+      Number.isFinite(
+        storedSmsAmount
+      )
+        ? storedSmsAmount
+        : parsedSmsAmount;
+
+
+    if (
+      smsAmount === null ||
+      !Number.isFinite(
+        Number(
+          smsAmount
+        )
+      )
+    ) {
+      throw new Error(
+        "Could not determine CBE amount from agent SMS"
+      );
+    }
+
+
+    /*
+     * Business rule:
+     *
+     * SMS amount must be EXACTLY
+     * the amount requested.
+     */
+    if (
+      Math.abs(
+        Number(
+          smsAmount
+        ) -
+          requestedAmount
+      ) >= 0.01
+    ) {
+      throw new Error(
+        `CBE SMS amount ${smsAmount} ETB does not match requested deposit amount ${requestedAmount} ETB`
+      );
+    }
+
+
+    /*
+     * We now have:
+     *
+     * QR URL match
+     * receipt amount match
+     * SMS amount match
+     * same agent
+     * same pending deposit
+     */
+
+    paymentSms.status =
+      "matched";
+
+    paymentSms.reference =
+      receiptReference;
+
+    paymentSms.amount =
+      Number(
+        smsAmount
+      );
+
+    paymentSms.depositId =
+      deposit._id;
+
+    paymentSms.error =
+      undefined;
+
+
+    await paymentSms.save();
+
+
+    /* =========================================
+       12. SAFE MODE
+    ========================================= */
+
+    if (
+      !isAutoApprovalEnabled()
+    ) {
+
+      return {
+        verified:
+          true,
+
+        matched:
+          true,
+
+        approved:
+          false,
+
+        reason:
+          "CBE QR and SMS matched, but automatic approval is disabled",
+
+        receipt,
+
+        deposit,
+
+        sms:
+          paymentSms,
+      };
+
+    }
+
+
+    /* =========================================
+       13. AUTO APPROVE
+    ========================================= */
+
+    const smsReceivedAt =
+      getPaymentSmsReceivedAt(
+        paymentSms
+      );
+
 
     const result =
       await approveDeposit(
@@ -673,22 +980,46 @@ export const verifyAndApproveCbeDeposit =
 
         {
           verifiedAmount:
-            receivedAmount,
+            requestedAmount,
 
           autoApproved:
             true,
 
           matchedTransactionId:
-            receipt.reference,
+            receiptReference,
+
+          smsReceivedAt,
 
           approvalSource:
-            "cbe_qr",
+            "cbe_sms_qr",
         }
       );
 
 
+    paymentSms.status =
+      "approved";
+
+
+    await paymentSms.save();
+
+
     return {
+      verified:
+        true,
+
+      matched:
+        true,
+
+      approved:
+        true,
+
+      verificationSource:
+        "cbe_sms_qr",
+
       receipt,
+
+      sms:
+        paymentSms,
 
       deposit:
         result.deposit,
@@ -708,6 +1039,7 @@ export const verifyAndApproveCbeDeposit =
       creditedAmount:
         result.creditedAmount,
     };
+
   };
 export const getPlayerDeposits = async (
   playerId: string,

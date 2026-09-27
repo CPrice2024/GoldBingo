@@ -12,7 +12,10 @@ import {
 import {
   approveDeposit,
 } from "../deposits/deposit.service";
-
+import {
+  extractCbeReceiptUrl,
+  extractCbeTransferAmountFromSms,
+} from "../deposits/cbeReceiptUrl.util";
 
 interface IncomingSms {
   agentId: string;
@@ -357,51 +360,130 @@ export const processPaymentSms =
       /*
        * Find transaction ID.
        */
-
-      const parsed =
-        extractReference(
-          text
-        );
-
-
-      if (!parsed) {
-
-        sms.status =
-          "ignored";
-
-        sms.error =
-          "No supported payment transaction reference found";
-
-        await sms.save();
+const cbeReceiptUrl =
+  extractCbeReceiptUrl(
+    text
+  );
 
 
-        return {
-          matched: false,
-          reason:
-            sms.error,
-        };
-
-      }
+const referenceResult =
+  extractReference(
+    text
+  );
 
 
-      sms.reference =
-        parsed.reference;
+const paymentMethod =
+  cbeReceiptUrl
+    ? "cbe"
+    : referenceResult
+        ?.paymentMethod;
 
-      sms.paymentMethod =
-        parsed.paymentMethod;
+
+const parsedReference =
+  paymentMethod ===
+    "telebirr"
+    ? referenceResult
+        ?.reference
+    : undefined;
 
 
-      /*
-       * Find a PENDING request with
-       * this exact transaction ID.
-       */
+/* =========================================
+   IDENTIFY PAYMENT TYPE
+========================================= */
 
-      const receivedAmount =
-  extractReceivedAmount(text);
+if (!paymentMethod) {
 
-if (receivedAmount !== null) {
+  sms.status =
+    "ignored";
+
+  sms.error =
+    "No supported payment reference or CBE receipt URL found";
+
+  await sms.save();
+
+
+  return {
+    matched: false,
+    reason:
+      sms.error,
+  };
+}
+/* =========================================
+   CBE MUST CONTAIN OFFICIAL RECEIPT URL
+========================================= */
+
+if (
+  paymentMethod === "cbe" &&
+  !cbeReceiptUrl
+) {
+
+  sms.status =
+    "ignored";
+
+  sms.paymentMethod =
+    "cbe";
+
+  sms.error =
+    "CBE receipt URL not found in SMS";
+
+  await sms.save();
+
+  return {
+    matched: false,
+
+    reason:
+      "CBE_RECEIPT_URL_NOT_FOUND",
+  };
+}
+
+sms.paymentMethod =
+  paymentMethod;
+
+
+/*
+ * Telebirr keeps using transaction ID.
+ */
+if (parsedReference) {
+
+  sms.reference =
+    parsedReference;
+
+}
+
+
+/*
+ * CBE uses the receipt URL as the
+ * primary SMS matching key.
+ */
+if (cbeReceiptUrl) {
+
+  sms.receiptUrl =
+    cbeReceiptUrl;
+
+}
+
+
+/* =========================================
+   EXTRACT RECEIVED AMOUNT
+========================================= */
+
+const receivedAmount =
+  paymentMethod === "cbe"
+    ? extractCbeTransferAmountFromSms(
+        text
+      )
+    : extractReceivedAmount(
+        text
+      );
+
+
+if (
+  receivedAmount !== null
+) {
+
   sms.amount =
     receivedAmount;
+
 }
 
       /* =========================================
@@ -454,32 +536,130 @@ const windowStart =
    2. No more than 24 hours before SMS
 ========================================= */
 
-const deposit =
-  await Deposit.findOne({
+/* =========================================
+   FIND PENDING DEPOSIT
+========================================= */
 
-    reference:
-      parsed.reference,
+let deposit;
 
-    agentId:
-      new mongoose.Types.ObjectId(
-        data.agentId
-      ),
 
-    status:
-      "pending",
+/* -----------------------------------------
+   CBE
+   Match by verified CBE receipt URL
+----------------------------------------- */
 
-   createdAt: {
-  $gte:
-    windowStart,
+if (
+  paymentMethod === "cbe"
+) {
 
-  $lte:
-    windowEnd,
-},
+  if (!cbeReceiptUrl) {
 
-  }).sort({
-    createdAt: -1,
-  });
+    sms.status =
+      "ignored";
 
+    sms.error =
+      "CBE receipt URL not found";
+
+    await sms.save();
+
+
+    return {
+      matched: false,
+
+      reason:
+        "CBE_RECEIPT_URL_NOT_FOUND",
+    };
+  }
+
+
+  deposit =
+    await Deposit.findOne({
+
+      agentId:
+        new mongoose.Types.ObjectId(
+          data.agentId
+        ),
+
+      paymentMethod:
+        "cbe",
+
+      cbeReceiptUrl,
+
+      status:
+        "pending",
+
+      createdAt: {
+        $gte:
+          windowStart,
+
+        $lte:
+          windowEnd,
+      },
+
+    }).sort({
+      createdAt: -1,
+    });
+
+}
+
+
+/* -----------------------------------------
+   TELEBIRR
+   Keep existing transaction-ID matching
+----------------------------------------- */
+
+else {
+
+  if (!parsedReference) {
+
+    sms.status =
+      "ignored";
+
+    sms.error =
+      "Telebirr transaction reference not found";
+
+    await sms.save();
+
+
+    return {
+      matched: false,
+
+      reason:
+        "TELEBIRR_REFERENCE_NOT_FOUND",
+    };
+  }
+
+
+  deposit =
+    await Deposit.findOne({
+
+      agentId:
+        new mongoose.Types.ObjectId(
+          data.agentId
+        ),
+
+      paymentMethod:
+        "telebirr",
+
+      reference:
+        parsedReference,
+
+      status:
+        "pending",
+
+      createdAt: {
+        $gte:
+          windowStart,
+
+        $lte:
+          windowEnd,
+      },
+
+    }).sort({
+      createdAt: -1,
+    });
+
+}
 
       if (!deposit) {
 
@@ -491,17 +671,24 @@ const deposit =
 
   await sms.save();
 
-  return {
-    matched: false,
+ return {
+  matched: false,
 
-    reason:
-      "NO_PENDING_DEPOSIT_WITHIN_24_HOURS",
+  reason:
+    "NO_PENDING_DEPOSIT_WITHIN_24_HOURS",
 
-    reference:
-      parsed.reference,
+  reference:
+    paymentMethod === "telebirr"
+      ? parsedReference
+      : undefined,
 
-    smsReceivedAt,
-  };
+  receiptUrl:
+    paymentMethod === "cbe"
+      ? cbeReceiptUrl
+      : undefined,
+
+  smsReceivedAt,
+};
 }
 
 
@@ -510,26 +697,25 @@ const deposit =
        */
 
       if (
-        deposit.paymentMethod !==
-        parsed.paymentMethod
-      ) {
+  deposit.paymentMethod !==
+    paymentMethod
+) {
 
-        sms.status =
-          "failed";
+  sms.status =
+    "failed";
 
-        sms.error =
-          "Payment method does not match deposit request";
+  sms.error =
+    "Payment method does not match deposit request";
 
-        await sms.save();
+  await sms.save();
 
+  return {
+    matched: false,
 
-        return {
-          matched: false,
-          reason:
-            sms.error,
-        };
-
-      }
+    reason:
+      sms.error,
+  };
+}
 
 
       /* =========================================
@@ -577,25 +763,73 @@ if (
       "INVALID_SMS_AMOUNT",
 
     reference:
-      parsed.reference,
+  paymentMethod === "cbe"
+    ? deposit.reference
+    : parsedReference,
 
     requestedAmount,
   };
 }
 
 
-/*
- * IMPORTANT BUSINESS RULE:
- *
- * Received amount may be equal to
- * OR greater than requested amount.
- *
- * But it must never be lower.
- */
+/* =========================================
+   PAYMENT AMOUNT RULES
+========================================= */
 
+/*
+ * CBE:
+ *
+ * SMS amount must match the player's
+ * requested deposit amount EXACTLY.
+ */
 if (
+  paymentMethod === "cbe" &&
+  Math.abs(
+    actualReceivedAmount -
+      requestedAmount
+  ) >= 0.01
+) {
+
+  sms.status =
+    "failed";
+
+  sms.error =
+    `CBE SMS amount ${actualReceivedAmount} ETB does not match requested deposit amount ${requestedAmount} ETB`;
+
+  await sms.save();
+
+  return {
+    matched: false,
+
+    reason:
+      "CBE_AMOUNT_MISMATCH",
+
+    reference:
+      deposit.reference,
+
+    receiptUrl:
+      cbeReceiptUrl,
+
+    requestedAmount,
+
+    receivedAmount:
+      actualReceivedAmount,
+  };
+}
+
+
+/*
+ * TELEBIRR:
+ *
+ * Keep the existing rule:
+ * received amount may be equal to
+ * or greater than the requested amount,
+ * but never lower.
+ */
+if (
+  paymentMethod !== "cbe" &&
   actualReceivedAmount <
-  requestedAmount
+    requestedAmount
 ) {
 
   sms.status =
@@ -606,7 +840,6 @@ if (
 
   await sms.save();
 
-
   return {
     matched: false,
 
@@ -614,7 +847,7 @@ if (
       "SMS_AMOUNT_TOO_LOW",
 
     reference:
-      parsed.reference,
+      parsedReference,
 
     requestedAmount,
 
@@ -622,6 +855,7 @@ if (
       actualReceivedAmount,
   };
 }
+
 /* =========================================
    SMS MATCHED
 ========================================= */
@@ -658,7 +892,9 @@ if (
       deposit._id,
 
     reference:
-      parsed.reference,
+  paymentMethod === "cbe"
+    ? deposit.reference
+    : parsedReference,
 
     requestedAmount,
 
@@ -686,9 +922,16 @@ const result =
         true,
 
       matchedTransactionId:
-        parsed.reference,
+  paymentMethod === "cbe"
+    ? deposit.reference
+    : parsedReference,
 
-      smsReceivedAt,
+smsReceivedAt,
+
+approvalSource:
+  paymentMethod === "cbe"
+    ? "cbe_sms_qr"
+    : "sms",
     }
   );
 
@@ -706,7 +949,9 @@ const result =
     deposit._id,
 
   reference:
-    parsed.reference,
+  paymentMethod === "cbe"
+    ? deposit.reference
+    : parsedReference,
 
   requestedAmount,
 

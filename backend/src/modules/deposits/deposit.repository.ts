@@ -6,12 +6,27 @@ import { PaymentMethod } from "./deposit.types";
 
 
 interface CreateDepositData {
-  playerId: mongoose.Types.ObjectId;
-  agentId: mongoose.Types.ObjectId;
-  amount: number;
-  paymentMethod: PaymentMethod;
-  reference?: string;
-  note?: string;
+
+  playerId:
+    mongoose.Types.ObjectId;
+
+  agentId:
+    mongoose.Types.ObjectId;
+
+  amount:
+    number;
+
+  paymentMethod:
+    PaymentMethod;
+
+  reference?:
+    string;
+
+  cbeReceiptUrl?:
+    string;
+
+  note?:
+    string;
 }
 
 

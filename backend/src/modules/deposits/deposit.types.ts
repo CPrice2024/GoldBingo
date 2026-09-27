@@ -19,6 +19,8 @@ export interface IDeposit {
 
   reference?: string;
 
+  cbeReceiptUrl?: string;
+
   approvedAmount?: number;
 
 smsAmount?: number;

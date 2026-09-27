@@ -1016,10 +1016,6 @@ useEffect(() => {
 
           <div className="password-alert password-error">
 
-            <AlertCircle
-              size={17}
-            />
-
             <span>
               {error}
             </span>
@@ -1036,10 +1032,6 @@ useEffect(() => {
         {message && (
 
           <div className="password-alert password-success">
-
-            <CheckCircle
-              size={17}
-            />
 
             <span>
               {message}

@@ -30,6 +30,7 @@ export interface IPaymentSmsDocument
     | "failed";
 
   reference?: string;
+  receiptUrl?: string;
 
   amount?: number;
 
@@ -104,6 +105,12 @@ const paymentSmsSchema =
         uppercase: true,
         index: true,
       },
+      receiptUrl: {
+  type: String,
+  trim: true,
+  maxlength: 500,
+  index: true,
+},
 
       amount: {
         type: Number,

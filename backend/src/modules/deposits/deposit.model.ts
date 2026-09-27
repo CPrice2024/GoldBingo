@@ -88,6 +88,12 @@ autoApproved: {
         maxlength: 100,
       },
 
+      cbeReceiptUrl: {
+  type: String,
+  trim: true,
+  maxlength: 500,
+},
+
       status: {
         type: String,
         enum: [
@@ -130,6 +136,15 @@ depositSchema.index({
   playerId: 1,
   createdAt: -1,
 });
+depositSchema.index(
+  {
+    cbeReceiptUrl: 1,
+  },
+  {
+    unique: true,
+    sparse: true,
+  }
+);
 depositSchema.index(
   {
     matchedTransactionId: 1,
