@@ -10,6 +10,7 @@ import {
   Send,
   XCircle,
 } from "lucide-react";
+import jsQR from "jsqr";
 import MobileBackHeader from "../../components/player/MobileBackHeader";
 import SearchIcon from "../../components/animated-icons/SearchIcon";
 import { useLanguage } from "../../context/LanguageContext";
@@ -20,6 +21,7 @@ import {
   createDeposit,
   getMyDeposits,
   getMyPaymentSettings,
+  approveCbeReceipt,
 } from "../../api/deposits.api";
 
 const PAYMENT_METHOD_META = {
@@ -65,10 +67,11 @@ const getStatusIcon = (status) => {
 function Deposit() {
   const { t } = useLanguage();
   const [form, setForm] = useState({
-    amount: "",
-    paymentMethod: "",
-    reference: "",
-  });
+  amount: "",
+  paymentMethod: "",
+  reference: "",
+  receiptUrl: "",
+});
 
   const [deposits, setDeposits] = useState([]);
 const [loading, setLoading] = useState(true);
@@ -431,7 +434,160 @@ const extractAmountFromScreenshot =
 
     return null;
   };
+const extractCbeReceiptUrlFromQr =
+  async (file) => {
+    if (!file) {
+      return "";
+    }
 
+    const objectUrl =
+      URL.createObjectURL(file);
+
+    try {
+      const image =
+        await new Promise(
+          (resolve, reject) => {
+            const img =
+              new Image();
+
+            img.onload = () =>
+              resolve(img);
+
+            img.onerror = () =>
+              reject(
+                new Error(
+                  "Failed to read receipt image"
+                )
+              );
+
+            img.src =
+              objectUrl;
+          }
+        );
+
+      const canvas =
+        document.createElement(
+          "canvas"
+        );
+
+      const maxSide = 2400;
+
+      const width =
+        image.naturalWidth;
+
+      const height =
+        image.naturalHeight;
+
+      const scale =
+        Math.min(
+          1,
+          maxSide /
+            Math.max(
+              width,
+              height
+            )
+        );
+
+      canvas.width =
+        Math.max(
+          1,
+          Math.round(
+            width * scale
+          )
+        );
+
+      canvas.height =
+        Math.max(
+          1,
+          Math.round(
+            height * scale
+          )
+        );
+
+      const context =
+        canvas.getContext(
+          "2d",
+          {
+            willReadFrequently:
+              true,
+          }
+        );
+
+      if (!context) {
+        return "";
+      }
+
+      context.drawImage(
+        image,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+      const imageData =
+        context.getImageData(
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+      const qr =
+        jsQR(
+          imageData.data,
+          imageData.width,
+          imageData.height,
+          {
+            inversionAttempts:
+              "attemptBoth",
+          }
+        );
+
+      const raw =
+        String(
+          qr?.data || ""
+        ).trim();
+
+      if (!raw) {
+        return "";
+      }
+
+      try {
+        const url =
+          new URL(raw);
+
+        const pathname =
+          url.pathname.replace(
+            /\/+$/,
+            ""
+          );
+
+        if (
+          url.protocol !==
+            "https:" ||
+          url.hostname.toLowerCase() !==
+            "mbreciept.cbe.com.et" ||
+          !/^\/v2-[A-Za-z0-9_-]+$/.test(
+            pathname
+          )
+        ) {
+          return "";
+        }
+
+        return (
+          "https://mbreciept.cbe.com.et" +
+          pathname
+        );
+      } catch {
+        return "";
+      }
+    } finally {
+      URL.revokeObjectURL(
+        objectUrl
+      );
+    }
+  };
 const extractReferenceFromScreenshot = async (file) => {
   if (!file) return;
 
@@ -457,8 +613,42 @@ if (!file.type.startsWith("image/")) {
 
   let worker;
 
-  try {
-    worker = await createWorker("eng");
+let detectedCbeReceiptUrl =
+  "";
+
+try {
+
+  if (
+    form.paymentMethod ===
+    "cbe"
+  ) {
+    detectedCbeReceiptUrl =
+      await extractCbeReceiptUrlFromQr(
+        file
+      );
+
+    console.log(
+      "[CBE QR] detected:",
+      Boolean(
+        detectedCbeReceiptUrl
+      )
+    );
+
+    if (
+      !detectedCbeReceiptUrl
+    ) {
+      setOcrError(
+        "CBE QR code was not found. Upload the complete CBE receipt image containing the QR code."
+      );
+
+      return;
+    }
+  }
+
+  worker =
+    await createWorker(
+      "eng"
+    );
 
     await worker.setParameters({
       tessedit_char_whitelist:
@@ -655,7 +845,7 @@ if (transactionDate) {
       return;
     }
 
- setForm((current) => ({
+setForm((current) => ({
   ...current,
 
   reference,
@@ -666,6 +856,12 @@ if (transactionDate) {
           detectedAmount
         )
       : current.amount,
+
+  receiptUrl:
+    form.paymentMethod ===
+    "cbe"
+      ? detectedCbeReceiptUrl
+      : "",
 }));
 
     setSuccess(
@@ -769,26 +965,85 @@ if (!selectedPaymentAccount) {
     setError(referenceError);
     return;
   }
+if (
+  form.paymentMethod ===
+    "cbe" &&
+  !form.receiptUrl
+) {
+  setError(
+    "Please upload the complete CBE receipt containing the QR code."
+  );
 
+  return;
+}
   try {
     setSubmitting(true);
 
-    const result = await createDeposit({
-      amount,
-      paymentMethod: form.paymentMethod,
-      reference:
-        form.reference.trim() || undefined,
-    });
+    await createDeposit({
+  amount,
+
+  paymentMethod:
+    form.paymentMethod,
+
+  reference:
+    form.reference.trim() ||
+    undefined,
+});
+
+
+if (
+  form.paymentMethod ===
+  "cbe"
+) {
+
+  const verification =
+    await approveCbeReceipt(
+      form.receiptUrl
+    );
+
+  const result =
+    verification?.data;
+
+
+  if (
+    result?.approved ===
+    true
+  ) {
 
     setSuccess(
-  t("deposit.requestSubmitted")
-);
+      "CBE payment verified and approved."
+    );
+
+  } else {
+
+    setSuccess(
+      result?.reason ||
+        "CBE receipt verified. Waiting for the matching CBE SMS."
+    );
+
+  }
+
+} else {
+
+  /*
+   * TELEBIRR
+   * Leave existing flow unchanged.
+   */
+
+  setSuccess(
+    t(
+      "deposit.requestSubmitted"
+    )
+  );
+
+}
 
     setForm({
-      amount: "",
-      paymentMethod: "",
-      reference: "",
-    });
+  amount: "",
+  paymentMethod: "",
+  reference: "",
+  receiptUrl: "",
+});
 
     await loadDeposits();
   } catch (err) {
@@ -917,10 +1172,11 @@ if (!selectedPaymentAccount) {
           if (!available) return;
 
           setForm((current) => ({
-            ...current,
-            paymentMethod: method.value,
-            reference: "",
-          }));
+  ...current,
+  paymentMethod: method.value,
+  reference: "",
+  receiptUrl: "",
+}));
 
           setOcrError("");
         }}

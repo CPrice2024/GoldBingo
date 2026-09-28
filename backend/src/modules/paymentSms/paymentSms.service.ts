@@ -4,7 +4,9 @@ import mongoose from "mongoose";
 import {
   PaymentSms,
 } from "./paymentSms.model";
-
+import {
+  verifyCbeReceipt,
+} from "../deposits/cbeReceipt.service";
 import {
   Deposit,
 } from "../deposits/deposit.model";
@@ -14,7 +16,6 @@ import {
 } from "../deposits/deposit.service";
 import {
   extractCbeReceiptUrl,
-  extractCbeTransferAmountFromSms,
 } from "../deposits/cbeReceiptUrl.util";
 
 interface IncomingSms {
@@ -440,26 +441,114 @@ sms.paymentMethod =
   paymentMethod;
 
 
-/*
- * Telebirr keeps using transaction ID.
- */
-if (parsedReference) {
+/* =========================================
+   TELEBIRR
+   Keep existing behavior
+========================================= */
 
+if (parsedReference) {
   sms.reference =
     parsedReference;
-
 }
 
 
-/*
- * CBE uses the receipt URL as the
- * primary SMS matching key.
- */
-if (cbeReceiptUrl) {
+/* =========================================
+   CBE RECEIVER RECEIPT VERIFICATION
+
+   The URL inside the agent SMS is the
+   receiver-side CBE receipt.
+
+   It is NOT expected to equal the
+   player's sender-side receipt URL.
+
+   We verify this URL with CBE and obtain:
+   - FT transaction reference
+   - transferred amount
+========================================= */
+
+let cbeVerifiedReference:
+  string | undefined;
+
+let cbeVerifiedAmount:
+  number | null = null;
+
+
+if (
+  paymentMethod === "cbe"
+) {
+
+  if (!cbeReceiptUrl) {
+    sms.status =
+      "ignored";
+
+    sms.error =
+      "CBE receipt URL not found in SMS";
+
+    await sms.save();
+
+    return {
+      matched: false,
+      reason:
+        "CBE_RECEIPT_URL_NOT_FOUND",
+    };
+  }
+
+
+  const cbeReceipt =
+    await verifyCbeReceipt(
+      cbeReceiptUrl
+    );
+
+
+  cbeVerifiedReference =
+    normalizeReference(
+      String(
+        cbeReceipt.reference ||
+          ""
+      )
+    );
+
+
+  cbeVerifiedAmount =
+    Number(
+      cbeReceipt.transferredAmount
+    );
+
+
+  if (
+    !/^FT[A-Z0-9]{10}$/.test(
+      cbeVerifiedReference
+    )
+  ) {
+    throw new Error(
+      "Invalid CBE transaction reference from receiver receipt"
+    );
+  }
+
+
+  if (
+    !Number.isFinite(
+      cbeVerifiedAmount
+    ) ||
+    cbeVerifiedAmount <= 0
+  ) {
+    throw new Error(
+      "Invalid CBE amount from receiver receipt"
+    );
+  }
+
+
+  sms.reference =
+    cbeVerifiedReference;
 
   sms.receiptUrl =
     cbeReceiptUrl;
 
+  sms.amount =
+    cbeVerifiedAmount;
+
+
+  await sms.save();
 }
 
 
@@ -469,9 +558,7 @@ if (cbeReceiptUrl) {
 
 const receivedAmount =
   paymentMethod === "cbe"
-    ? extractCbeTransferAmountFromSms(
-        text
-      )
+    ? cbeVerifiedAmount
     : extractReceivedAmount(
         text
       );
@@ -571,34 +658,104 @@ if (
     };
   }
 
+console.log(
+  "[CBE MATCH DEBUG]",
+  {
+    webhookAgentId:
+      data.agentId,
 
+    verifiedReference:
+      cbeVerifiedReference,
+
+    verifiedAmount:
+      cbeVerifiedAmount,
+
+    windowStart:
+      windowStart.toISOString(),
+
+    windowEnd:
+      windowEnd.toISOString(),
+  }
+);
+console.log(
+  "[CBE MATCH DEBUG]",
+  {
+    webhookAgentId:
+      data.agentId,
+
+    verifiedReference:
+      cbeVerifiedReference,
+
+    verifiedAmount:
+      cbeVerifiedAmount,
+
+    windowStart:
+      windowStart.toISOString(),
+
+    windowEnd:
+      windowEnd.toISOString(),
+  }
+);
   deposit =
-    await Deposit.findOne({
+  await Deposit.findOne({
+    agentId:
+      new mongoose.Types.ObjectId(
+        data.agentId
+      ),
 
-      agentId:
-        new mongoose.Types.ObjectId(
-          data.agentId
-        ),
+    paymentMethod:
+      "cbe",
 
-      paymentMethod:
-        "cbe",
+    /*
+     * Match the underlying CBE
+     * transaction, NOT the URL.
+     */
+    reference:
+      cbeVerifiedReference,
 
-      cbeReceiptUrl,
+    /*
+     * Player must already have
+     * successfully verified/scanned
+     * their own CBE QR.
+     */
+    cbeReceiptUrl: {
+      $exists: true,
+      $ne: "",
+    },
 
-      status:
-        "pending",
+    status:
+      "pending",
 
-      createdAt: {
-        $gte:
-          windowStart,
+    createdAt: {
+      $gte:
+        windowStart,
 
-        $lte:
-          windowEnd,
-      },
-
-    }).sort({
-      createdAt: -1,
-    });
+      $lte:
+        windowEnd,
+    },
+  }).sort({
+    createdAt: -1,
+  });
+  console.log(
+  "[CBE MATCH RESULT]",
+  deposit
+    ? {
+        found: true,
+        depositId:
+          deposit._id.toString(),
+        agentId:
+          deposit.agentId.toString(),
+        reference:
+          deposit.reference,
+        amount:
+          deposit.amount,
+        status:
+          deposit.status,
+      }
+    : {
+        found: false,
+      }
+);
 
 }
 
@@ -658,6 +815,26 @@ else {
     }).sort({
       createdAt: -1,
     });
+    console.log(
+  "[CBE MATCH RESULT]",
+  deposit
+    ? {
+        found: true,
+        depositId:
+          deposit._id.toString(),
+        agentId:
+          deposit.agentId.toString(),
+        reference:
+          deposit.reference,
+        amount:
+          deposit.amount,
+        status:
+          deposit.status,
+      }
+    : {
+        found: false,
+      }
+);
 
 }
 

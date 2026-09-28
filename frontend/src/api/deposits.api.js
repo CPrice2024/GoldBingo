@@ -99,3 +99,15 @@ export const getMyPaymentSettings = async () => {
 
   return response.data;
 };
+export const approveCbeReceipt = async (
+  receiptUrl
+) => {
+  const response = await api.post(
+    "/deposits/cbe/approve-receipt",
+    {
+      receiptUrl,
+    }
+  );
+
+  return response.data;
+};

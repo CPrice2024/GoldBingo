@@ -572,7 +572,7 @@ if (!pushDelivered) {
         success: false,
 
         message:
-          "OTP could not be delivered by notification or SMS. Please try again later.",
+          "OTP could not be delivered by SMS. Please try again later.",
 
       });
 
