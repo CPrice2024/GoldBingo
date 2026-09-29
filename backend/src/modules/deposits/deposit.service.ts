@@ -758,7 +758,7 @@ export const verifyAndApproveCbeDeposit =
 
 
     /* =========================================
-       10. FIND SAME URL IN AGENT SMS
+       10. FIND SAME VERIFIED FT IN AGENT SMS
     ========================================= */
 
     const depositCreatedAt =
@@ -781,35 +781,56 @@ export const verifyAndApproveCbeDeposit =
       );
 
 
-    const paymentSms =
-      await PaymentSms.findOne({
-        agentId:
-          agent._id,
+    /* =========================================
+   10. FIND MATCHING RECEIVER CBE SMS
 
-        paymentMethod:
-          "cbe",
+   IMPORTANT:
+   Sender receipt URL and receiver receipt
+   URL are different.
 
-        receiptUrl:
-          normalizedReceiptUrl,
+   Match the underlying verified
+   transaction reference instead.
+========================================= */
 
-        status: {
-          $in: [
-            "received",
-            "ignored",
-            "matched",
-          ],
-        },
+const paymentSms =
+  await PaymentSms.findOne({
+    agentId:
+      agent._id,
 
-        createdAt: {
-          $gte:
-            earliestSmsTime,
+    paymentMethod:
+      "cbe",
 
-          $lte:
-            latestSmsTime,
-        },
-      }).sort({
-        createdAt: -1,
-      });
+    /*
+     * Both official CBE receipt pages
+     * must resolve to the same FT.
+     */
+    reference:
+      receiptReference,
+
+    /*
+     * "ignored" is included because
+     * the SMS may have arrived before
+     * the player created/submitted
+     * the deposit.
+     */
+    status: {
+      $in: [
+        "received",
+        "ignored",
+        "matched",
+      ],
+    },
+
+    createdAt: {
+      $gte:
+        earliestSmsTime,
+
+      $lte:
+        latestSmsTime,
+    },
+  }).sort({
+    createdAt: -1,
+  });
 
 
     /*

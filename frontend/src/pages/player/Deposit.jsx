@@ -1806,7 +1806,9 @@ setSuccess("");
             </>
           ) : (
             <>
-              Upload screenshot
+              {t(
+                  "deposit.readingScreenshot"
+                )}
             </>
           )}
         </label>
