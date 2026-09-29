@@ -1712,7 +1712,7 @@ setSuccess("");
         {ocrLoading ? (
           <>
             <Loader2
-              size={17}
+              size={16}
               className="spin"
             />
 
