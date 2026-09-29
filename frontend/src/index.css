@@ -9028,7 +9028,7 @@ html[data-theme="day"]
 }
 
 .deposit-upload-action {
-  margin-top: 14px;
+  margin-top: 4px;
 }
 
 .deposit-upload-button {
@@ -10158,8 +10158,6 @@ html[data-theme="day"]
    ========================================================= */
 
 .deposit-ocr-section {
-  margin-top: 18px;
-  padding: 16px;
   border: 1px solid rgba(212, 167, 44, 0.18);
   border-radius: 14px;
   background: rgba(212, 167, 44, 0.035);
@@ -10215,32 +10213,22 @@ html[data-theme="day"]
 }
 
 .deposit-upload-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-
-  min-height: 46px;
-  width: 100%;
-  padding: 0 18px;
-
-  border: 1px dashed #d4a72c;
-  border-radius: 11px;
-
-  background: rgb(0 20 132 / 8%);
-  color: #d4a72c;
-
-  font-size: 14px;
-  font-weight: 700;
-
-  cursor: pointer;
-  user-select: none;
-
-  transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.15s ease,
-    opacity 0.2s ease;
+      display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    min-height: 46px;
+    width: 100%;
+    padding: 0 18px;
+    border: 1px dashed #2666e4;
+    border-radius: 11px;
+    background: rgb(0 20 132 / 8%);
+    color: #3884e3;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease, opacity 0.2s ease;
 }
 
 .deposit-upload-button:hover {
@@ -10261,7 +10249,6 @@ html[data-theme="day"]
   cursor: wait;
   border-style: solid;
   opacity: 0.9;
-  background: rgba(212, 167, 44, 0.1);
 }
 
 .deposit-upload-button.upload-button-loading:hover {
@@ -10405,8 +10392,6 @@ html[data-theme="day"]
 
 @media (max-width: 600px) {
   .deposit-ocr-section {
-    padding: 13px;
-    margin-top: 14px;
     border-radius: 12px;
   }
 
@@ -10436,7 +10421,7 @@ html[data-theme="day"]
 
 @media (max-width: 380px) {
   .deposit-ocr-section {
-    padding: 11px;
+    padding: 4px;
   }
 
   .deposit-upload-button {

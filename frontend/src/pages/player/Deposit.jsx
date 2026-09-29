@@ -1722,12 +1722,6 @@ setSuccess("");
                   "deposit.readingScreenshot"
                 )}
               </span>
-
-              <small>
-                {t(
-                  "common.pleaseWait"
-                )}
-              </small>
             </div>
           </>
         ) : (
@@ -1741,17 +1735,6 @@ setSuccess("");
         )}
 
       </label>
-
-
-      <span className="deposit-upload-description">
-        {ocrLoading
-          ? t(
-              "deposit.findingTransactionId"
-            )
-          : t(
-              "deposit.uploadScreenshotDescription"
-            )}
-      </span>
 
     </div>
 
