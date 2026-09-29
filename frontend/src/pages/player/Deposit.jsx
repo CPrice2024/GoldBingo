@@ -1792,7 +1792,7 @@ setSuccess("");
                 className="spin"
               />
 
-              Reading QR...
+              wait...
             </>
           ) : cbeStage ===
             "verifying" ? (
@@ -1806,9 +1806,7 @@ setSuccess("");
             </>
           ) : (
             <>
-              {t(
-                  "deposit.readingScreenshot"
-                )}
+              Upload screenshot
             </>
           )}
         </label>

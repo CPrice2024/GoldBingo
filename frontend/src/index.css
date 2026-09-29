@@ -7081,11 +7081,7 @@ html[data-theme="night"]
   border: none;
   border-radius: 9px;
 
-  background: linear-gradient(
-    135deg,
-    #7652e8,
-    #6543d5
-  );
+  background: linear-gradient(135deg, #7557d3, #0054cc);
 
   color: #ffffff;
   font-size: 14px;
@@ -7117,7 +7113,68 @@ html[data-theme="night"]
   cursor: not-allowed;
 }
 
+/* =========================================
+   OTP RESEND COUNTDOWN
+========================================= */
 
+.otp-resend-area {
+  width: 100%;
+  margin-top: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.otp-resend-countdown {
+  display: block;
+
+  font-size: 11px;
+  line-height: 1.45;
+  text-align: center;
+
+  color: rgba(
+    255,
+    255,
+    255,
+    0.52
+  );
+}
+
+.otp-resend-countdown strong {
+  color: #d4a72c;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.otp-resend-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+
+  padding: 4px 8px;
+
+  border: none;
+  background: transparent;
+
+  color: #d4a72c;
+
+  font-size: 11px;
+  font-weight: 650;
+
+  cursor: pointer;
+}
+
+.otp-resend-btn:hover {
+  text-decoration: underline;
+}
+
+.otp-resend-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
 /* =========================================
    RESPONSIVE
 ========================================= */
@@ -8100,7 +8157,7 @@ html[data-theme="night"]
 .player-forgot-password {
   display: block;
 
-  margin: -8px 0 24px auto;
+  margin: -2px 0 16px auto;
   padding: 0;
 
   border: none;

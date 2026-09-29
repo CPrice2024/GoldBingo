@@ -10,12 +10,9 @@ import {
 } from "../../notifications";
 import {
   ArrowLeft,
-  KeyRound,
   Loader2,
   Phone,
   ShieldCheck,
-  CheckCircle,
-  AlertCircle,
   Eye,
   EyeOff,
   Lock,
@@ -55,7 +52,12 @@ export default function ForgotPassword() {
     setStep,
   ] = useState("phone");
 
+const OTP_RESEND_SECONDS = 60;
 
+const [
+  resendSeconds,
+  setResendSeconds,
+] = useState(0);
   /* ===============================
      FORM STATE
   =============================== */
@@ -253,13 +255,26 @@ export default function ForgotPassword() {
      REQUEST + SEND OTP
   =============================== */
 
-  const sendOtp =
-    async (e) => {
+ const sendOtp =
+  async (
+    e,
+    isResend = false
+  ) => {
 
-      e.preventDefault();
+    e?.preventDefault();
+
+    if (
+      isResend &&
+      resendSeconds > 0
+    ) {
+      return;
+    }
+
+    if (!isResend) {
       setStep(
-  "phone"
-);
+        "phone"
+      );
+    }
 
 lastAutoVerifiedOtp.current =
   "";
@@ -363,7 +378,9 @@ const result =
     deviceIdentity
   );
 
-
+setResendSeconds(
+  OTP_RESEND_SECONDS
+);
 /*
  * If FCM already arrived and started
  * automatic verification, do not
@@ -465,6 +482,7 @@ const verifyOtpCode =
         setResetToken(
           token
         );
+        setResendSeconds(0);
 
 
         setStep(
@@ -879,7 +897,25 @@ useEffect(() => {
 }, [
   verifyOtpCode,
 ]);
+useEffect(() => {
+  if (resendSeconds <= 0) {
+    return;
+  }
 
+  const timer = setTimeout(() => {
+    setResendSeconds(
+      (current) =>
+        Math.max(
+          current - 1,
+          0
+        )
+    );
+  }, 1000);
+
+  return () => {
+    clearTimeout(timer);
+  };
+}, [resendSeconds]);
   /* ===============================
      START AGAIN
   =============================== */
@@ -895,6 +931,7 @@ useEffect(() => {
       setResetToken("");
       setNewPassword("");
       setConfirmPassword("");
+      setResendSeconds(0);
 
       setError("");
       setMessage("");
@@ -1177,6 +1214,52 @@ useEffect(() => {
               <span className="password-hint">
                 The OTP expires in 5 minutes.
               </span>
+              <div className="otp-resend-area">
+
+  {resendSeconds > 0 ? (
+
+    <span className="otp-resend-countdown">
+      Didn't receive the code? Resend available in{" "}
+      <strong>
+        00:
+        {String(
+          resendSeconds
+        ).padStart(
+          2,
+          "0"
+        )}
+      </strong>
+    </span>
+
+  ) : (
+
+    <button
+      type="button"
+      className="otp-resend-btn"
+      onClick={(e) =>
+        sendOtp(
+          e,
+          true
+        )
+      }
+      disabled={loading}
+    >
+      {loading ? (
+        <>
+          <Loader2
+            size={14}
+            className="player-spin"
+          />
+          Sending...
+        </>
+      ) : (
+        "Didn't receive the code? Resend OTP"
+      )}
+    </button>
+
+  )}
+
+</div>
 
             </div>
 
@@ -1262,12 +1345,6 @@ useEffect(() => {
 
 
               <div className="change-password-input">
-
-                <KeyRound
-                  size={18}
-                />
-
-
                 <input
                   type={
                     showNewPassword
@@ -1330,10 +1407,6 @@ useEffect(() => {
 
 
               <div className="change-password-input">
-
-                <KeyRound
-                  size={18}
-                />
 
 
                 <input
