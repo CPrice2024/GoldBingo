@@ -1676,6 +1676,100 @@ setSuccess("");
     />
   </div>
 )}
+{/* ======================================================
+    TELEBIRR SCREENSHOT UPLOAD
+   ====================================================== */}
+
+{form.paymentMethod ===
+  "telebirr" && (
+  <div className="deposit-ocr-section">
+
+    <div className="deposit-upload-action">
+
+      <input
+        id="telebirr-screenshot"
+        type="file"
+        accept="image/png,image/jpeg,image/jpg,image/webp"
+        onChange={
+          handleScreenshotChange
+        }
+        disabled={
+          ocrLoading ||
+          submitting
+        }
+        hidden
+      />
+
+      <label
+        htmlFor="telebirr-screenshot"
+        className={`deposit-upload-button ${
+          ocrLoading
+            ? "upload-button-loading"
+            : ""
+        }`}
+      >
+
+        {ocrLoading ? (
+          <>
+            <Loader2
+              size={17}
+              className="spin"
+            />
+
+            <div className="ocr-loading-text">
+              <span>
+                {t(
+                  "deposit.readingScreenshot"
+                )}
+              </span>
+
+              <small>
+                {t(
+                  "common.pleaseWait"
+                )}
+              </small>
+            </div>
+          </>
+        ) : (
+          <>
+            <span>
+              {t(
+                "deposit.uploadScreenshot"
+              )}
+            </span>
+          </>
+        )}
+
+      </label>
+
+
+      <span className="deposit-upload-description">
+        {ocrLoading
+          ? t(
+              "deposit.findingTransactionId"
+            )
+          : t(
+              "deposit.uploadScreenshotDescription"
+            )}
+      </span>
+
+    </div>
+
+
+    {ocrError && (
+      <div className="deposit-ocr-error">
+
+        <XCircle size={16} />
+
+        <span>
+          {ocrError}
+        </span>
+
+      </div>
+    )}
+
+  </div>
+)}
 {form.paymentMethod ===
   "cbe" && (
   <div className="cbe-flow-card">
@@ -1729,17 +1823,13 @@ setSuccess("");
             </>
           ) : (
             <>
-              Upload Receipt
+              Upload screenshot
             </>
           )}
         </label>
-
       </div>
-    
-
   </div>
 )}
-
             <button
               type="submit"
               className="submit-deposit-btn"
@@ -1769,23 +1859,18 @@ setSuccess("");
             </button>
           </form>
         </section>
-
         <section className="deposit-info-card">
   <div className="info-icon">
     <CreditCard size={21} />
   </div>
-
   <h3>{t("deposit.howDepositsWork")}</h3>
-
   <div className="steps">
     <div className="step">
       <span>1</span>
-
       <div>
         <strong>
           {t("deposit.chooseMethod")}
         </strong>
-
         <p>
           {t("deposit.chooseMethodDescription")}
         </p>
