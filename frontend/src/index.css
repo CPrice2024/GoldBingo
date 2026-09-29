@@ -10248,11 +10248,11 @@ html[data-theme="day"]
 .deposit-upload-button.upload-button-loading {
   cursor: wait;
   border-style: solid;
-  opacity: 0.9;
+  opacity: 0.8;
 }
 
 .deposit-upload-button.upload-button-loading:hover {
-  background: rgba(212, 167, 44, 0.1);
+  background: rgba(211, 167, 44, 0.1);
 }
 
 .ocr-scan-icon {
@@ -10268,7 +10268,7 @@ html[data-theme="day"]
 }
 
 .ocr-loading-text span {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
 }
 
