@@ -111,3 +111,15 @@ export const approveCbeReceipt = async (
 
   return response.data;
 };
+export const verifyCbeReceipt = async (
+  receiptUrl
+) => {
+  const response = await api.post(
+    "/deposits/cbe/verify-receipt",
+    {
+      receiptUrl,
+    }
+  );
+
+  return response.data;
+};

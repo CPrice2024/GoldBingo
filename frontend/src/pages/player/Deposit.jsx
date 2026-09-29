@@ -22,6 +22,7 @@ import {
   getMyDeposits,
   getMyPaymentSettings,
   approveCbeReceipt,
+  verifyCbeReceipt,
 } from "../../api/deposits.api";
 
 const PAYMENT_METHOD_META = {
@@ -65,7 +66,13 @@ const getStatusIcon = (status) => {
 };
 
 function Deposit() {
-  const { t } = useLanguage();
+    const { t } = useLanguage();
+
+  const [cbeStage, setCbeStage] =
+    useState("idle");
+
+  const [verifiedCbe, setVerifiedCbe] =
+    useState(null);
   const [form, setForm] = useState({
   amount: "",
   paymentMethod: "",
@@ -893,175 +900,525 @@ setForm((current) => ({
     setOcrProgress(0);
   }
 };
+const processCbeScreenshot =
+  async (file) => {
+    try {
+      setOcrError("");
+      setError("");
+      setSuccess("");
+      setVerifiedCbe(null);
 
-const handleScreenshotChange = (event) => {
-  const file = event.target.files?.[0];
+      setCbeStage(
+        "reading_qr"
+      );
 
-  if (!file) return;
+      /*
+       * STEP 1
+       * Decode sender QR.
+       */
+      const receiptUrl =
+        await extractCbeReceiptUrlFromQr(
+          file
+        );
 
-  extractReferenceFromScreenshot(file);
+      if (!receiptUrl) {
+        setCbeStage(
+          "error"
+        );
 
-  event.target.value = "";
-};
+        setOcrError(
+          "CBE QR code could not be detected. Upload the complete CBE receipt."
+        );
 
+        return;
+      }
+
+
+      /*
+       * STEP 2
+       * Backend visits official
+       * sender CBE receipt page.
+       */
+      setCbeStage(
+        "verifying"
+      );
+
+      const verification =
+        await verifyCbeReceipt(
+          receiptUrl
+        );
+
+      const receipt =
+        verification?.data;
+
+
+      const reference =
+        String(
+          receipt?.reference ||
+            ""
+        )
+          .trim()
+          .toUpperCase();
+
+
+      const amount =
+        Number(
+          receipt?.transferredAmount
+        );
+
+
+      if (
+        !/^FT[A-Z0-9]{10}$/.test(
+          reference
+        )
+      ) {
+        throw new Error(
+          "CBE transaction ID could not be verified."
+        );
+      }
+
+
+      if (
+        !Number.isFinite(
+          amount
+        ) ||
+        amount <= 0
+      ) {
+        throw new Error(
+          "CBE transaction amount could not be verified."
+        );
+      }
+
+
+      /*
+       * STEP 3
+       * Store VERIFIED CBE data.
+       */
+      setForm(
+        (current) => ({
+          ...current,
+
+          reference,
+
+          amount:
+            String(amount),
+
+          receiptUrl,
+        })
+      );
+
+
+      setVerifiedCbe({
+        reference,
+
+        amount,
+
+        status:
+          receipt?.status ||
+          "COMPLETED",
+
+        paymentDate:
+          receipt?.paymentDate ||
+          null,
+      });
+
+
+      setCbeStage(
+        "verified"
+      );
+
+      setSuccess(
+        `CBE payment verified: ${reference}`
+      );
+
+    } catch (err) {
+
+      console.error(
+        "CBE receipt verification failed:",
+        err
+      );
+
+      setCbeStage(
+        "error"
+      );
+
+      setOcrError(
+        err?.response?.data
+          ?.message ||
+          err?.message ||
+          "Failed to verify CBE receipt."
+      );
+    }
+  };
+const handleScreenshotChange =
+  async (event) => {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) return;
+
+    if (
+      form.paymentMethod ===
+      "cbe"
+    ) {
+      await processCbeScreenshot(
+        file
+      );
+    } else {
+      await extractReferenceFromScreenshot(
+        file
+      );
+    }
+
+    event.target.value = "";
+  };
+const waitForCbeApproval =
+  async (reference) => {
+
+    for (
+      let attempt = 0;
+      attempt < 20;
+      attempt += 1
+    ) {
+      try {
+        const result =
+          await getMyDeposits();
+
+        const list =
+          Array.isArray(
+            result?.data
+          )
+            ? result.data
+            : [];
+
+        const deposit =
+          list.find(
+            (item) =>
+              String(
+                item?.reference || ""
+              )
+                .trim()
+                .toUpperCase() ===
+              reference
+          );
+
+        if (
+          deposit?.status ===
+          "approved"
+        ) {
+          setCbeStage(
+            "approved"
+          );
+
+          setSuccess(
+            "CBE deposit approved. Wallet updated successfully."
+          );
+
+          await loadDeposits();
+
+          return;
+        }
+
+        if (
+          deposit?.status ===
+          "rejected"
+        ) {
+          setCbeStage(
+            "error"
+          );
+
+          setError(
+            "CBE deposit was rejected."
+          );
+
+          await loadDeposits();
+
+          return;
+        }
+
+      } catch (err) {
+        console.error(
+          "CBE status check failed:",
+          err
+        );
+      }
+
+      await new Promise(
+        (resolve) =>
+          setTimeout(
+            resolve,
+            3000
+          )
+      );
+    }
+
+    setSuccess(
+      "Payment verified. CBE confirmation is still pending."
+    );
+  };
   const handleSubmit = async (event) => {
   event.preventDefault();
 
   setError("");
   setSuccess("");
 
-  const amount = Number(form.amount);
+  const amount = Number(
+    form.amount
+  );
 
   const minDeposit = Number(
-    paymentSettings?.minDeposit ?? 10
+    paymentSettings?.minDeposit ??
+      10
   );
 
   const maxDeposit = Number(
-    paymentSettings?.maxDeposit ?? 10000
+    paymentSettings?.maxDeposit ??
+      10000
   );
-
- if (!amount || amount < minDeposit) {
-  setError(
-    `${t("deposit.minimumDeposit")} ${minDeposit.toLocaleString()} ${t(
-      "common.birr"
-    )}.`
-  );
-
-  return;
-}
-
-if (amount > maxDeposit) {
-  setError(
-    `${t("deposit.maximumDeposit")} ${maxDeposit.toLocaleString()} ${t(
-      "common.birr"
-    )}.`
-  );
-
-  return;
-}
-
-if (!form.paymentMethod) {
-  setError(
-    t("deposit.selectPaymentMethod")
-  );
-
-  return;
-}
-
-const selectedPaymentAccount =
-  paymentSettings?.[form.paymentMethod];
-
-if (!selectedPaymentAccount) {
-  setError(
-    t("deposit.paymentDetailsUnavailable")
-  );
-
-  return;
-}
-
-  const referenceError = validateReference();
-
-  if (referenceError) {
-    setError(referenceError);
-    return;
-  }
-if (
-  form.paymentMethod ===
-    "cbe" &&
-  !form.receiptUrl
-) {
-  setError(
-    "Please upload the complete CBE receipt containing the QR code."
-  );
-
-  return;
-}
-  try {
-    setSubmitting(true);
-
-    await createDeposit({
-  amount,
-
-  paymentMethod:
-    form.paymentMethod,
-
-  reference:
-    form.reference.trim() ||
-    undefined,
-});
-
-
-if (
-  form.paymentMethod ===
-  "cbe"
-) {
-
-  const verification =
-    await approveCbeReceipt(
-      form.receiptUrl
-    );
-
-  const result =
-    verification?.data;
 
 
   if (
-    result?.approved ===
-    true
+    !amount ||
+    amount < minDeposit
   ) {
-
-    setSuccess(
-      "CBE payment verified and approved."
+    setError(
+      `${t(
+        "deposit.minimumDeposit"
+      )} ${minDeposit.toLocaleString()} ${t(
+        "common.birr"
+      )}.`
     );
 
-  } else {
-
-    setSuccess(
-      result?.reason ||
-        "CBE receipt verified. Waiting for the matching CBE SMS."
-    );
-
+    return;
   }
 
-} else {
 
-  /*
-   * TELEBIRR
-   * Leave existing flow unchanged.
-   */
+  if (amount > maxDeposit) {
+    setError(
+      `${t(
+        "deposit.maximumDeposit"
+      )} ${maxDeposit.toLocaleString()} ${t(
+        "common.birr"
+      )}.`
+    );
 
-  setSuccess(
-    t(
-      "deposit.requestSubmitted"
-    )
-  );
+    return;
+  }
 
-}
+
+  if (!form.paymentMethod) {
+    setError(
+      t(
+        "deposit.selectPaymentMethod"
+      )
+    );
+
+    return;
+  }
+
+
+  const selectedPaymentAccount =
+    paymentSettings?.[
+      form.paymentMethod
+    ];
+
+
+  if (!selectedPaymentAccount) {
+    setError(
+      t(
+        "deposit.paymentDetailsUnavailable"
+      )
+    );
+
+    return;
+  }
+
+
+  const referenceError =
+    validateReference();
+
+
+  if (referenceError) {
+    setError(
+      referenceError
+    );
+
+    return;
+  }
+
+
+  if (
+    form.paymentMethod ===
+      "cbe" &&
+    !form.receiptUrl
+  ) {
+    setError(
+      "Please upload the complete CBE receipt containing the QR code."
+    );
+
+    return;
+  }
+
+
+  if (
+    form.paymentMethod ===
+      "cbe" &&
+    cbeStage !== "verified"
+  ) {
+    setError(
+      "Please verify the CBE receipt before submitting."
+    );
+
+    return;
+  }
+
+
+  try {
+    setSubmitting(true);
+
+
+    /*
+     * STEP 1
+     * Create pending deposit.
+     */
+    await createDeposit({
+      amount,
+
+      paymentMethod:
+        form.paymentMethod,
+
+      reference:
+        form.reference
+          .trim()
+          .toUpperCase() ||
+        undefined,
+    });
+
+
+    /*
+     * ===========================
+     * CBE
+     * ===========================
+     */
+    if (
+      form.paymentMethod ===
+      "cbe"
+    ) {
+      const submittedReference =
+        form.reference
+          .trim()
+          .toUpperCase();
+
+
+      /*
+       * STEP 2
+       * Bind/verify the sender
+       * receipt against the
+       * pending deposit.
+       */
+      const verification =
+        await approveCbeReceipt(
+          form.receiptUrl
+        );
+
+
+      const result =
+        verification?.data;
+
+
+      /*
+       * Agent SMS may already
+       * have arrived.
+       */
+      if (
+        result?.approved ===
+        true
+      ) {
+        setCbeStage(
+          "approved"
+        );
+
+        setSuccess(
+          "CBE deposit approved. Wallet updated successfully."
+        );
+
+        await loadDeposits();
+
+        return;
+      }
+
+
+      /*
+       * Sender side is verified.
+       * Wait for matching
+       * receiver-side CBE SMS.
+       */
+      setCbeStage(
+        "waiting_sms"
+      );
+
+      setSuccess(
+        result?.reason ||
+          "Payment verified. Waiting for matching CBE SMS."
+      );
+
+
+      await loadDeposits();
+
+
+      /*
+       * Continue checking without
+       * blocking the UI.
+       */
+      void waitForCbeApproval(
+        submittedReference
+      );
+
+      return;
+    }
+
+
+    /*
+     * ===========================
+     * TELEBIRR
+     * Existing flow unchanged.
+     * ===========================
+     */
+    setSuccess(
+      t(
+        "deposit.requestSubmitted"
+      )
+    );
+
 
     setForm({
-  amount: "",
-  paymentMethod: "",
-  reference: "",
-  receiptUrl: "",
-});
+      amount: "",
+      paymentMethod: "",
+      reference: "",
+      receiptUrl: "",
+    });
+
 
     await loadDeposits();
+
   } catch (err) {
     console.error(
       "Deposit submission failed:",
       err
     );
 
+
     setError(
-      err?.response?.data?.message ||
+      err?.response?.data
+        ?.message ||
         err?.message ||
         "Failed to submit deposit request."
     );
+
   } finally {
     setSubmitting(false);
   }
 };
-
  if (loading) {
     return (
       <div className="profile-page">
@@ -1086,7 +1443,7 @@ if (
         <section className="deposit-card">
           <div className="card-title">
             <div className="title-icon">
-              <ArrowDownToLine size={20} />
+              <ArrowDownToLine size={18} />
             </div>
 
             <div>
@@ -1113,40 +1470,7 @@ if (
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="amount">
-  {t("deposit.amount")} <span>*</span>
-</label>
-              <div className="input-with-suffix">
-  <input
-    id="amount"
-    name="amount"
-    type="number"
-    min={paymentSettings?.minDeposit ?? 10}
-    max={paymentSettings?.maxDeposit ?? 10000}
-    step="0.01"
-    placeholder={t("deposit.enterAmount")}
-    value={form.amount}
-    onChange={handleChange}
-    disabled={submitting}
-  />
-
-  <span>ETB</span>
-</div>
-
-<small className="deposit-limit">
-  {t("deposit.deposit")} - {t("deposit.min")}{" "}
-  {Number(
-    paymentSettings?.minDeposit ?? 10
-  ).toLocaleString()}{" "}
-  {t("common.birr")}{" "}
-  {t("deposit.max")}{" "}
-  {Number(
-    paymentSettings?.maxDeposit ?? 10000
-  ).toLocaleString()}{" "}
-  {t("common.birr")}
-</small>
-            </div>
+            
 
             <div className="form-group">
   <label>
@@ -1176,9 +1500,15 @@ if (
   paymentMethod: method.value,
   reference: "",
   receiptUrl: "",
+  amount: "",
 }));
 
-          setOcrError("");
+setCbeStage("idle");
+setVerifiedCbe(null);
+
+setOcrError("");
+setError("");
+setSuccess("");
         }}
         disabled={
           submitting ||
@@ -1214,6 +1544,54 @@ if (
     );
   })}
 </div>
+<div className="form-group">
+              <label htmlFor="amount">
+  {t("deposit.amount")} <span>*</span>
+</label>
+              <div className="input-with-suffix">
+  <input
+    id="amount"
+    name="amount"
+    type="number"
+    min={paymentSettings?.minDeposit ?? 10}
+    max={paymentSettings?.maxDeposit ?? 10000}
+    step="0.01"
+    placeholder={t("deposit.enterAmount")}
+    value={form.amount}
+    onChange={handleChange}
+    disabled={
+  submitting ||
+  (
+    form.paymentMethod ===
+      "cbe" &&
+    (
+      cbeStage ===
+        "verified" ||
+      cbeStage ===
+        "waiting_sms" ||
+      cbeStage ===
+        "approved"
+    )
+  )
+}
+  />
+
+  <span>ETB</span>
+</div>
+
+<small className="deposit-limit">
+  {t("deposit.deposit")} - {t("deposit.min")}{" "}
+  {Number(
+    paymentSettings?.minDeposit ?? 10
+  ).toLocaleString()}{" "}
+  {t("common.birr")}{" "}
+  {t("deposit.max")}{" "}
+  {Number(
+    paymentSettings?.maxDeposit ?? 10000
+  ).toLocaleString()}{" "}
+  {t("common.birr")}
+</small>
+            </div>
 {/* Selected payment account */}
 {form.paymentMethod && (
   <div className="deposit-payment-account">
@@ -1270,121 +1648,216 @@ if (
 )}
 </div>
 
-            <div className="form-group">
-  <label htmlFor="reference">
-  {t("deposit.transactionReference")}
-  <span>*</span>
-</label>
+            {form.paymentMethod !==
+  "cbe" && (
+  <div className="form-group">
+    <label htmlFor="reference">
+      {t(
+        "deposit.transactionReference"
+      )}
+      <span>*</span>
+    </label>
 
-  <input
-    id="reference"
-    name="reference"
-    type="text"
-    value={form.reference}
-    onChange={handleChange}
-    disabled={submitting || !form.paymentMethod}
-    maxLength={
-      form.paymentMethod === "telebirr"
-        ? 10
-        : 12
-    }
-    placeholder={
-  form.paymentMethod === "telebirr"
-    ? t("deposit.telebirrReferenceExample")
-    : form.paymentMethod === "cbe"
-    ? t("deposit.cbeReferenceExample")
-    : t("deposit.selectPaymentFirst")
-}
-    autoComplete="off"
-/>
-
-  {form.paymentMethod === "telebirr" && (
-  <small>
-    {t("deposit.telebirrCheckDigits")}
-  </small>
-)}
-
- {form.paymentMethod === "cbe" && (
-  <small>
-    {t("deposit.cbeCheckDigits")}
-  </small>
-)}
-
-  {/* Screenshot OCR */}
-<div className="deposit-ocr-section">
-
-
-  <div className="deposit-ocr-header">
-
+    <input
+      id="reference"
+      name="reference"
+      type="text"
+      value={form.reference}
+      onChange={handleChange}
+      disabled={
+        submitting ||
+        !form.paymentMethod
+      }
+      maxLength={10}
+      placeholder={t(
+        "deposit.telebirrReferenceExample"
+      )}
+      autoComplete="off"
+    />
   </div>
+)}
+{form.paymentMethod ===
+  "cbe" && (
+  <div className="cbe-flow-card">
 
-<div className="deposit-upload-action">
-  <input
-    id="deposit-screenshot"
-    type="file"
-    accept="image/png,image/jpeg,image/jpg,image/webp"
-    onChange={handleScreenshotChange}
-    disabled={
-      ocrLoading ||
-      submitting ||
-      !form.paymentMethod
-    }
-    hidden
-  />
+      <div className="cbe-upload-content">
+        <input
+          id="cbe-receipt-image"
+          type="file"
+          accept="image/png,image/jpeg,image/jpg,image/webp"
+          onChange={
+            handleScreenshotChange
+          }
+          disabled={
+  cbeStage ===
+    "reading_qr" ||
+  cbeStage ===
+    "verifying" ||
+  cbeStage ===
+    "waiting_sms" ||
+  cbeStage ===
+    "approved" ||
+  submitting
+}
+          hidden
+        />
 
-  <label
-    htmlFor="deposit-screenshot"
-    className={`deposit-upload-button ${
-      ocrLoading ? "upload-button-loading" : ""
-    } ${
-      !form.paymentMethod
-        ? "upload-button-disabled"
-        : ""
-    }`}
-  >
-  {ocrLoading ? (
-  <>
+
+        <label
+          htmlFor="cbe-receipt-image"
+          className="deposit-upload-button"
+        >
+          {cbeStage ===
+            "reading_qr" ? (
+            <>
+              <Loader2
+                size={17}
+                className="spin"
+              />
+
+              Reading QR...
+            </>
+          ) : cbeStage ===
+            "verifying" ? (
+            <>
+              <Loader2
+                size={17}
+                className="spin"
+              />
+
+              Verifying with CBE...
+            </>
+          ) : (
+            <>
+              Upload Receipt
+            </>
+          )}
+        </label>
+
+      </div>
+    {verifiedCbe && (
+      <div className="cbe-verified-card">
+
+        <div className="cbe-verified-header">
+          <CheckCircle2
+            size={21}
+          />
+
+          <div>
+            <strong>
+              Payment Verified
+            </strong>
+
+            <small>
+              Verified from official
+              CBE receipt
+            </small>
+          </div>
+        </div>
+
+
+        <div className="cbe-receipt-details">
+
+          <div>
+            <span>
+              Transaction
+            </span>
+
+            <strong>
+              {
+                verifiedCbe.reference
+              }
+            </strong>
+          </div>
+
+
+          <div>
+            <span>
+              Amount
+            </span>
+
+            <strong>
+              {Number(
+                verifiedCbe.amount
+              ).toLocaleString()}
+              {" "}ETB
+            </strong>
+          </div>
+
+
+          <div>
+            <span>
+              Status
+            </span>
+
+            <strong>
+              {
+                verifiedCbe.status ||
+                "COMPLETED"
+              }
+            </strong>
+          </div>
+
+        </div>
+      </div>
+    )}
+{cbeStage ===
+  "waiting_sms" && (
+  <div className="cbe-waiting-card">
+
     <Loader2
-      size={17}
+      size={20}
       className="spin"
     />
 
-    <div className="ocr-loading-text">
-      <span>{t("deposit.readingScreenshot")}</span>
-<small>{t("common.pleaseWait")}</small>
+    <div>
+      <strong>
+        Waiting for bank confirmation
+      </strong>
+
+      <small>
+        Sender receipt verified.
+        Waiting for the matching
+        CBE SMS confirmation.
+      </small>
     </div>
-  </>
-) : (
-  <>
-    
-    <span>{t("deposit.uploadScreenshot")}</span>
-  </>
+
+  </div>
 )}
-  </label>
+{cbeStage ===
+  "approved" && (
+  <div className="cbe-approved-card">
 
-  <span className="deposit-upload-description">
-  {ocrLoading
-    ? t("deposit.findingTransactionId")
-    : t("deposit.uploadScreenshotDescription")}
-</span>
-</div>
+    <CheckCircle2
+      size={22}
+    />
 
-  {ocrError && (
-    <div className="deposit-ocr-error">
-      <XCircle size={16} />
-      <span>{ocrError}</span>
+    <div>
+      <strong>
+        Deposit Approved
+      </strong>
+
+      <small>
+        Both CBE receipts matched.
+        Your wallet has been updated.
+      </small>
     </div>
-  )}
 
-</div>
-</div>
+  </div>
+)}
+  </div>
+)}
 
             <button
               type="submit"
               className="submit-deposit-btn"
               disabled={
   submitting ||
-  paymentSettingsLoading
+  paymentSettingsLoading ||
+  (
+    form.paymentMethod === "cbe" &&
+    cbeStage !== "verified"
+  )
 }
             >
               {submitting ? (

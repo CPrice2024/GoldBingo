@@ -658,44 +658,7 @@ if (
     };
   }
 
-console.log(
-  "[CBE MATCH DEBUG]",
-  {
-    webhookAgentId:
-      data.agentId,
 
-    verifiedReference:
-      cbeVerifiedReference,
-
-    verifiedAmount:
-      cbeVerifiedAmount,
-
-    windowStart:
-      windowStart.toISOString(),
-
-    windowEnd:
-      windowEnd.toISOString(),
-  }
-);
-console.log(
-  "[CBE MATCH DEBUG]",
-  {
-    webhookAgentId:
-      data.agentId,
-
-    verifiedReference:
-      cbeVerifiedReference,
-
-    verifiedAmount:
-      cbeVerifiedAmount,
-
-    windowStart:
-      windowStart.toISOString(),
-
-    windowEnd:
-      windowEnd.toISOString(),
-  }
-);
   deposit =
   await Deposit.findOne({
     agentId:
@@ -736,26 +699,6 @@ console.log(
   }).sort({
     createdAt: -1,
   });
-  console.log(
-  "[CBE MATCH RESULT]",
-  deposit
-    ? {
-        found: true,
-        depositId:
-          deposit._id.toString(),
-        agentId:
-          deposit.agentId.toString(),
-        reference:
-          deposit.reference,
-        amount:
-          deposit.amount,
-        status:
-          deposit.status,
-      }
-    : {
-        found: false,
-      }
-);
 
 }
 
@@ -815,26 +758,6 @@ else {
     }).sort({
       createdAt: -1,
     });
-    console.log(
-  "[CBE MATCH RESULT]",
-  deposit
-    ? {
-        found: true,
-        depositId:
-          deposit._id.toString(),
-        agentId:
-          deposit.agentId.toString(),
-        reference:
-          deposit.reference,
-        amount:
-          deposit.amount,
-        status:
-          deposit.status,
-      }
-    : {
-        found: false,
-      }
-);
 
 }
 

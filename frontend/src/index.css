@@ -178,7 +178,7 @@ a {
 }
 
 .form-group {
-  margin-bottom: 17px;
+  margin-bottom: 6px;
 }
 
 .form-group label {
@@ -2369,7 +2369,7 @@ html[data-theme="day"]
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 28px;
+  margin-bottom: 5px;
 }
 
 .title-icon {
@@ -2944,7 +2944,7 @@ html[data-theme="day"]
   border: 1px solid #687182;
   border-radius: 5px;
 
-       background: linear-gradient(135deg, #9c9c9c, #6b6f7a);
+       background: linear-gradient(135deg, #382494, #1351fb);
 
   color: white;
 
@@ -7566,7 +7566,407 @@ html[data-theme="night"]
   font-size: 14px;
 }
 
+/* =========================================================
+   CBE DEPOSIT VERIFICATION FLOW
+   ========================================================= */
 
+.cbe-flow-card {
+  width: 100%;
+  border: 1px solid rgba(212, 167, 44, 0.22);
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   FLOW STEPS
+   ========================================================= */
+
+.cbe-flow-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  width: 100%;
+  padding: 14px 0;
+}
+
+.cbe-flow-step + .cbe-flow-step {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cbe-step-number {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(212, 167, 44, 0.14);
+  border: 1px solid rgba(212, 167, 44, 0.4);
+
+  color: #d4a72c;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cbe-flow-step > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.cbe-flow-step strong {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #f5f5f5;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.cbe-flow-step small {
+  display: block;
+
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+
+/* =========================================================
+   CBE UPLOAD AREA
+   ========================================================= */
+
+.cbe-upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+  width: 100%;
+}
+
+.cbe-upload-content .deposit-upload-button {
+     width: 100%;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 16px;
+    border-radius: 11px;
+    border: 1px dashed rgb(44 137 212 / 55%);
+    color: #2c71d4;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.cbe-upload-content .deposit-upload-button:hover {
+  background: rgba(212, 167, 44, 0.12);
+  border-color: rgba(212, 167, 44, 0.8);
+}
+
+.cbe-upload-content .deposit-upload-button:active {
+  transform: scale(0.99);
+}
+
+/* disabled hidden input + label */
+.cbe-upload-content input:disabled + .deposit-upload-button {
+  opacity: 0.55;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   VERIFIED RECEIPT
+   ========================================================= */
+
+.cbe-verified-card {
+  margin-top: 14px;
+  padding: 15px;
+
+  border-radius: 13px;
+  border: 1px solid rgba(46, 204, 113, 0.25);
+
+  background: rgba(46, 204, 113, 0.055);
+}
+
+.cbe-verified-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.cbe-verified-header > svg {
+  flex-shrink: 0;
+  color: #2ecc71;
+}
+
+.cbe-verified-header strong {
+  display: block;
+
+  color: #eafaf0;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.cbe-verified-header small {
+  display: block;
+  margin-top: 2px;
+
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 11px;
+}
+
+
+/* =========================================================
+   VERIFIED DETAILS
+   ========================================================= */
+
+.cbe-receipt-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cbe-receipt-details > div {
+  min-width: 0;
+
+  padding: 11px;
+
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.cbe-receipt-details span {
+  display: block;
+  margin-bottom: 5px;
+
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cbe-receipt-details strong {
+  display: block;
+
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 750;
+
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+
+/* =========================================================
+   WAITING FOR AGENT SMS
+   ========================================================= */
+
+.cbe-waiting-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 14px;
+  padding: 14px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(212, 167, 44, 0.27);
+
+  background: rgba(212, 167, 44, 0.07);
+}
+
+.cbe-waiting-card > svg {
+  flex-shrink: 0;
+  color: #d4a72c;
+}
+
+.cbe-waiting-card strong {
+  display: block;
+
+  color: #f7e6ae;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.cbe-waiting-card small {
+  display: block;
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   APPROVED
+   ========================================================= */
+
+.cbe-approved-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  margin-top: 14px;
+  padding: 15px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(46, 204, 113, 0.35);
+
+  background: rgba(46, 204, 113, 0.08);
+}
+
+.cbe-approved-card > svg {
+  flex-shrink: 0;
+  color: #2ecc71;
+}
+
+.cbe-approved-card strong {
+  display: block;
+
+  color: #eafff1;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.cbe-approved-card small {
+  display: block;
+  margin-top: 3px;
+
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   CBE VERIFIED AMOUNT
+   ========================================================= */
+
+.deposit-page input:disabled {
+  cursor: not-allowed;
+}
+
+.deposit-page .input-with-suffix input:disabled {
+  opacity: 0.78;
+}
+
+
+/* =========================================================
+   SUBMIT BUTTON DISABLED
+   ========================================================= */
+
+.deposit-page .submit-deposit-btn:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .cbe-flow-card {
+    border-radius: 13px;
+  }
+
+  .cbe-flow-step {
+    gap: 10px;
+    padding: 12px 0;
+  }
+
+  .cbe-step-number {
+    width: 27px;
+    height: 27px;
+    min-width: 27px;
+
+    font-size: 12px;
+  }
+
+  .cbe-flow-step strong {
+    font-size: 13px;
+  }
+
+  .cbe-flow-step small {
+    font-size: 11px;
+  }
+
+  .cbe-receipt-details {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .cbe-receipt-details > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    padding: 10px 11px;
+  }
+
+  .cbe-receipt-details span {
+    margin-bottom: 0;
+  }
+
+  .cbe-receipt-details strong {
+    text-align: right;
+  }
+
+  .cbe-waiting-card,
+  .cbe-approved-card {
+    padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+  .cbe-flow-card {
+    padding: 1px;
+  }
+
+  .cbe-upload-content .deposit-upload-button {
+    min-height: 46px;
+  }
+
+  .cbe-receipt-details > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .cbe-receipt-details strong {
+    text-align: left;
+  }
+
+  .cbe-waiting-card,
+  .cbe-approved-card {
+    align-items: flex-start;
+  }
+}
 /* ============================================
    FORM
 ============================================ */
@@ -7577,7 +7977,7 @@ html[data-theme="night"]
 
 .form-group {
   width: 100%;
-  margin-bottom: 20px;
+  margin-bottom: 6px;
 }
 
 .form-group label,
@@ -9827,7 +10227,7 @@ html[data-theme="day"]
   border: 1px dashed #d4a72c;
   border-radius: 11px;
 
-  background: rgba(212, 167, 44, 0.08);
+  background: rgb(0 20 132 / 8%);
   color: #d4a72c;
 
   font-size: 14px;
@@ -12024,10 +12424,8 @@ html[data-theme="day"]
 html[data-theme="day"]
 .deposit-upload-button {
   background: #ffffff;
-
-  border-color: #d4a72c;
-
-  color: #8a6700;
+    border-color: #2c71d4;
+    color: #3a7cff;
 }
 
 html[data-theme="day"]
