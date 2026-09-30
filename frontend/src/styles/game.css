@@ -5921,7 +5921,36 @@ html[data-theme="day"]
     0 4px 18px
     rgba(15, 23, 42, 0.05);
 }
+html[data-theme="night"]
+.bingo-board-card {
+  background: black;
 
+  border-color: #30496a54;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 23, 42, 0.05);
+}
+html[data-theme="day"]
+.bingo-fixed-game-area {
+  background: #ffffff;
+
+  border-color: #30496a54;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 23, 42, 0.05);
+}
+html[data-theme="night"]
+.bingo-fixed-game-area {
+  background: black;
+
+  border-color: #30496a54;
+
+  box-shadow:
+    0 4px 18px
+    rgba(15, 23, 42, 0.05);
+}
 html[data-theme="day"]
 .bingo-board-title strong {
   color: #334155;
@@ -9363,9 +9392,6 @@ html[data-theme="night"]
     box-shadow: 0 5px 15px rgb(0 0 0 / 31%);
   z-index: 100;
 
-  width: 100%;
-
-  background: inherit;
 }
 
 .bingo-inline-card-section {
