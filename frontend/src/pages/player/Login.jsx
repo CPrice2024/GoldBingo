@@ -36,9 +36,29 @@ function Login() {
   const navigate =
     useNavigate();
 
-  const { login } =
-    useAuth();
+ const {
+  login,
+  isAuthenticated,
+  authReady,
+} = useAuth();
+useEffect(() => {
+  if (!authReady) {
+    return;
+  }
 
+  if (isAuthenticated) {
+    navigate(
+      "/player/play",
+      {
+        replace: true,
+      }
+    );
+  }
+}, [
+  authReady,
+  isAuthenticated,
+  navigate,
+]);
 
   const [
     form,

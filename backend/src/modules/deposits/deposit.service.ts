@@ -1790,7 +1790,159 @@ if (
   }
 };
 
+export const lookupTelebirrPayment =
+  async (
+    playerId: string,
+    rawReference: string
+  ) => {
+    const reference =
+      String(rawReference || "")
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "");
 
+    if (
+      !/^D[A-Z0-9]{9}$/.test(
+        reference
+      )
+    ) {
+      throw new Error(
+        "Invalid Telebirr transaction ID"
+      );
+    }
+
+    const player =
+      await User.findOne({
+        _id: playerId,
+        role: "player",
+        status: "active",
+      });
+
+    if (!player) {
+      throw new Error(
+        "Player not found"
+      );
+    }
+
+    if (!player.referredBy) {
+      throw new Error(
+        "Player is not assigned to an agent"
+      );
+    }
+
+    const existingDeposit =
+      await findDepositByReference(
+        reference
+      );
+
+    if (existingDeposit) {
+      throw new Error(
+        "This transaction ID has already been used"
+      );
+    }
+
+    const sms =
+      await PaymentSms.findOne({
+        agentId:
+          player.referredBy,
+
+        paymentMethod:
+          "telebirr",
+
+        reference,
+      }).sort({
+        createdAt: -1,
+      });
+
+    if (!sms) {
+      return {
+        matched: false,
+        reference,
+        amount: null,
+        reason:
+          "Matching Telebirr SMS has not arrived yet",
+      };
+    }
+
+    /*
+     * Do not allow an SMS already
+     * connected to another deposit.
+     */
+    if (
+      sms.depositId ||
+      sms.status === "matched" ||
+      sms.status === "approved"
+    ) {
+      throw new Error(
+        "This Telebirr transaction has already been used"
+      );
+    }
+
+    const storedAmount =
+      Number(
+        sms.amount
+      );
+
+    const parsedAmount =
+      extractReceivedSmsAmount(
+        sms.text || ""
+      );
+
+    const amount =
+      Number.isFinite(
+        storedAmount
+      ) &&
+      storedAmount > 0
+        ? storedAmount
+        : parsedAmount;
+
+    if (
+      amount === null ||
+      !Number.isFinite(
+        Number(amount)
+      ) ||
+      Number(amount) <= 0
+    ) {
+      return {
+        matched: false,
+        reference,
+        amount: null,
+        reason:
+          "Telebirr SMS found but amount could not be determined",
+      };
+    }
+
+    const smsReceivedAt =
+      getPaymentSmsReceivedAt(
+        sms
+      );
+
+    const ageMs =
+      Date.now() -
+      smsReceivedAt.getTime();
+
+    if (
+      ageMs < 0 ||
+      ageMs >
+        PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS
+    ) {
+      return {
+        matched: false,
+        reference,
+        amount: null,
+        reason:
+          "Telebirr transaction is outside the allowed time window",
+      };
+    }
+
+    return {
+      matched: true,
+      reference,
+      amount:
+        Number(amount),
+      smsReceivedAt,
+    };
+  };
 /* =========================================
    PROCESS NEW PAYMENT SMS
 

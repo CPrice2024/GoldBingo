@@ -6,9 +6,14 @@ const RoleRoute = ({
   children,
 }) => {
   const {
-    user,
-    isAuthenticated,
-  } = useAuth();
+  user,
+  isAuthenticated,
+  authReady,
+} = useAuth();
+
+if (!authReady) {
+  return null;
+}
 
   // Not logged in
   if (!isAuthenticated) {

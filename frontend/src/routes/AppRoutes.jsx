@@ -283,28 +283,28 @@ function AppRoutes() {
         ========================== */}
 
         <Route
-          path="/"
-          element={
-            <Navigate
-              to="/player/login"
-              replace
-            />
-          }
-        />
+  path="/"
+  element={
+    <Navigate
+      to="/player/play"
+      replace
+    />
+  }
+/>
 
         {/* =========================
             404
         ========================== */}
 
-        <Route
-          path="*"
-          element={
-            <Navigate
-              to="/player/login"
-              replace
-            />
-          }
-        />
+       <Route
+  path="*"
+  element={
+    <Navigate
+      to="/player/play"
+      replace
+    />
+  }
+/>
 
       </Routes>
     </BrowserRouter>

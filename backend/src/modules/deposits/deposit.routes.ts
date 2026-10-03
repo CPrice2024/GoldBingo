@@ -10,6 +10,7 @@ import {
   approveDepositRequest,
   verifyCbeReceiptRequest,
   approveCbeReceiptRequest,
+  lookupTelebirrPaymentRequest,
 } from "./deposit.controller";
 
 const router = Router();
@@ -48,5 +49,12 @@ router.patch(
   "/:id/approve",
   approveDepositRequest
 );
-
+router.patch(
+  "/:id/approve",
+  approveDepositRequest
+);
+router.post(
+  "/telebirr/lookup",
+  lookupTelebirrPaymentRequest
+);
 export default router;

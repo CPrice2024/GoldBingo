@@ -123,3 +123,15 @@ export const verifyCbeReceipt = async (
 
   return response.data;
 };
+export const lookupTelebirrPayment =
+  async (reference) => {
+    const response =
+      await api.post(
+        "/deposits/telebirr/lookup",
+        {
+          reference,
+        }
+      );
+
+    return response.data;
+  };

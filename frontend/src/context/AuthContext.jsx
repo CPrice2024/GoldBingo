@@ -3,135 +3,340 @@ import {
   useState,
 } from "react";
 
-import { AuthContext } from "./auth-context";
+import {
+  Preferences,
+} from "@capacitor/preferences";
+
+import {
+  AuthContext,
+} from "./auth-context";
 
 export const AuthProvider = ({
   children,
 }) => {
-  const [user, setUser] = useState(() => {
-    const storedUser =
-      localStorage.getItem("user");
+  const [
+    user,
+    setUser,
+  ] = useState(null);
 
-    try {
-      return storedUser
-        ? JSON.parse(storedUser)
-        : null;
-    } catch {
-      return null;
-    }
-  });
+  const [
+    accessToken,
+    setAccessToken,
+  ] = useState(null);
 
-  const [accessToken, setAccessToken] =
-    useState(() => {
-      return localStorage.getItem(
-        "accessToken"
-      );
-    });
+  const [
+    authReady,
+    setAuthReady,
+  ] = useState(false);
 
-  const login = (
-    token,
-    userData
-  ) => {
-    localStorage.setItem(
-      "accessToken",
-      token
-    );
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(userData)
-    );
-
-    setAccessToken(token);
-    setUser(userData);
-  };
-
-  const logout = () => {
-    localStorage.removeItem(
-      "accessToken"
-    );
-
-    localStorage.removeItem("user");
-
-    setAccessToken(null);
-    setUser(null);
-  };
+  /* ========================================
+     RESTORE SAVED SESSION
+  ======================================== */
 
   useEffect(() => {
-  if (!accessToken) {
-    return;
-  }
+    const restoreSession =
+      async () => {
+        try {
+          const [
+            tokenResult,
+            userResult,
+          ] = await Promise.all([
+            Preferences.get({
+              key: "accessToken",
+            }),
 
-  try {
-    const payload = JSON.parse(
-      atob(
-        accessToken.split(".")[1]
-      )
-    );
+            Preferences.get({
+              key: "user",
+            }),
+          ]);
+
+          const savedToken =
+            tokenResult.value;
+
+          const savedUser =
+            userResult.value;
+
+          if (
+            savedToken &&
+            savedUser
+          ) {
+            const parsedUser =
+              JSON.parse(
+                savedUser
+              );
+
+            setAccessToken(
+              savedToken
+            );
+
+            setUser(
+              parsedUser
+            );
+
+            /*
+             * Keep localStorage synced
+             * because axios currently
+             * reads the token from there.
+             */
+            localStorage.setItem(
+              "accessToken",
+              savedToken
+            );
+
+            localStorage.setItem(
+              "user",
+              savedUser
+            );
+
+            console.log(
+              "[AUTH] Persistent session restored"
+            );
+          } else {
+            /*
+             * Fallback for existing
+             * installations that still
+             * have the old localStorage
+             * session.
+             */
+            const oldToken =
+              localStorage.getItem(
+                "accessToken"
+              );
+
+            const oldUser =
+              localStorage.getItem(
+                "user"
+              );
+
+            if (
+              oldToken &&
+              oldUser
+            ) {
+              const parsedUser =
+                JSON.parse(
+                  oldUser
+                );
+
+              setAccessToken(
+                oldToken
+              );
+
+              setUser(
+                parsedUser
+              );
+
+              /*
+               * Migrate old session to
+               * Capacitor Preferences.
+               */
+              await Promise.all([
+                Preferences.set({
+                  key: "accessToken",
+                  value: oldToken,
+                }),
+
+                Preferences.set({
+                  key: "user",
+                  value: oldUser,
+                }),
+              ]);
+
+              console.log(
+                "[AUTH] Old session migrated to Preferences"
+              );
+            }
+          }
+        } catch (error) {
+          console.error(
+            "[AUTH] Session restore failed:",
+            error
+          );
+        } finally {
+          setAuthReady(true);
+        }
+      };
+
+    restoreSession();
+  }, []);
 
 
-    /*
-     * No exp means this is a
-     * persistent player token.
-     *
-     * Do not automatically logout.
-     */
-    if (!payload.exp) {
-      return;
-    }
+  /* ========================================
+     LOGIN
+  ======================================== */
 
+  const login =
+    async (
+      token,
+      userData
+    ) => {
+      const userJson =
+        JSON.stringify(
+          userData
+        );
 
-    /*
-     * Admin / Agent tokens
-     * still expire normally.
-     */
-    const expiresAt =
-      Number(payload.exp) * 1000;
+      /*
+       * Native persistent storage.
+       */
+      await Promise.all([
+        Preferences.set({
+          key: "accessToken",
+          value: token,
+        }),
 
-    const remaining =
-      expiresAt - Date.now();
+        Preferences.set({
+          key: "user",
+          value: userJson,
+        }),
+      ]);
 
-
-    if (remaining <= 0) {
-      logout();
-      return;
-    }
-
-
-    const timer =
-      setTimeout(
-        () => {
-          logout();
-        },
-        remaining
+      /*
+       * Keep localStorage because the
+       * current axios interceptor uses it.
+       */
+      localStorage.setItem(
+        "accessToken",
+        token
       );
 
+      localStorage.setItem(
+        "user",
+        userJson
+      );
 
-    return () => {
-      clearTimeout(timer);
+      setAccessToken(
+        token
+      );
+
+      setUser(
+        userData
+      );
     };
 
-  } catch (error) {
 
-    console.error(
-      "Invalid access token:",
-      error
-    );
+  /* ========================================
+     LOGOUT
+  ======================================== */
 
-    logout();
-  }
+  const logout =
+    async () => {
+      await Promise.all([
+        Preferences.remove({
+          key: "accessToken",
+        }),
 
-}, [accessToken]);
+        Preferences.remove({
+          key: "user",
+        }),
+      ]);
+
+      localStorage.removeItem(
+        "accessToken"
+      );
+
+      localStorage.removeItem(
+        "user"
+      );
+
+      setAccessToken(null);
+      setUser(null);
+    };
+
+
+  /* ========================================
+     TOKEN EXPIRATION
+  ======================================== */
+
+  useEffect(() => {
+    if (
+      !authReady ||
+      !accessToken
+    ) {
+      return;
+    }
+
+    try {
+      const payload =
+        JSON.parse(
+          atob(
+            accessToken
+              .split(".")[1]
+              .replace(
+                /-/g,
+                "+"
+              )
+              .replace(
+                /_/g,
+                "/"
+              )
+          )
+        );
+
+      /*
+       * Player token has no expiration.
+       * Keep player logged in.
+       */
+      if (!payload.exp) {
+        return;
+      }
+
+      /*
+       * Admin / Agent tokens can
+       * continue expiring normally.
+       */
+      const expiresAt =
+        Number(
+          payload.exp
+        ) * 1000;
+
+      const remaining =
+        expiresAt -
+        Date.now();
+
+      if (remaining <= 0) {
+        logout();
+        return;
+      }
+
+      const timer =
+        setTimeout(
+          () => {
+            logout();
+          },
+          remaining
+        );
+
+      return () => {
+        clearTimeout(
+          timer
+        );
+      };
+    } catch (error) {
+      console.error(
+        "[AUTH] Invalid token:",
+        error
+      );
+    }
+  }, [
+    accessToken,
+    authReady,
+  ]);
+
 
   return (
     <AuthContext.Provider
       value={{
         user,
         accessToken,
+
         isAuthenticated:
           Boolean(
-            accessToken && user
+            accessToken &&
+            user
           ),
+
+        authReady,
+
         login,
         logout,
       }}

@@ -7,6 +7,7 @@ import {
   getPlayerPaymentSettings,
   approveDeposit,
   verifyAndApproveCbeDeposit,
+  lookupTelebirrPayment,
 } from "./deposit.service";
 import {
   verifyCbeReceipt,
@@ -471,3 +472,72 @@ const result = await approveDeposit(
     });
   }
 };
+export const lookupTelebirrPaymentRequest =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const playerId =
+        req.user?.userId;
+
+      if (!playerId) {
+        return res.status(401).json({
+          success: false,
+          message:
+            "Authentication required",
+        });
+      }
+
+      if (
+        req.user?.role !==
+        "player"
+      ) {
+        return res.status(403).json({
+          success: false,
+          message:
+            "Only players can verify Telebirr payments",
+        });
+      }
+
+      const reference =
+        String(
+          req.body?.reference || ""
+        )
+          .trim()
+          .toUpperCase();
+
+      if (
+        !/^D[A-Z0-9]{9}$/.test(
+          reference
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Invalid Telebirr transaction ID",
+        });
+      }
+
+      const result =
+        await lookupTelebirrPayment(
+          playerId,
+          reference
+        );
+
+      return res.status(200).json({
+        success: true,
+        data: result,
+      });
+
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to verify Telebirr payment",
+      });
+    }
+  };
