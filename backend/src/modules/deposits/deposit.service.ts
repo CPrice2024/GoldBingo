@@ -111,25 +111,47 @@ const isAutoApprovalEnabled = () =>
 const extractReceivedSmsAmount = (
   text: string
 ): number | null => {
-  const match =
-    String(text || "").match(
-      /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i
-    );
+  const raw =
+    String(text || "");
 
-  if (!match) {
-    return null;
+  const patterns = [
+    // English Telebirr
+    // You have received ETB 11.00
+    /you\s+have\s+received\s+(?:ETB|BIRR)\s*:?\s*([0-9][0-9,]*(?:\.\d{1,2})?)/i,
+
+    // Amharic Telebirr
+    // 11.00 ብር በ 03/10/2026
+    /([0-9][0-9,]*(?:\.\d{1,2})?)\s*ብር\s*በ\s*\d{1,2}[/-]\d{1,2}[/-]\d{4}/u,
+  ];
+
+  for (
+    const pattern of patterns
+  ) {
+    const match =
+      raw.match(pattern);
+
+    if (!match?.[1]) {
+      continue;
+    }
+
+    const amount =
+      Number(
+        match[1].replace(
+          /,/g,
+          ""
+        )
+      );
+
+    if (
+      Number.isFinite(amount) &&
+      amount > 0
+    ) {
+      return amount;
+    }
   }
 
-  const amount =
-    Number(
-      match[1].replace(/,/g, "")
-    );
-
-  return Number.isFinite(amount)
-    ? amount
-    : null;
+  return null;
 };
-
 
 export const submitDeposit = async (
   playerId: string,
@@ -1895,6 +1917,22 @@ export const lookupTelebirrPayment =
       storedAmount > 0
         ? storedAmount
         : parsedAmount;
+
+    if (
+  (
+    !Number.isFinite(
+      storedAmount
+    ) ||
+    storedAmount <= 0
+  ) &&
+  parsedAmount !== null &&
+  parsedAmount > 0
+) {
+  sms.amount =
+    parsedAmount;
+
+  await sms.save();
+}
 
     if (
       amount === null ||
