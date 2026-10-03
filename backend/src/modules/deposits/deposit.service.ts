@@ -1460,44 +1460,140 @@ export const approveDeposit = async (
     }
 
 
-    /* =========================================
-       3. LOAD GLOBAL DEPOSIT BONUS
-    ========================================= */
+  /* =========================================
+   3. LOAD GLOBAL BONUS SETTINGS
+========================================= */
 
-    const appSettings =
-      await AppSettings.findOne({
-        key: "global",
-      }).session(session);
-
-
-    const bonusEnabled =
-      appSettings
-        ?.depositBonusEnabled ===
-      true;
+const appSettings =
+  await AppSettings.findOne({
+    key: "global",
+  }).session(session);
 
 
-    const rawBonusPercent =
-      Number(
-        appSettings
-          ?.depositBonusPercent ??
+/* =========================================
+   NORMAL DEPOSIT BONUS
+========================================= */
+
+const normalBonusEnabled =
+  appSettings
+    ?.depositBonusEnabled ===
+  true;
+
+const rawNormalBonusPercent =
+  Number(
+    appSettings
+      ?.depositBonusPercent ??
+      0
+  );
+
+const normalBonusPercent =
+  normalBonusEnabled &&
+  Number.isFinite(
+    rawNormalBonusPercent
+  )
+    ? Math.min(
+        Math.max(
+          rawNormalBonusPercent,
           0
-      );
-
-
-    const bonusPercent =
-      bonusEnabled &&
-      Number.isFinite(
-        rawBonusPercent
+        ),
+        300
       )
-        ? Math.min(
-            Math.max(
-              rawBonusPercent,
-              0
-            ),
-            100
-          )
-        : 0;
+    : 0;
 
+
+/* =========================================
+   FIRST DEPOSIT BONUS
+========================================= */
+
+const firstDepositBonusEnabled =
+  appSettings
+    ?.firstDepositBonusEnabled ===
+  true;
+
+const rawFirstDepositBonusPercent =
+  Number(
+    appSettings
+      ?.firstDepositBonusPercent ??
+      0
+  );
+
+const firstDepositBonusPercent =
+  firstDepositBonusEnabled &&
+  Number.isFinite(
+    rawFirstDepositBonusPercent
+  )
+    ? Math.min(
+        Math.max(
+          rawFirstDepositBonusPercent,
+          0
+        ),
+        300
+      )
+    : 0;
+
+
+/* =========================================
+   CHECK PREVIOUS APPROVED DEPOSIT
+========================================= */
+
+const previousApprovedDeposit =
+  await Deposit.exists({
+    playerId:
+      deposit.playerId,
+
+    status:
+      "approved",
+
+    _id: {
+      $ne:
+        deposit._id,
+    },
+  }).session(session);
+
+
+const isFirstDeposit =
+  !previousApprovedDeposit;
+
+
+/* =========================================
+   CHOOSE BONUS
+
+   First-deposit bonus has priority.
+   Bonuses do not stack.
+========================================= */
+
+let bonusPercent = 0;
+
+let bonusType:
+  | "none"
+  | "deposit"
+  | "first_deposit" =
+  "none";
+
+
+if (
+  isFirstDeposit &&
+  firstDepositBonusEnabled
+) {
+  bonusPercent =
+    firstDepositBonusPercent;
+
+  bonusType =
+    "first_deposit";
+
+} else if (
+  normalBonusEnabled
+) {
+  bonusPercent =
+    normalBonusPercent;
+
+  bonusType =
+    "deposit";
+}
+
+
+const bonusEnabled =
+  bonusPercent > 0;
 
     /* =========================================
        4. CALCULATE BONUS
@@ -1699,14 +1795,16 @@ if (
               agentId
             ),
 
-          description:
-  options.autoApproved
-    ? bonusAmount > 0
-      ? `Deposit automatically approved from SMS. Verified deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
-      : `Deposit automatically approved from verified SMS: ${depositAmount} ETB`
-    : bonusAmount > 0
-    ? `Deposit approved by agent. Base deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
-    : "Deposit approved by agent",
+         description:
+  bonusType ===
+    "first_deposit"
+    ? `First deposit approved. Deposit: ${depositAmount} ETB, first deposit bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
+
+    : bonusType ===
+        "deposit"
+    ? `Deposit approved. Deposit: ${depositAmount} ETB, bonus: ${bonusAmount} ETB (${bonusPercent}%), total credited: ${creditedAmount} ETB`
+
+    : `Deposit approved. Amount: ${depositAmount} ETB`,
         },
       ],
       {
@@ -1729,11 +1827,15 @@ if (
     try {
 
       const notificationMessage =
-        bonusAmount > 0
-          ? `Your deposit of ${depositAmount} ETB has been approved. You received a ${bonusPercent}% deposit bonus of ${bonusAmount} ETB. Total credited: ${creditedAmount} ETB.`
-          : `Your deposit of ${depositAmount} ETB has been approved.`;
+  bonusType ===
+    "first_deposit"
+    ? `Your first deposit of ${depositAmount} ETB has been approved. You received a ${bonusPercent}% first deposit bonus of ${bonusAmount} ETB. Total credited: ${creditedAmount} ETB.`
 
+    : bonusType ===
+        "deposit"
+    ? `Your deposit of ${depositAmount} ETB has been approved. You received a ${bonusPercent}% deposit bonus of ${bonusAmount} ETB. Total credited: ${creditedAmount} ETB.`
 
+    : `Your deposit of ${depositAmount} ETB has been approved.`;
       await sendNotificationToUser(
         deposit.playerId.toString(),
 
@@ -1782,22 +1884,25 @@ if (
     ========================================= */
 
     return {
-      deposit,
+  deposit,
 
-      balanceBefore,
+  balanceBefore,
+  balanceAfter,
 
-      balanceAfter,
+  depositAmount,
 
-      depositAmount,
+  isFirstDeposit,
 
-      bonusEnabled,
+  bonusEnabled,
 
-      bonusPercent,
+  bonusType,
 
-      bonusAmount,
+  bonusPercent,
 
-      creditedAmount,
-    };
+  bonusAmount,
+
+  creditedAmount,
+};
 
   } catch (error) {
 

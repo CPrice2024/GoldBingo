@@ -23,6 +23,17 @@ const appSettingsSchema =
         min: 0,
         max: 300,
       },
+      firstDepositBonusEnabled: {
+  type: Boolean,
+  default: false,
+},
+
+firstDepositBonusPercent: {
+  type: Number,
+  default: 100,
+  min: 0,
+  max: 300,
+},
       automaticGameEnabled: {
        type: Boolean,
        default: true,

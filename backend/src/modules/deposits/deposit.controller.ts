@@ -455,12 +455,36 @@ const result = await approveDeposit(
       message:
         "Deposit approved successfully",
       data: {
-        deposit: result.deposit,
-        balanceBefore:
-          result.balanceBefore,
-        balanceAfter:
-          result.balanceAfter,
-      },
+  deposit:
+    result.deposit,
+
+  balanceBefore:
+    result.balanceBefore,
+
+  balanceAfter:
+    result.balanceAfter,
+
+  depositAmount:
+    result.depositAmount,
+
+  isFirstDeposit:
+    result.isFirstDeposit,
+
+  bonusEnabled:
+    result.bonusEnabled,
+
+  bonusType:
+    result.bonusType,
+
+  bonusPercent:
+    result.bonusPercent,
+
+  bonusAmount:
+    result.bonusAmount,
+
+  creditedAmount:
+    result.creditedAmount,
+},
     });
   } catch (error) {
     return res.status(400).json({

@@ -10,6 +10,8 @@ import {
 import {
   getDepositBonusSettings,
   updateDepositBonus,
+  getFirstDepositBonusSettings,
+  updateFirstDepositBonus,
   getAutomaticGame,
   updateAutomaticGame,
 } from "./settings.controller";
@@ -37,7 +39,24 @@ router.patch(
 
   updateDepositBonus
 );
+router.get(
+  "/first-deposit-bonus",
 
+  authenticate,
+  authorize("admin"),
+
+  getFirstDepositBonusSettings
+);
+
+
+router.patch(
+  "/first-deposit-bonus",
+
+  authenticate,
+  authorize("admin"),
+
+  updateFirstDepositBonus
+);
 router.get(
   "/automatic-game",
   authenticate,

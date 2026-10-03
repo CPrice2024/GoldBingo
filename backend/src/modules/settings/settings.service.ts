@@ -173,3 +173,42 @@ export const updateAutomaticGameSetting =
         settings.automaticGameEnabled,
     };
   };
+  export const updateFirstDepositBonusSettings =
+  async (
+    enabled: boolean,
+    percent: number
+  ) => {
+    if (
+      !Number.isFinite(percent) ||
+      percent < 0 ||
+      percent > 300
+    ) {
+      throw new Error(
+        "First deposit bonus percent must be between 0 and 300"
+      );
+    }
+
+    const settings =
+      await AppSettings.findOneAndUpdate(
+        {
+          key: "global",
+        },
+        {
+          $set: {
+            firstDepositBonusEnabled:
+              enabled,
+
+            firstDepositBonusPercent:
+              percent,
+          },
+        },
+        {
+          new: true,
+          upsert: true,
+          runValidators: true,
+          setDefaultsOnInsert: true,
+        }
+      );
+
+    return settings;
+  };

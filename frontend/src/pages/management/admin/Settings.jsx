@@ -33,8 +33,12 @@ import {
 import {
   getAdminProfile,
   updateAdminProfile,
+
   getDepositBonusSettings,
   updateDepositBonusSettings,
+
+  getFirstDepositBonusSettings,
+  updateFirstDepositBonusSettings,
 } from "../../../api/admin.api";
 
 import { changePassword } from "../../../api/auth.api";
@@ -152,7 +156,25 @@ const [
   setSavingDepositBonus,
 ] = useState(false);
 
+const [
+  firstDepositBonus,
+  setFirstDepositBonus,
+] = useState({
+  enabled: false,
+  percent: 100,
+});
 
+
+const [
+  firstDepositBonusLoading,
+  setFirstDepositBonusLoading,
+] = useState(true);
+
+
+const [
+  savingFirstDepositBonus,
+  setSavingFirstDepositBonus,
+] = useState(false);
   const loadProfile = async () => {
     try {
       setLoading(true);
@@ -305,12 +327,61 @@ const loadInfo =
     }
 
   };
+const loadFirstDepositBonus =
+  async () => {
 
+    try {
+
+      setFirstDepositBonusLoading(
+        true
+      );
+
+      const response =
+        await getFirstDepositBonusSettings();
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to load first deposit bonus settings"
+        );
+      }
+
+
+      setFirstDepositBonus({
+        enabled:
+          Boolean(
+            response.data?.enabled
+          ),
+
+        percent:
+          Number(
+            response.data?.percent ??
+              100
+          ),
+      });
+
+    } catch (error) {
+
+      console.error(
+        "First deposit bonus loading error:",
+        error
+      );
+
+    } finally {
+
+      setFirstDepositBonusLoading(
+        false
+      );
+
+    }
+  };
 
 useEffect(() => {
   loadProfile();
   loadPromotions();
   loadDepositBonus();
+  loadFirstDepositBonus();
   loadInfo();
 }, []);
 
@@ -596,7 +667,96 @@ const handleDepositBonusSave =
     }
 
   };
+const handleFirstDepositBonusSave =
+  async () => {
 
+    setError("");
+    setMessage("");
+
+
+    const percent =
+      Number(
+        firstDepositBonus.percent
+      );
+
+
+    if (
+      !Number.isFinite(percent) ||
+      percent < 0 ||
+      percent > 300
+    ) {
+
+      setError(
+        "First deposit bonus percentage must be between 0 and 300."
+      );
+
+      return;
+    }
+
+
+    try {
+
+      setSavingFirstDepositBonus(
+        true
+      );
+
+
+      const response =
+        await updateFirstDepositBonusSettings(
+          {
+            enabled:
+              firstDepositBonus.enabled,
+
+            percent,
+          }
+        );
+
+
+      if (!response?.success) {
+        throw new Error(
+          response?.message ||
+            "Failed to save first deposit bonus settings"
+        );
+      }
+
+
+      setFirstDepositBonus({
+        enabled:
+          response.data.enabled,
+
+        percent:
+          response.data.percent,
+      });
+
+
+      setMessage(
+        response?.message ||
+          "First deposit bonus settings saved successfully."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "First deposit bonus save error:",
+        error
+      );
+
+
+      setError(
+        error?.response?.data
+          ?.message ||
+          error?.message ||
+          "Failed to save first deposit bonus settings"
+      );
+
+    } finally {
+
+      setSavingFirstDepositBonus(
+        false
+      );
+
+    }
+  };
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
 
@@ -1552,6 +1712,219 @@ const handleInfoDelete =
             Save Deposit Bonus
           </>
 
+        )}
+
+      </button>
+
+    </>
+
+  )}
+
+</section>
+
+{/* =====================================
+    FIRST DEPOSIT BONUS
+===================================== */}
+
+<section className="admin-settings-card admin-deposit-bonus-card">
+
+  <div className="admin-settings-card-header">
+
+    <div className="admin-settings-card-icon">
+      <BadgePercent size={20} />
+    </div>
+
+    <div>
+      <h2>
+        First Deposit Bonus
+      </h2>
+
+      <p>
+        Give a special percentage bonus
+        only on a player's first approved
+        deposit.
+      </p>
+    </div>
+
+  </div>
+
+
+  {firstDepositBonusLoading ? (
+
+    <div className="admin-deposit-bonus-loading">
+
+      <Loader2
+        size={18}
+        className="admin-spin"
+      />
+
+      Loading first deposit bonus...
+
+    </div>
+
+  ) : (
+
+    <>
+
+      {/* ENABLE / DISABLE */}
+
+      <div className="admin-deposit-bonus-row">
+
+        <div>
+
+          <strong>
+            First Deposit Bonus
+          </strong>
+
+          <span>
+            This bonus is applied only
+            once, on the player's first
+            approved deposit.
+          </span>
+
+        </div>
+
+
+        <label className="admin-bonus-switch">
+
+          <input
+            type="checkbox"
+
+            checked={
+              firstDepositBonus.enabled
+            }
+
+            onChange={(event) =>
+              setFirstDepositBonus(
+                (current) => ({
+                  ...current,
+
+                  enabled:
+                    event.target.checked,
+                })
+              )
+            }
+          />
+
+          <span className="admin-bonus-slider" />
+
+        </label>
+
+      </div>
+
+
+      {/* PERCENT */}
+
+      <div className="admin-settings-field">
+
+        <label>
+          First Deposit Bonus Percentage
+        </label>
+
+
+        <div className="admin-bonus-percent-input">
+
+          <BadgePercent
+            size={18}
+          />
+
+          <input
+            type="number"
+
+            min="0"
+            max="300"
+            step="1"
+
+            value={
+              firstDepositBonus.percent
+            }
+
+            onChange={(event) =>
+              setFirstDepositBonus(
+                (current) => ({
+                  ...current,
+
+                  percent:
+                    event.target.value,
+                })
+              )
+            }
+
+            disabled={
+              !firstDepositBonus.enabled
+            }
+          />
+
+          <span>
+            %
+          </span>
+
+        </div>
+
+      </div>
+
+
+      {/* EXAMPLE */}
+
+      <div className="admin-bonus-example">
+
+        <span>
+          First deposit example
+        </span>
+
+        <strong>
+          100 ETB deposit
+          {" → "}
+
+          {firstDepositBonus.enabled
+            ? (
+                100 +
+                (
+                  100 *
+                  Number(
+                    firstDepositBonus.percent ||
+                      0
+                  )
+                ) /
+                  100
+              ).toFixed(2)
+            : "100.00"}{" "}
+
+          ETB credited
+        </strong>
+
+      </div>
+
+
+      <button
+        type="button"
+
+        className="admin-settings-save-button"
+
+        onClick={
+          handleFirstDepositBonusSave
+        }
+
+        disabled={
+          savingFirstDepositBonus
+        }
+      >
+
+        {savingFirstDepositBonus ? (
+          <>
+            <Loader2
+              size={17}
+              className="admin-spin"
+            />
+
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save size={17} />
+
+            Save First Deposit Bonus
+          </>
         )}
 
       </button>

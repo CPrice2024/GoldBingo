@@ -150,3 +150,25 @@ export const approveOTPRequest =
 
     return response.data;
   };
+
+  export const getFirstDepositBonusSettings =
+  async () => {
+    const response =
+      await api.get(
+        "/settings/first-deposit-bonus"
+      );
+
+    return response.data;
+  };
+
+
+export const updateFirstDepositBonusSettings =
+  async (data) => {
+    const response =
+      await api.patch(
+        "/settings/first-deposit-bonus",
+        data
+      );
+
+    return response.data;
+  };

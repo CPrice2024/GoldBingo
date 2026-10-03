@@ -6,6 +6,7 @@ import {
 import {
   getAppSettings,
   updateDepositBonusSettings,
+  updateFirstDepositBonusSettings,
   getAutomaticGameSetting,
   updateAutomaticGameSetting,
 } from "./settings.service";
@@ -128,7 +129,125 @@ export const updateDepositBonus =
     }
 
   };
+export const getFirstDepositBonusSettings =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const settings =
+        await getAppSettings();
 
+      return res.status(200).json({
+        success: true,
+
+        data: {
+          enabled:
+            settings
+              .firstDepositBonusEnabled,
+
+          percent:
+            settings
+              .firstDepositBonusPercent,
+        },
+      });
+
+    } catch (error) {
+      console.error(
+        "Get first deposit bonus settings error:",
+        error
+      );
+
+      return res.status(500).json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to load first deposit bonus settings",
+      });
+    }
+  };
+
+
+export const updateFirstDepositBonus =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const {
+        enabled,
+        percent,
+      } = req.body;
+
+      if (
+        typeof enabled !==
+        "boolean"
+      ) {
+        return res.status(400).json({
+          success: false,
+
+          message:
+            "Enabled must be true or false",
+        });
+      }
+
+      const numericPercent =
+        Number(percent);
+
+      if (
+        !Number.isFinite(
+          numericPercent
+        )
+      ) {
+        return res.status(400).json({
+          success: false,
+
+          message:
+            "Percent must be a valid number",
+        });
+      }
+
+      const settings =
+        await updateFirstDepositBonusSettings(
+          enabled,
+          numericPercent
+        );
+
+      return res.status(200).json({
+        success: true,
+
+        message:
+          "First deposit bonus settings updated successfully",
+
+        data: {
+          enabled:
+            settings
+              .firstDepositBonusEnabled,
+
+          percent:
+            settings
+              .firstDepositBonusPercent,
+        },
+      });
+
+    } catch (error) {
+      console.error(
+        "Update first deposit bonus settings error:",
+        error
+      );
+
+      return res.status(400).json({
+        success: false,
+
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to update first deposit bonus settings",
+      });
+    }
+  };
 export const getAutomaticGame =
   async (
     req: Request,
