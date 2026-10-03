@@ -45,16 +45,12 @@ router.post(
   "/cbe/approve-receipt",
   approveCbeReceiptRequest
 );
-router.patch(
-  "/:id/approve",
-  approveDepositRequest
-);
-router.patch(
-  "/:id/approve",
-  approveDepositRequest
-);
 router.post(
   "/telebirr/lookup",
   lookupTelebirrPaymentRequest
+);
+router.patch(
+  "/:id/approve",
+  approveDepositRequest
 );
 export default router;
