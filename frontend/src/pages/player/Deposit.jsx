@@ -159,7 +159,10 @@ const [
   telebirrStage,
   setTelebirrStage,
 ] = useState("idle");
-
+const [
+  telebirrManualAmount,
+  setTelebirrManualAmount,
+] = useState(false);
   useEffect(() => {
   loadDeposits();
   loadPaymentSettings();
@@ -229,6 +232,10 @@ const checkTelebirrPayment =
         "idle"
       );
 
+      setTelebirrManualAmount(
+  false
+);
+
       setForm(
         (current) => ({
           ...current,
@@ -256,27 +263,22 @@ const checkTelebirrPayment =
         response?.data;
 
       if (
-        result?.matched !==
-        true
-      ) {
-        setTelebirrStage(
-          "not_found"
-        );
+  result?.matched !== true
+) {
 
-        setForm(
-          (current) => ({
-            ...current,
-            amount: "",
-          })
-        );
+  setTelebirrStage(
+    telebirrManualAmount
+      ? "manual_amount"
+      : "ocr_ready"
+  );
 
-        setSuccess(
-          result?.reason ||
-            "Waiting for matching Telebirr SMS."
-        );
+  setSuccess(
+    result?.reason ||
+      "Transaction detected. Waiting for Telebirr confirmation."
+  );
 
-        return;
-      }
+  return;
+}
 
       const amount =
         Number(
@@ -312,7 +314,9 @@ const checkTelebirrPayment =
           };
         }
       );
-
+setTelebirrManualAmount(
+  false
+);
       setTelebirrStage(
         "matched"
       );
@@ -355,20 +359,6 @@ useEffect(() => {
       .trim()
       .toUpperCase();
 
-  setForm(
-    (current) => {
-      if (
-        current.amount === ""
-      ) {
-        return current;
-      }
-
-      return {
-        ...current,
-        amount: "",
-      };
-    }
-  );
 
   setTelebirrStage(
     "idle"
@@ -1040,23 +1030,46 @@ if (transactionDate) {
       return;
     }
 
+const telebirrHasOcrAmount =
+  form.paymentMethod === "telebirr" &&
+  Number.isFinite(
+    Number(detectedAmount)
+  ) &&
+  Number(detectedAmount) > 0;
+
+
 setForm((current) => ({
   ...current,
 
   reference,
 
   amount:
-  form.paymentMethod ===
-    "telebirr"
-    ? ""
-    : current.amount,
+    form.paymentMethod === "telebirr"
+      ? telebirrHasOcrAmount
+        ? String(detectedAmount)
+        : ""
+      : current.amount,
 
   receiptUrl:
-    form.paymentMethod ===
-    "cbe"
+    form.paymentMethod === "cbe"
       ? detectedCbeReceiptUrl
       : "",
 }));
+
+
+if (
+  form.paymentMethod === "telebirr"
+) {
+  setTelebirrManualAmount(
+    !telebirrHasOcrAmount
+  );
+
+  setTelebirrStage(
+    telebirrHasOcrAmount
+      ? "ocr_ready"
+      : "manual_amount"
+  );
+}
 
     setSuccess(
   `${t("deposit.transactionIdFound")}: ${reference}`
@@ -1462,11 +1475,16 @@ const waitForCbeApproval =
 if (
   form.paymentMethod ===
     "telebirr" &&
-  telebirrStage !==
-    "matched"
+  ![
+    "matched",
+    "ocr_ready",
+    "manual_amount",
+  ].includes(
+    telebirrStage
+  )
 ) {
   setError(
-    "Please wait transaction confirm."
+    "Please upload a valid Telebirr screenshot."
   );
 
   return;
@@ -1761,22 +1779,22 @@ setSuccess("");
     placeholder={t("deposit.enterAmount")}
     value={form.amount}
     onChange={handleChange}
-    disabled={
+   disabled={
   submitting ||
 
-  form.paymentMethod ===
-    "telebirr" ||
+  (
+    form.paymentMethod ===
+      "telebirr" &&
+    !telebirrManualAmount
+  ) ||
 
   (
     form.paymentMethod ===
       "cbe" &&
     (
-      cbeStage ===
-        "verified" ||
-      cbeStage ===
-        "waiting_sms" ||
-      cbeStage ===
-        "approved"
+      cbeStage === "verified" ||
+      cbeStage === "waiting" ||
+      cbeStage === "approved"
     )
   )
 }
@@ -2034,11 +2052,16 @@ setSuccess("");
   ) ||
 
   (
-    form.paymentMethod ===
-      "telebirr" &&
-    telebirrStage !==
-      "matched"
+  form.paymentMethod ===
+    "telebirr" &&
+  ![
+    "matched",
+    "ocr_ready",
+    "manual_amount",
+  ].includes(
+    telebirrStage
   )
+)
 }
             >
               {submitting ? (

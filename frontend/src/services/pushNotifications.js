@@ -1,7 +1,9 @@
 import {
   PushNotifications,
 } from "@capacitor/push-notifications";
-
+import {
+  LocalNotifications,
+} from "@capacitor/local-notifications";
 import {
   Capacitor,
 } from "@capacitor/core";
@@ -219,17 +221,95 @@ if (
       ================================= */
 
       await PushNotifications
-        .addListener(
-          "pushNotificationReceived",
-          (notification) => {
+  .addListener(
+    "pushNotificationReceived",
+    async (notification) => {
 
-            console.log(
-              "[PUSH] Notification received:",
-              notification
-            );
+      console.log(
+        "[PUSH] Notification received:",
+        notification
+      );
 
-          }
+      try {
+
+        let localPermission =
+          await LocalNotifications
+            .checkPermissions();
+
+        if (
+          localPermission.display !==
+          "granted"
+        ) {
+          localPermission =
+            await LocalNotifications
+              .requestPermissions();
+        }
+
+        if (
+          localPermission.display !==
+          "granted"
+        ) {
+          console.log(
+            "[LOCAL] Notification permission denied"
+          );
+
+          return;
+        }
+
+
+        await LocalNotifications
+          .createChannel({
+            id: "goldbingo",
+            name: "GoldBingo Notifications",
+            description:
+              "GoldBingo game notifications",
+            importance: 5,
+          });
+
+
+        await LocalNotifications
+          .schedule({
+            notifications: [
+              {
+                id:
+                  Math.floor(
+                    Date.now() %
+                    2147483647
+                  ),
+
+                title:
+                  notification.title ||
+                  "GoldBingo",
+
+                body:
+                  notification.body ||
+                  "You have a new notification.",
+
+                channelId:
+                  "goldbingo",
+
+                extra:
+                  notification.data || {},
+              },
+            ],
+          });
+
+
+        console.log(
+          "[LOCAL] Foreground notification displayed"
         );
+
+      } catch (error) {
+
+        console.error(
+          "[LOCAL] Notification error:",
+          error
+        );
+
+      }
+
+    }
+  );
 
 
       /* ================================

@@ -1889,13 +1889,9 @@ const handleInfoDelete =
                   100
               ).toFixed(2)
             : "100.00"}{" "}
-
           ETB credited
         </strong>
-
       </div>
-
-
       <button
         type="button"
 
