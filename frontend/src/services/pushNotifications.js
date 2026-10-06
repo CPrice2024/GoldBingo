@@ -217,99 +217,121 @@ if (
 
 
       /* ================================
-         5. FOREGROUND NOTIFICATION
-      ================================= */
+   5. FOREGROUND NOTIFICATION
+================================= */
 
-      await PushNotifications
-  .addListener(
-    "pushNotificationReceived",
-    async (notification) => {
+await PushNotifications.addListener(
+  "pushNotificationReceived",
+  async (notification) => {
 
-      console.log(
-        "[PUSH] Notification received:",
-        notification
-      );
+    console.log(
+      "[PUSH] Notification received:",
+      notification
+    );
 
-      try {
+    try {
 
-        let localPermission =
+      let localPermission =
+        await LocalNotifications
+          .checkPermissions();
+
+      if (
+        localPermission.display !==
+        "granted"
+      ) {
+        localPermission =
           await LocalNotifications
-            .checkPermissions();
-
-        if (
-          localPermission.display !==
-          "granted"
-        ) {
-          localPermission =
-            await LocalNotifications
-              .requestPermissions();
-        }
-
-        if (
-          localPermission.display !==
-          "granted"
-        ) {
-          console.log(
-            "[LOCAL] Notification permission denied"
-          );
-
-          return;
-        }
-
-
-        await LocalNotifications
-          .createChannel({
-            id: "goldbingo",
-            name: "GoldBingo Notifications",
-            description:
-              "GoldBingo game notifications",
-            importance: 5,
-          });
-
-
-        await LocalNotifications
-          .schedule({
-            notifications: [
-              {
-                id:
-                  Math.floor(
-                    Date.now() %
-                    2147483647
-                  ),
-
-                title:
-                  notification.title ||
-                  "GoldBingo",
-
-                body:
-                  notification.body ||
-                  "You have a new notification.",
-
-                channelId:
-                  "goldbingo",
-
-                extra:
-                  notification.data || {},
-              },
-            ],
-          });
-
-
-        console.log(
-          "[LOCAL] Foreground notification displayed"
-        );
-
-      } catch (error) {
-
-        console.error(
-          "[LOCAL] Notification error:",
-          error
-        );
-
+            .requestPermissions();
       }
 
+      if (
+        localPermission.display !==
+        "granted"
+      ) {
+        console.log(
+          "[LOCAL] Notification permission denied"
+        );
+
+        return;
+      }
+
+
+      /*
+       * Use a NEW channel ID.
+       *
+       * Android remembers notification-channel
+       * settings after the channel is created.
+       * A new ID guarantees the new importance
+       * level is used.
+       */
+      await LocalNotifications.createChannel({
+        id: "goldbingo-alerts-v2",
+        name: "GoldBingo Alerts",
+        description:
+          "GoldBingo game and account notifications",
+
+        importance: 5,
+
+        vibration: true,
+      });
+
+
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id:
+              Math.floor(
+                Date.now() %
+                2147483647
+              ),
+
+            title:
+              notification.title ||
+              "GoldBingo",
+
+            body:
+              notification.body ||
+              "You have a new notification.",
+
+            channelId:
+              "goldbingo-alerts-v2",
+
+            extra:
+              notification.data || {},
+
+            /*
+             * Important for Android
+             * foreground heads-up popup.
+             */
+            foreground: true,
+
+            /*
+             * We intentionally removed
+             * SCHEDULE_EXACT_ALARM.
+             */
+            isExactNotification: false,
+
+            autoCancel: true,
+          },
+        ],
+      });
+
+
+      console.log(
+        "[LOCAL] Foreground notification displayed"
+      );
+
+    } catch (error) {
+
+      console.error(
+        "[LOCAL] Notification error:",
+        error
+      );
+
     }
-  );
+
+  }
+);
 
 
       /* ================================
