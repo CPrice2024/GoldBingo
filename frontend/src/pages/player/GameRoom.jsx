@@ -2585,13 +2585,11 @@ useEffect(() => {
     []
   );
 
- const handleMainCardButton = () => {
+const handleMainCardButton = () => {
 
   /*
    * WAITING GAME:
-   * floating + must always open
-   * the 1 / 2 / 3 / 5 / 10 menu,
-   * even when held cards already exist.
+   * always allow adding more cards.
    */
   if (
     liveGame?.status ===
@@ -2606,11 +2604,27 @@ useEffect(() => {
     return;
   }
 
+  /*
+   * NO ACTIVE GAME:
+   *
+   * Held cards may remain visible,
+   * but + must still allow the player
+   * to add more preview cards.
+   */
+  if (!hasDisplayGame) {
+
+    setCardMenuOpen(
+      (current) =>
+        !current
+    );
+
+    return;
+  }
 
   /*
    * HELD CARDS:
-   * outside a waiting game,
-   * just show existing held cards.
+   * when an actual display game exists,
+   * show the existing cards.
    */
   if (
     selectedPreviewCards.length > 0 &&
@@ -2645,8 +2659,7 @@ useEffect(() => {
 
   /*
    * COMPLETED GAME:
-   * only allow scrolling to
-   * retained joined cards.
+   * only scroll to retained joined cards.
    */
   if (
     hasDisplayGame &&
@@ -2670,39 +2683,6 @@ useEffect(() => {
     return;
   }
 
-
-  /*
-   * NO DISPLAY GAME:
-   * allow preview browsing only.
-   */
-  if (!hasDisplayGame) {
-
-    setCardMenuOpen(
-      (current) =>
-        !current
-    );
-
-    return;
-  }
-
-
-  /*
-   * WAITING GAME
-   */
-  if (
-    liveGame?.status ===
-      "waiting"
-  ) {
-
-    setCardMenuOpen(
-      (current) =>
-        !current
-    );
-
-    return;
-  }
-
-
   /*
    * ACTIVE + JOINED
    */
@@ -2719,7 +2699,6 @@ useEffect(() => {
 
     return;
   }
-
 
   setCardOpen(true);
 };

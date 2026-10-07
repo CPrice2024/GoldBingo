@@ -64,7 +64,170 @@ const getStatusIcon = (status) => {
 
   return <Clock3 size={17} />;
 };
+let ocrWorkerPromise = null;
 
+const getOcrWorker = async () => {
+  if (!ocrWorkerPromise) {
+    ocrWorkerPromise = (
+      async () => {
+        const worker =
+          await createWorker("eng");
+
+        await worker.setParameters({
+          tessedit_char_whitelist:
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-:.",
+        });
+
+        return worker;
+      }
+    )().catch((error) => {
+      ocrWorkerPromise = null;
+      throw error;
+    });
+  }
+
+  return ocrWorkerPromise;
+};
+const prepareTelebirrOcrImage = async (
+  file,
+  crop = true
+) => {
+  const objectUrl =
+    URL.createObjectURL(file);
+
+  try {
+    const image =
+      await new Promise(
+        (resolve, reject) => {
+          const img = new Image();
+
+          img.onload = () =>
+            resolve(img);
+
+          img.onerror = () =>
+            reject(
+              new Error(
+                "Failed to load screenshot"
+              )
+            );
+
+          img.src = objectUrl;
+        }
+      );
+
+    const sourceWidth =
+      image.naturalWidth;
+
+    const sourceHeight =
+      image.naturalHeight;
+
+    /*
+     * Telebirr receipt useful area:
+     * amount + transaction time +
+     * transaction number.
+     *
+     * Try the middle receipt section first.
+     */
+    const cropX = 0;
+
+    const cropY = crop
+      ? Math.round(
+          sourceHeight * 0.25
+        )
+      : 0;
+
+    const cropWidth =
+      sourceWidth;
+
+    const cropHeight = crop
+      ? Math.round(
+          sourceHeight * 0.45
+        )
+      : sourceHeight;
+
+    /*
+     * Keep enough resolution for
+     * I / 1 and O / 0 recognition,
+     * but don't make Tesseract process
+     * a huge phone screenshot.
+     */
+    const maxWidth = 1000;
+
+    const scale =
+      Math.min(
+        1,
+        maxWidth / cropWidth
+      );
+
+    const canvas =
+      document.createElement(
+        "canvas"
+      );
+
+    canvas.width =
+      Math.max(
+        1,
+        Math.round(
+          cropWidth * scale
+        )
+      );
+
+    canvas.height =
+      Math.max(
+        1,
+        Math.round(
+          cropHeight * scale
+        )
+      );
+
+    const context =
+      canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error(
+        "Could not prepare screenshot"
+      );
+    }
+
+    context.drawImage(
+      image,
+
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    return await new Promise(
+      (resolve, reject) => {
+        canvas.toBlob(
+          (blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(
+                new Error(
+                  "Could not prepare OCR image"
+                )
+              );
+            }
+          },
+          "image/jpeg",
+          0.9
+        );
+      }
+    );
+  } finally {
+    URL.revokeObjectURL(
+      objectUrl
+    );
+  }
+};
 function Deposit() {
     const { t } = useLanguage();
 
@@ -284,6 +447,24 @@ const checkTelebirrPayment =
         Number(
           result.amount
         );
+        const matchedReference =
+  String(
+    result?.reference ||
+      reference
+  )
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g, "");
+
+if (
+  !/^D[A-Z0-9]{9}$/.test(
+    matchedReference
+  )
+) {
+  throw new Error(
+    "Invalid Telebirr transaction ID received from verification"
+  );
+}
 
       if (
         !Number.isFinite(
@@ -296,24 +477,45 @@ const checkTelebirrPayment =
         );
       }
 
-      setForm(
-        (current) => {
-          if (
-            current.reference
-              .trim()
-              .toUpperCase() !==
-            reference
-          ) {
-            return current;
-          }
+     setForm(
+  (current) => {
+    const currentReference =
+      current.reference
+        .trim()
+        .toUpperCase()
+        .replace(/\s+/g, "");
 
-          return {
-            ...current,
-            amount:
-              String(amount),
-          };
-        }
-      );
+    /*
+     * Ignore an old lookup response
+     * if the player changed the
+     * transaction ID meanwhile.
+     */
+    if (
+      currentReference !==
+      reference
+    ) {
+      return current;
+    }
+
+    return {
+      ...current,
+
+      /*
+       * Use SMS transaction ID as
+       * the authoritative reference.
+       *
+       * Example:
+       * OCR: DJ77114WNH
+       * SMS: DJ77II4WNH
+       */
+      reference:
+        matchedReference,
+
+      amount:
+        String(amount),
+    };
+  }
+);
 setTelebirrManualAmount(
   false
 );
@@ -322,7 +524,7 @@ setTelebirrManualAmount(
       );
 
       setSuccess(
-        `Telebirr payment matched: ${amount.toLocaleString()} Birr`
+        `Telebirr payment matched: ${matchedReference} — ${amount.toLocaleString()} Birr`
       );
 
     } catch (err) {
@@ -345,7 +547,14 @@ setTelebirrManualAmount(
       );
     }
   };
-
+useEffect(() => {
+  if (
+    form.paymentMethod ===
+    "telebirr"
+  ) {
+    void getOcrWorker();
+  }
+}, [form.paymentMethod]);
 useEffect(() => {
   if (
     form.paymentMethod !==
@@ -796,7 +1005,6 @@ if (!file.type.startsWith("image/")) {
   setOcrLoading(true);
   setOcrProgress(0);
 
-  let worker;
 
 let detectedCbeReceiptUrl =
   "";
@@ -829,26 +1037,78 @@ try {
       return;
     }
   }
+const worker =
+  await getOcrWorker();
 
-  worker =
-    await createWorker(
-      "eng"
+/*
+ * FAST PASS
+ * Only OCR the useful receipt area.
+ */
+const fastImage =
+  await prepareTelebirrOcrImage(
+    file,
+    true
+  );
+
+let result =
+  await worker.recognize(
+    fastImage
+  );
+
+let text =
+  result.data.text || "";
+
+let normalizedText =
+  text
+    .toUpperCase()
+    .replace(/\r/g, "\n");
+
+/*
+ * Check whether the fast crop
+ * actually contains the transaction.
+ */
+let hasReference =
+  /\bD[A-Z0-9]{9}\b/.test(
+    normalizedText
+  );
+
+/*
+ * FALLBACK
+ * If the receipt layout is different,
+ * OCR a resized full screenshot.
+ */
+if (!hasReference) {
+  console.log(
+    "[OCR] Fast crop missed reference; using full image fallback"
+  );
+
+  const fullImage =
+    await prepareTelebirrOcrImage(
+      file,
+      false
     );
 
-    await worker.setParameters({
-      tessedit_char_whitelist:
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789/-:.",
-    });
+  result =
+    await worker.recognize(
+      fullImage
+    );
 
-    const result = await worker.recognize(file);
+  text =
+    result.data.text || "";
 
-    const text = result.data.text || "";
+  normalizedText =
+    text
+      .toUpperCase()
+      .replace(/\r/g, "\n");
+}
+
+console.log(
+  "OCR extracted text:",
+  text
+);
 
     console.log("OCR extracted text:", text);
 
-    const normalizedText = text
-      .toUpperCase()
-      .replace(/\r/g, "\n");
 
       const detectedAmount =
   extractAmountFromScreenshot(
@@ -976,11 +1236,7 @@ if (transactionDate) {
     );
 
 
-  if (ageInDays < 0) {
-
-    await worker.terminate();
-
-    worker = null;
+  if (ageInDays < 0) {;
 
     setOcrError(
       t(
@@ -994,9 +1250,6 @@ if (transactionDate) {
 
   if (ageInDays >= 5) {
 
-    await worker.terminate();
-
-    worker = null;
 
     setOcrError(
       t(
@@ -1007,10 +1260,6 @@ if (transactionDate) {
     return;
   }
 }
-
-
-    await worker.terminate();
-    worker = null;
 
     // ==========================================
     // FINAL VALIDATION
@@ -1085,15 +1334,15 @@ if (
       error
     );
 
-    if (worker) {
-      try {
-        await worker.terminate();
-      } catch {}
-    }
+   console.error(
+  "OCR transaction ID error:",
+  error
+);
 
-    setOcrError(
+setOcrError(
   t("deposit.screenshotReadFailed")
 );
+
 
   } finally {
     setOcrLoading(false);
@@ -1725,6 +1974,7 @@ setVerifiedCbe(null);
 setTelebirrStage(
   "idle"
 );
+setTelebirrManualAmount(false);
 
 setOcrError("");
 setError("");
@@ -1793,7 +2043,7 @@ setSuccess("");
       "cbe" &&
     (
       cbeStage === "verified" ||
-      cbeStage === "waiting" ||
+      cbeStage === "waiting_sms" ||
       cbeStage === "approved"
     )
   )
@@ -2143,103 +2393,6 @@ setSuccess("");
   </div>
 </section>
       </div>
-
-      <section className="deposits-history">
-        <div className="history-header">
-  <div>
-    <h2>
-      {t("deposit.myDepositRequests")}
-    </h2>
-
-    <p>
-      {t("deposit.trackRequests")}
-    </p>
-  </div>
-
-  <span className="deposit-count">
-    {deposits.length}{" "}
-    {deposits.length === 1
-      ? t("deposit.request")
-      : t("deposit.requests")}
-  </span>
-</div>
-
-        {loading ? (
-          <div className="empty-state">
-            <Loader2 size={28} className="spin" />
-            <p>{t("deposit.loadingRequests")}</p>
-          </div>
-        ) : deposits.length === 0 ? (
-          <div className="empty-state">
-            <ArrowDownToLine size={32} />
-            <h3>{t("deposit.noRequests")}</h3>
-
-<p>
-  {t("deposit.requestsAppearHere")}
-</p>
-          </div>
-        ) : (
-          <div className="deposit-list">
-            {deposits.map((deposit) => (
-              <div
-                className="deposit-row"
-                key={deposit._id}
-              >
-                <div className="deposit-method-icon payment-logo">
-  <img
-    src={
-      PAYMENT_METHOD_META[
-        deposit.paymentMethod
-      ]?.icon
-    }
-    alt={
-      PAYMENT_METHOD_META[
-        deposit.paymentMethod
-      ]?.label || "Payment"
-    }
-  />
-</div>
-
-                <div className="deposit-main">
-                  <strong>
-                    {deposit.paymentMethod
-                      ?.toUpperCase()}
-                  </strong>
-
-                  <span>
-                    {formatDate(deposit.createdAt)}
-                  </span>
-
-                  {deposit.reference && (
-                    <small>
-                      {t("deposit.ref")}: {deposit.reference}
-                    </small>
-                  )}
-                </div>
-
-                <div className="deposit-amount">
-                  <strong>
-                    +{formatAmount(deposit.amount)} ETB
-                  </strong>
-                </div>
-
-                <div
-                  className={`deposit-status ${deposit.status}`}
-                >
-                  {getStatusIcon(deposit.status)}
-                  <span>
-  {deposit.status === "approved"
-    ? t("deposit.statusApproved")
-    : deposit.status === "rejected"
-    ? t("deposit.statusRejected")
-    : t("deposit.statusPending")}
-</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }

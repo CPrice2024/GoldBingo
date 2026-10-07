@@ -152,7 +152,73 @@ const extractReceivedSmsAmount = (
 
   return null;
 };
+const buildTelebirrOcrReferenceCandidates = (
+  reference: string
+): string[] => {
+  const normalized =
+    String(reference || "")
+      .trim()
+      .toUpperCase()
+      .replace(/\s+/g, "");
 
+  if (
+    !/^D[A-Z0-9]{9}$/.test(
+      normalized
+    )
+  ) {
+    return [];
+  }
+
+  /*
+   * Telebirr OCR ambiguity:
+   *
+   * I may be read as 1
+   * 1 may be read as I
+   *
+   * Keep the original candidate first.
+   */
+  let candidates: string[] = [
+    "",
+  ];
+
+  for (const char of normalized) {
+    let options = [char];
+
+    if (char === "1") {
+      options = ["1", "I"];
+    } else if (char === "I") {
+      options = ["I", "1"];
+    }
+
+    candidates =
+      candidates.flatMap(
+        (prefix) =>
+          options.map(
+            (option) =>
+              prefix + option
+          )
+      );
+
+    /*
+     * Safety limit.
+     */
+    if (candidates.length > 64) {
+      break;
+    }
+  }
+
+  return [
+    ...new Set([
+      normalized,
+      ...candidates,
+    ]),
+  ].filter(
+    (candidate) =>
+      /^D[A-Z0-9]{9}$/.test(
+        candidate
+      )
+  );
+};
 export const submitDeposit = async (
   playerId: string,
   data: CreateDepositInput
@@ -1968,18 +2034,97 @@ export const lookupTelebirrPayment =
       );
     }
 
-    const sms =
-      await PaymentSms.findOne({
+    let sms =
+  await PaymentSms.findOne({
+    agentId:
+      player.referredBy,
+
+    paymentMethod:
+      "telebirr",
+
+    reference,
+  }).sort({
+    createdAt: -1,
+  });
+
+/*
+ * OCR FALLBACK
+ *
+ * Example:
+ * OCR: DJ77114WNH
+ * SMS: DJ77II4WNH
+ */
+if (!sms) {
+  const candidates =
+    buildTelebirrOcrReferenceCandidates(
+      reference
+    ).filter(
+      (candidate) =>
+        candidate !== reference
+    );
+
+  if (candidates.length > 0) {
+    const possibleMatches =
+      await PaymentSms.find({
         agentId:
           player.referredBy,
 
         paymentMethod:
           "telebirr",
 
+        reference: {
+          $in: candidates,
+        },
+      })
+        .sort({
+          createdAt: -1,
+        })
+        .limit(5);
+
+    /*
+     * Only consider SMS records inside
+     * the allowed reverse-match window.
+     */
+    const validMatches =
+      possibleMatches.filter(
+        (candidateSms: any) => {
+          const receivedAt =
+            getPaymentSmsReceivedAt(
+              candidateSms
+            );
+
+          const ageMs =
+            Date.now() -
+            receivedAt.getTime();
+
+          return (
+            ageMs >= 0 &&
+            ageMs <=
+              PAYMENT_SMS_REVERSE_MATCH_WINDOW_MS
+          );
+        }
+      );
+
+    /*
+     * Security:
+     * Never guess if multiple SMS
+     * transactions could match the OCR.
+     */
+    if (validMatches.length === 1) {
+      sms = validMatches[0];
+    } else if (
+      validMatches.length > 1
+    ) {
+      return {
+        matched: false,
         reference,
-      }).sort({
-        createdAt: -1,
-      });
+        amount: null,
+        reason:
+          "Transaction ID could not be identified uniquely. Please enter the exact Telebirr transaction ID.",
+      };
+    }
+  }
+}
 
     if (!sms) {
       return {
@@ -1990,6 +2135,23 @@ export const lookupTelebirrPayment =
           "Matching Telebirr SMS has not arrived yet",
       };
     }
+    const matchedReference =
+  String(
+    sms.reference || reference
+  )
+    .trim()
+    .toUpperCase();
+
+const existingMatchedDeposit =
+  await findDepositByReference(
+    matchedReference
+  );
+
+if (existingMatchedDeposit) {
+  throw new Error(
+    "This transaction ID has already been used"
+  );
+}
 
     /*
      * Do not allow an SMS already
@@ -2078,13 +2240,17 @@ export const lookupTelebirrPayment =
       };
     }
 
-    return {
-      matched: true,
-      reference,
-      amount:
-        Number(amount),
-      smsReceivedAt,
-    };
+
+return {
+  matched: true,
+  reference:
+    matchedReference,
+
+  amount:
+    Number(amount),
+
+  smsReceivedAt,
+};
   };
 /* =========================================
    PROCESS NEW PAYMENT SMS
