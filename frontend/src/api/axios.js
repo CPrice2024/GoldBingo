@@ -14,21 +14,46 @@ api.interceptors.request.use(
         "accessToken"
       );
 
-    if (token) {
+    const publicRoutes = [
+      "/auth/login",
+      "/auth/register",
+      "/auth/reset-password",
+    ];
+
+    const isPublicRoute =
+      publicRoutes.some((route) =>
+        config.url?.includes(route)
+      );
+
+    /*
+     * Never attach an old JWT
+     * to login/register/reset requests.
+     */
+    if (
+      token &&
+      !isPublicRoute
+    ) {
       config.headers.Authorization =
         `Bearer ${token}`;
+    } else {
+      delete config.headers.Authorization;
     }
 
     console.log(
       "[API]",
       config.method?.toUpperCase(),
-      config.url,
+      `${config.baseURL}${config.url}`,
+      "public:",
+      isPublicRoute,
       "token:",
-      token ? "YES" : "NO"
+      token && !isPublicRoute
+        ? "YES"
+        : "NO"
     );
 
     return config;
   },
+
   (error) =>
     Promise.reject(error)
 );
@@ -37,18 +62,25 @@ api.interceptors.response.use(
   (response) => response,
 
   (error) => {
-    if (
-      error.response?.status ===
-      401
-    ) {
-      console.error(
-        "[AUTH] 401:",
-        error.config?.url
-      );
+    console.error(
+      "[API ERROR]",
+      {
+        url:
+          error.config?.url,
 
-      // Do NOT remove the current
-      // access token automatically here.
-    }
+        baseURL:
+          error.config?.baseURL,
+
+        status:
+          error.response?.status,
+
+        response:
+          error.response?.data,
+
+        message:
+          error.message,
+      }
+    );
 
     return Promise.reject(error);
   }

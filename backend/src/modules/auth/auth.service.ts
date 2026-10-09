@@ -9,7 +9,7 @@ import {
   findUserByPhoneWithPassword,
   findUsedPlayerAvatars,
 } from "./auth.repository";
-
+import { User } from "../users/user.model";
 import {
   RegisterInput,
   LoginInput,
@@ -128,26 +128,38 @@ const avatar =
   };
 };
 
-export const login = async (data: LoginInput) => {
-  const user = await findUserByPhoneWithPassword(
-  data.phone
-);
+export const login = async (
+  data: LoginInput
+) => {
+  const phone = String(data.phone).trim();
+
+  const user =
+    await findUserByPhoneWithPassword(
+      phone
+    );
 
   if (!user) {
-    throw new Error("Invalid phone number or password");
+    throw new Error(
+      "Invalid phone number or password"
+    );
   }
 
-  const passwordMatch = await bcrypt.compare(
-    data.password,
-    user.password
-  );
+  const passwordMatch =
+    await bcrypt.compare(
+      data.password,
+      user.password
+    );
 
   if (!passwordMatch) {
-    throw new Error("Invalid phone number or password");
+    throw new Error(
+      "Invalid phone number or password"
+    );
   }
 
   if (user.status !== "active") {
-    throw new Error("Account is not active");
+    throw new Error(
+      "Account is not active"
+    );
   }
 
   const payload: AuthPayload = {
@@ -155,11 +167,28 @@ export const login = async (data: LoginInput) => {
     role: user.role,
   };
 
-  const accessToken = generateToken(payload);
+  const accessToken =
+    generateToken(payload);
 
-  user.lastLogin = new Date();
-
-  await user.save();
+  /*
+   * Updating lastLogin must not prevent
+   * a valid user from logging in.
+   */
+  User.updateOne(
+    {
+      _id: user._id,
+    },
+    {
+      $set: {
+        lastLogin: new Date(),
+      },
+    }
+  ).catch((error) => {
+    console.error(
+      "[LOGIN] Failed to update lastLogin:",
+      error
+    );
+  });
 
   return {
     accessToken,

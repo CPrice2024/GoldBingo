@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "796543997792",
+    "project_id": "bingohub-fdba7",
+    "storage_bucket": "bingohub-fdba7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796543997792:android:0ab25b0764b2173aa1b005",
+        "android_client_info": {
+          "package_name": "com.goldbingo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCsdUwMMA638T0DKgCyu9bWLqCKASdU56E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
